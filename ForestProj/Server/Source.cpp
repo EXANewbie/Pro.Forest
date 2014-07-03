@@ -1,8 +1,16 @@
 #include <cstdio>
 #include <WinSock2.h>
 #include <iostream>
+#include <thread>
+#include <vector>
+#include <mutex>
+#include <map>
 
-using namespace std;
+#include "que.h"
+#include "msg.h"
+
+void each_client(SOCKET, int, SYNCHED_QUEUE *);
+void sender(SYNCHED_QUEUE *, std::map<int, SOCKET> *);
 
 void main() {
 	WSADATA wasData;
@@ -12,12 +20,12 @@ void main() {
 	SOCKADDR_IN ClientAddr;
 	int Port = 78911;
 
-	// À©µµ¿ì ¼ÒÄÏ 2.2·Î ÃÊ±âÈ­
+	// ìœˆë„ìš° ì†Œì¼“ 2.2ë¡œ ì´ˆê¸°í™”
 	int Ret;
 	if ((Ret = WSAStartup(MAKEWORD(2, 2), &wasData)) != 0) {
 		printf("WASStartup failed with error %d\n", Ret);
 		return;
-	} // ¿¬°áÀ» ±â´Ù¸®±â À§ÇÑ ¼ÒÄÏ »ı¼º
+	} // ì—°ê²°ì„ ê¸°ë‹¤ë¦¬ê¸° ìœ„í•œ ì†Œì¼“ ìƒì„±
 
 	ListeningSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (ListeningSocket == INVALID_SOCKET)
@@ -26,81 +34,55 @@ void main() {
 		return;
 	}
 
-	// bindÇÏ±â À§ÇØ SOCKADDR_IN¿¡ Æ÷Æ®¹øÈ£ Port¿Í INADDR_ANY·Î ¼³Á¤
-	// ÁÖÀÇ, È£½ºÆ® ¹ÙÀÌÆ® ¼ø¼­´Â ³×Æ®¿÷ ¹ÙÀÌÆ® ¼ø¼­·Î ¹Ù²ã¾ßÇÑ´Ù!
+	// bindí•˜ê¸° ìœ„í•´ SOCKADDR_INì— í¬íŠ¸ë²ˆí˜¸ Portì™€ INADDR_ANYë¡œ ì„¤ì •
+	// ì£¼ì˜, í˜¸ìŠ¤íŠ¸ ë°”ì´íŠ¸ ìˆœì„œëŠ” ë„¤íŠ¸ì› ë°”ì´íŠ¸ ìˆœì„œë¡œ ë°”ê¿”ì•¼í•œë‹¤!
 
 	ServerAddr.sin_family = AF_INET;
 	ServerAddr.sin_port = htons(Port);
 	ServerAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-	// bind¸¦ ÀÌ¿ëÇÏ¿© »ç¿ëÇÑ ÁÖ¼Ò ÁöÁ¤
+	// bindë¥¼ ì´ìš©í•˜ì—¬ ì‚¬ìš©í•œ ì£¼ì†Œ ì§€ì •
 
 	int tmp = bind(ListeningSocket, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr));
-	/*
-	if (bind(server, (sockaddr *)&sin, sizeof(sin) == SOCKET_ERROR))
-	{
-	wError = WSAGetLastError();
-	cerr << "Error: bin() return value == SOCKET_ERROR\n"
-	"Details: " << wError << endl;
-	WSACleanup();
-	exit(EXIT_FAILURE);
-	}*/
+
 	if (tmp == SOCKET_ERROR)
 	{
 		printf("tmp : %d %d %d %d\n", tmp, WSAGetLastError(), WSAEFAULT, WSAEADDRINUSE);
 	}
 
-	// Å¬¶óÀÌ¾ğÆ®ÀÇ ¿¬°áÀ» ±â´Ù¸²
-	// backlog´Â ÀÏ¹İÀûÀ¸·Î 5
+	// í´ë¼ì´ì–¸íŠ¸ì˜ ì—°ê²°ì„ ê¸°ë‹¤ë¦¼
+	// backlogëŠ” ì¼ë°˜ì ìœ¼ë¡œ 5
 
 	listen(ListeningSocket, 5);
 
-	printf("%d\n", WSAGetLastError());
-
-	// »õ·Î¿î ¿¬°áÀ» ÇÏ³ª ¼ö¶ô
-	int ClientAddrLen = sizeof(ClientAddr); // Å¬¶óÀÌ¾ğÆ® ¾îµå·¹½ºÀÇ ±æÀÌ¸¦ ÀúÀå
-	NewConnection = accept(ListeningSocket, (SOCKADDR *)&ClientAddr, &ClientAddrLen);
-
-	// ¿©±â¿¡ ÇÒ ÀÏÀ» Àû´Â´Ù.
-
-	cout << "¿¬°áÀÌ ¼º°øÇÏ¿´½À´Ï´Ù." << endl;
-
-	SOCKADDR_IN temp_sock;
-	int temp_sock_size = sizeof(temp_sock);
-
-	getpeername(NewConnection, (SOCKADDR *)&temp_sock, &temp_sock_size);
 	
-	cout << inet_ntoa(temp_sock.sin_addr) << endl;
+	//ìƒˆë¡œìš´ ì—°ê²°ì„ í•˜ë‚˜ ìˆ˜ë½
+	int ClientAddrLen = sizeof(ClientAddr); // í´ë¼ì´ì–¸íŠ¸ ì–´ë“œë ˆìŠ¤ì˜ ê¸¸ì´ë¥¼ ì €ì¥
 
-	while (true)
-	{
-		char buffer[1024];
-		int len;
-		if (recv(NewConnection, (char*)&len, sizeof(int), 0) != sizeof(int))
-			break;
-		int ret = recv(NewConnection, buffer, len, 0);
-		buffer[len] = '\0';
-		if (strcmp(buffer, "end") == 0)
-		{
-			strncpy_s(buffer, "Server is closed", sizeof("Server is closed"));
-			len = strlen(buffer);
-			send(NewConnection, (char *)&len, sizeof(int), 0);
-			send(NewConnection, buffer, len, 0);
-			break;
-		}
-		if (ret != len)
-		{
-			cout << "disconnected" << endl;
-			break;
-		}
-		cout << buffer << ", len " << ret << endl;
+	std::map<int, int> users;
+	std::vector<std::thread> vec;
+	std::map<int, SOCKET> *socks = new std::map<int, SOCKET>();
+	SYNCHED_QUEUE *que = new SYNCHED_QUEUE();
 
+	std::thread t1(sender, que, socks);
+
+	int User_id = 1;
+
+	while (true) {
+		NewConnection = accept(ListeningSocket, (SOCKADDR *)&ClientAddr, &ClientAddrLen);
+
+//		socks_mtx.lock();
+		(*socks)[User_id] = NewConnection;
+//		socks_mtx.unlock();
+
+		vec.push_back(std::thread(each_client, NewConnection, User_id, que));
+
+		User_id++;
 	}
 
-	closesocket(NewConnection); // ¿¬°á ¼ÒÄÏÀ» ´İ´Â´Ù.
-	closesocket(ListeningSocket); // ¸®½º´× ¼ÒÄÏÀ» ´İ´Â´Ù.
+	closesocket(ListeningSocket); // ë¦¬ìŠ¤ë‹ ì†Œì¼“ì„ ë‹«ëŠ”ë‹¤.
 
-	// Å¬¶óÀÌ¾ğÆ®ÀÇ ¿¬°áÀ» ±â´Ù¸²
+	// í´ë¼ì´ì–¸íŠ¸ì˜ ì—°ê²°ì„ ê¸°ë‹¤ë¦¼
 
 	if (WSACleanup() == SOCKET_ERROR) {
 		printf("WASCleanup failed with error %d\n", WSAGetLastError());
