@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cstdio>
 #include <WinSock2.h>
 
 void main() {
@@ -59,6 +60,8 @@ void main() {
 	NewConnection = accept(ListeningSocket, (SOCKADDR *)&ClientAddr, &ClientAddrLen);
 
 	// 여기에 할 일을 적는다.
+	
+
 
 	closesocket(NewConnection); // 연결 소켓을 닫는다.
 	closesocket(ListeningSocket); // 리스닝 소켓을 닫는다.
