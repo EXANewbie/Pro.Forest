@@ -1,34 +1,61 @@
 #include <cstdio>
 #include <WinSock2.h>
+#include <thread>
+
+#define PORT 78911
+#define SERVER_IP_ADDRESS "10.1.7.206"
+
+void receiver(SOCKET& s)
+{
+	char buf[1024];
+	int len;
+	while (true)
+	{
+		recv(s, (char*)&len, sizeof(int), 0);
+		int y=recv(s, buf, len, 0);
+		buf[y] = '\0';
+		printf("%s\n", buf);
+	}
+}
 
 void main(void)
 {
-	const char *SERVER_IP_ADDRESS = "10.1.7.206";
+
 	WSADATA wsaData;
 	SOCKET s;
 	SOCKADDR_IN ServerAddr;
-	int Port = 78911;
-
-	// À©¼Ó 2.2·Î ÃÊ±âÈ­
+	// ?ë‰ëƒ½ 2.2æ¿¡?ç¥ë‡ë¦°??
 
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
-	// Å¬¶óÀÌ¾ğÆ®¿ë ¼ÒÄÏ »ı¼º
+
+	// ?ëŒ€ì”ª?ëŒë¼µ?ëª„ìŠœ ?ëš¯í† ?ì•¹ê½¦
 
 	s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	printf("%d\n", WSAGetLastError());
 
 	ServerAddr.sin_family = AF_INET;
-	ServerAddr.sin_port = htons(Port);
+	ServerAddr.sin_port = htons(PORT);
 	ServerAddr.sin_addr.s_addr = inet_addr(SERVER_IP_ADDRESS);
 
-	// ¼­¹ö¿¡ ¿¬°á
+	// ?ì’•ì¾­???ê³Œê»
 
 	connect(s, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr));
+	printf("connection success");
 
-	// µ¥ÀÌÅÍ ¼Û½Å ºÎºĞ
+	// ?ê³—ì” ???ì„ë–Š ?ê³•ì …???ìˆˆì˜‰.
+	std::thread t(receiver, s);
 
-	printf("%d\n", WSAGetLastError());
-
+	// ?ê³—ì” ???â‰ªë–Š éºÂ€éº?
+	
+	char buf[1024]="up down left right";
+	
+	while (true)
+	{
+		int len = strlen(buf);
+		send(s, (char*)&len, sizeof(int), 0); // message header transfer
+		send(s, buf, len, 0);//message body transgfer
+	}
+	
+	
+	t.join();
 	closesocket(s);
-
 }
