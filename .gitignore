@@ -21,3 +21,5 @@
 *.app
 *.sdf
 *.opensdf
+*.tlog
+*.idb
