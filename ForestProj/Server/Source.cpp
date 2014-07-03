@@ -1,5 +1,8 @@
 #include <cstdio>
 #include <WinSock2.h>
+#include <iostream>
+
+using namespace std;
 
 void main() {
 	WSADATA wasData;
@@ -59,6 +62,40 @@ void main() {
 	NewConnection = accept(ListeningSocket, (SOCKADDR *)&ClientAddr, &ClientAddrLen);
 
 	// 여기에 할 일을 적는다.
+
+	cout << "연결이 성공하였습니다." << endl;
+
+	SOCKADDR_IN temp_sock;
+	int temp_sock_size = sizeof(temp_sock);
+
+	getpeername(NewConnection, (SOCKADDR *)&temp_sock, &temp_sock_size);
+	
+	cout << inet_ntoa(temp_sock.sin_addr) << endl;
+
+	while (true)
+	{
+		char buffer[1024];
+		int len;
+		if (recv(NewConnection, (char*)&len, sizeof(int), 0) != sizeof(int))
+			break;
+		int ret = recv(NewConnection, buffer, len, 0);
+		buffer[len] = '\0';
+		if (strcmp(buffer, "end") == 0)
+		{
+			strncpy_s(buffer, "Server is closed", sizeof("Server is closed"));
+			len = strlen(buffer);
+			send(NewConnection, (char *)&len, sizeof(int), 0);
+			send(NewConnection, buffer, len, 0);
+			break;
+		}
+		if (ret != len)
+		{
+			cout << "disconnected" << endl;
+			break;
+		}
+		cout << buffer << ", len " << ret << endl;
+
+	}
 
 	closesocket(NewConnection); // 연결 소켓을 닫는다.
 	closesocket(ListeningSocket); // 리스닝 소켓을 닫는다.
