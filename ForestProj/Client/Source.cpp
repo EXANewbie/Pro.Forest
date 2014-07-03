@@ -12,7 +12,8 @@ void receiver(SOCKET& s)
 	while (true)
 	{
 		recv(s, (char*)&len, sizeof(int), 0);
-		int y=recv(s, buf, len, 0);
+
+		int y = recv(s, buf, len, 0);
 		buf[y] = '\0';
 		printf("%s\n", buf);
 	}
@@ -24,11 +25,12 @@ void main(void)
 	WSADATA wsaData;
 	SOCKET s;
 	SOCKADDR_IN ServerAddr;
-	// ?덉냽 2.2濡?珥덇린??
+
+	// 윈속 2.2로 초기화
 
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
 
-	// ?대씪?댁뼵?몄슜 ?뚯폆 ?앹꽦
+	// 클라이언트용 소켓 생성
 
 	s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
@@ -36,26 +38,25 @@ void main(void)
 	ServerAddr.sin_port = htons(PORT);
 	ServerAddr.sin_addr.s_addr = inet_addr(SERVER_IP_ADDRESS);
 
-	// ?쒕쾭???곌껐
+	// 서버에 연결
 
 	connect(s, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr));
 	printf("connection success");
 
-	// ?곗씠???섏떊 ?곕젅???숈옉.
+	// 데이터 수신 쓰레드 동작.
 	std::thread t(receiver, s);
 
-	// ?곗씠???≪떊 遺遺?
-	
-	char buf[1024]="up down left right";
-	
+	// 데이터 송신 부분
+
+	char buf[1024] = "up down left right";
+
 	while (true)
 	{
 		int len = strlen(buf);
 		send(s, (char*)&len, sizeof(int), 0); // message header transfer
 		send(s, buf, len, 0);//message body transgfer
 	}
-	
-	
+
 	t.join();
 	closesocket(s);
 }
