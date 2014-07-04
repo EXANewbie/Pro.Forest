@@ -3,7 +3,7 @@
 #include <thread>
 
 #define PORT 78911
-#define SERVER_IP_ADDRESS "10.1.7.206"
+#define SERVER_IP_ADDRESS "10.1.7.10"
 
 void receiver(SOCKET& s)
 {
