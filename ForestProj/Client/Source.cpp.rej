@@ -1,0 +1,75 @@
+diff a/ForestProj/Client/Source.cpp b/ForestProj/Client/Source.cpp	(rejected hunks)
+@@ -1,34 +1,61 @@
+ #include <cstdio>
+ #include <WinSock2.h>
++#include <thread>
++
++#define PORT 78911
++#define SERVER_IP_ADDRESS "10.1.7.206"
++
++void receiver(SOCKET& s)
++{
++	char buf[1024];
++	int len;
++	while (true)
++	{
++		recv(s, (char*)&len, sizeof(int), 0);
++		int y = recv(s, buf, len, 0);
++		buf[y] = '\0';
++		printf("%s\n", buf);
++	}
++}
+ 
+ void main(void)
+ {
+-	const char *SERVER_IP_ADDRESS = "10.1.7.206";
++
+ 	WSADATA wsaData;
+ 	SOCKET s;
+ 	SOCKADDR_IN ServerAddr;
+-	int Port = 78911;
+-
+-	// ���� 2.2�� �ʱ�ȭ
++	// 윈속 2.2로 초기화
+ 
+ 	WSAStartup(MAKEWORD(2, 2), &wsaData);
+-	// Ŭ���̾�Ʈ�� ���� ����
++
++	// 클라이언트용 소켓 생성
+ 
+ 	s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+-	printf("%d\n", WSAGetLastError());
+ 
+ 	ServerAddr.sin_family = AF_INET;
+-	ServerAddr.sin_port = htons(Port);
++	ServerAddr.sin_port = htons(PORT);
+ 	ServerAddr.sin_addr.s_addr = inet_addr(SERVER_IP_ADDRESS);
+ 
+-	// ������ ����
++	// 서버에 연결
+ 
+ 	connect(s, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr));
++	printf("connection success");
+ 
+-	// ������ �۽� �κ�
++	// 데이터 수신 쓰레드 동작.
++	std::thread t(receiver, s);
+ 
+-	printf("%d\n", WSAGetLastError());
++	// 데이터 송신 부분
+ 
+-	closesocket(s);
++	char buf[1024] = "up down left right";
++
++	while (true)
++	{
++		int len = strlen(buf);
++		send(s, (char*)&len, sizeof(int), 0); // message header transfer
++		send(s, buf, len, 0);//message body transgfer
++	}
+ 
++
++	t.join();
++	closesocket(s);
+ }
+\ No newline at end of file
