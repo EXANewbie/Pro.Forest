@@ -6,10 +6,18 @@
 #include "que.h"
 #include "msg.h"
 #include "smap.h"
+#include "cmap.h"
+#include "types.h"
 
 using namespace std;
 
-void sender(SYNCHED_QUEUE *que, SYNCHED_MAP *socks) {
+void send_message(msg, vector<SOCKET>&);
+
+void set_single_cast(SYNCHED_SOCKET_MAP *, int, vector<SOCKET>& );
+void set_broad_cast_except_me(SYNCHED_SOCKET_MAP *, int , vector<SOCKET>& );
+void set_broad_cast_all(SYNCHED_SOCKET_MAP *, vector<SOCKET>& );
+
+void sender(SYNCHED_QUEUE *que, SYNCHED_SOCKET_MAP *socks, SYNCHED_CHARACTER_MAP *chars) {
 	
 	while (true)
 	{
@@ -17,31 +25,106 @@ void sender(SYNCHED_QUEUE *que, SYNCHED_MAP *socks) {
 		if (!que->empty()){
 			msg tmp_msg = que->front();
 			que->pop();
-			
-			socks->lock();
 
-			vector<int> vec;
-			for (auto iter = socks->begin(); iter != socks->end(); iter++) {
+			int type;
+			int len;
+			int id;
+			int x = 0, y = 0;
 
-				int ret = send(iter->second, (char *)&tmp_msg.len, sizeof(int), 0);
+			char buff[1024];
+			vector<SOCKET> receiver;
 
-				if (ret != sizeof(int)) {
-					vec.push_back(iter->first);
-				}
-
-				else{
-					send(iter->second, tmp_msg.buff, tmp_msg.len, 0);
-				}
-
-			}
-
-			for (int i = 0; i < vec.size(); ++i)
+			switch (tmp_msg.type)
 			{
-				socks->erase(vec[i]);
+			case CONNECT :
+				//정보 받고
+				for (int i = 0; i < sizeof(int); i++)
+					((char *)&id)[i] = tmp_msg.buff[i];
+
+				if (strcmp("HELLO SERVER!", tmp_msg.buff + sizeof(int))){
+					printf("Invalid Client.");
+				}
+				
+				//정보 가공
+				chars->insert(id,Character(id));
+
+				{
+					Character c = chars->find(id);
+					x = c.getX();
+					y = c.getY();
+				}
+				for (int i = 0; i < sizeof(int); i++)
+				{
+					buff[i] = ((char *)&id)[i];
+					buff[i + sizeof(int)] = ((char *)&x)[i];
+					buff[i + 2 * sizeof(int)] = ((char *)&y)[i];
+				}
+				len = 3*sizeof(int);
+				type = INIT;
+
+				//정보 보내기
+
+				set_single_cast(socks, id, receiver);
+				send_message(msg(type, len, buff), receiver);
+
+				receiver.clear();
+
+				break;
+			case INIT :
+				break;
+			case SET_USER :
+				break;
+			case MOVE_USER :
+				break;
+			case DISCONN :
+				break;
+			case ERASE_USER :
+				break;
+			default :
+				break;
 			}
-			vec.clear();
-			socks->unlock();
+			
 		}
 
+	}
+}
+
+void set_single_cast(SYNCHED_SOCKET_MAP *socks, int id, vector<SOCKET>& send_list)
+{
+	socks->lock();
+	send_list.push_back(socks->find(id));
+	socks->unlock();
+}
+
+void set_broad_cast_except_me(SYNCHED_SOCKET_MAP *socks, int id, vector<SOCKET>& send_list)
+{
+	socks->lock();
+	for (auto iter = socks->begin(); iter != socks->end(); iter++) {
+		if (iter->first == id)
+			continue;
+
+		send_list.push_back(iter->second);
+	}
+	socks->unlock();
+}
+
+void set_broad_cast_all(SYNCHED_SOCKET_MAP *socks, vector<SOCKET>& send_list)
+{
+	socks->lock();
+	for (auto iter = socks->begin(); iter != socks->end(); iter++) {
+		send_list.push_back(iter->second);
+	}
+	socks->unlock();
+}
+
+void send_message(msg msg, vector<SOCKET> &send_list) {
+	for (int i = 0; i < send_list.size(); i++) {
+		int ret = send(send_list[i], (char *)&msg.type, sizeof(int), 0);
+		if (ret != sizeof(int)) {
+			//error
+			continue;
+		}
+		send(send_list[i], (char *)&msg.len, sizeof(int), 0);
+		send(send_list[i], (char *)&msg.buff, msg.len, 0);
 	}
 }

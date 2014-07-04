@@ -1,0 +1,12 @@
+#ifndef TYPES_H
+#define TYPES_H
+
+enum TYPE {
+	CONNECT, INIT, SET_USER, MOVE_USER, DISCONN, ERASE_USER
+};
+
+enum CAST {
+	NOT_CAST, SINGLE_CAST, MULTI_CAST, BROAD_CAST
+};
+
+#endif

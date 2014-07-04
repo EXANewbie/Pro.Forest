@@ -10,9 +10,10 @@
 #include "que.h"
 #include "msg.h"
 #include "smap.h"
+#include "cmap.h"
 
 void each_client(SOCKET, int, SYNCHED_QUEUE *);
-void sender(SYNCHED_QUEUE *, SYNCHED_MAP *);
+void sender(SYNCHED_QUEUE *, SYNCHED_SOCKET_MAP *, SYNCHED_CHARACTER_MAP *);
 
 void main() {
 	WSADATA wasData;
@@ -63,10 +64,11 @@ void main() {
 
 	std::map<int, int> users;
 	std::vector<std::thread> vec;
-	SYNCHED_MAP *socks = new SYNCHED_MAP();
+	SYNCHED_SOCKET_MAP *socks = new SYNCHED_SOCKET_MAP();
+	SYNCHED_CHARACTER_MAP *chars = new SYNCHED_CHARACTER_MAP();
 	SYNCHED_QUEUE *que = new SYNCHED_QUEUE();
 
-	std::thread t1(sender, que, socks);
+	std::thread t1(sender, que, socks, chars);
 
 	int User_id = 1;
 

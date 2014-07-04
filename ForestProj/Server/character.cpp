@@ -14,6 +14,16 @@
 //	void setX(const int);
 //	void setY(const int);
 //};
+Character::Character()
+{
+}
+
+Character::Character(int ID, int x , int y )
+{
+	this->ID = ID;
+	this->x = x;
+	this->y = y;
+}
 
 const int Character::getID()
 {
@@ -22,12 +32,12 @@ const int Character::getID()
 
 const int Character::getX()
 {
-	return ID;
+	return x;
 }
 
 const int Character::getY()
 {
-	return ID;
+	return y;
 }
 
 void Character::setID(const int ID)

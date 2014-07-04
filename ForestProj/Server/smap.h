@@ -4,7 +4,7 @@
 #include <mutex>
 #include <WinSock2.h>
 
-struct SYNCHED_MAP
+struct SYNCHED_SOCKET_MAP
 {
 	typedef std::map<int, SOCKET> MAP;
 	MAP SM;
@@ -38,6 +38,10 @@ struct SYNCHED_MAP
 	void insert(int key, SOCKET value)
 	{
 		SM[key] = value;
+	}
+
+	SOCKET find(int key) {
+		return SM[key];
 	}
 };
 

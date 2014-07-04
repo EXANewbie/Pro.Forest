@@ -86,9 +86,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="character.h" />
+    <ClInclude Include="cmap.h" />
     <ClInclude Include="msg.h" />
     <ClInclude Include="que.h" />
     <ClInclude Include="smap.h" />
+    <ClInclude Include="types.h" />
+    <ClInclude Include="user_pair.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
