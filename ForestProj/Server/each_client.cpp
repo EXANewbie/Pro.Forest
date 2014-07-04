@@ -21,9 +21,7 @@ void each_client(SOCKET Connection, int User_ID, SYNCHED_QUEUE *que) {
 	// GET IP ADDRESS
 	SOCKADDR_IN temp_sock;
 	int temp_sock_size = sizeof(temp_sock);
-
 	getpeername(Connection, (SOCKADDR *)&temp_sock, &temp_sock_size);
-
 	cout << "Connect IP : " << inet_ntoa(temp_sock.sin_addr) << endl;
 
 	do
@@ -37,12 +35,12 @@ void each_client(SOCKET Connection, int User_ID, SYNCHED_QUEUE *que) {
 		recv(Connection, Buff, len, 0);
 		Buff[len] = '\0';
 
-		if (strcmp(Buff, END_MSG) == 0) // 유저가 종료 메시지를 전달한 경우
+		// 유저가 종료 메시지를 전달한 경우
+		if (strcmp(Buff, END_MSG) == 0) 
 		{
 			printf("User %d is quit", User_ID);
 			break;
 		}
-
 		printf("User %d : %s\n", User_ID, Buff);
 
 		que->push(msg(0,len,Buff));

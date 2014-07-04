@@ -1,15 +1,16 @@
 #include <WinSock2.h>
 
-
 #include <mutex>
 #include <map>
 
 #include "que.h"
 #include "msg.h"
+#include "smap.h"
 
 using namespace std;
 
-void sender(SYNCHED_QUEUE *que,map<int, SOCKET> *socks) {
+void sender(SYNCHED_QUEUE *que, SYNCHED_MAP *socks) {
+	
 	while (true)
 	{
 		// 메시지가 올 경우 이 문장들이 실행
@@ -17,24 +18,29 @@ void sender(SYNCHED_QUEUE *que,map<int, SOCKET> *socks) {
 			msg tmp_msg = que->front();
 			que->pop();
 			
-//			sock_mtx.lock();
+			socks->lock();
+
 			vector<int> vec;
 			for (auto iter = socks->begin(); iter != socks->end(); iter++) {
 
 				int ret = send(iter->second, (char *)&tmp_msg.len, sizeof(int), 0);
 
 				if (ret != sizeof(int)) {
-					(*socks)[iter->first] = SOCKET_ERROR;
-					continue;
+					vec.push_back(iter->first);
 				}
 
-				if (iter->second == SOCKET_ERROR)
-					continue;
+				else{
+					send(iter->second, tmp_msg.buff, tmp_msg.len, 0);
+				}
 
-				send(iter->second, tmp_msg.buff, tmp_msg.len, 0);
 			}
-			
-//			sock_mtx.unlock();
+
+			for (int i = 0; i < vec.size(); ++i)
+			{
+				socks->erase(vec[i]);
+			}
+			vec.clear();
+			socks->unlock();
 		}
 
 	}

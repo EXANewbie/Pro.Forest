@@ -9,9 +9,10 @@
 
 #include "que.h"
 #include "msg.h"
+#include "smap.h"
 
 void each_client(SOCKET, int, SYNCHED_QUEUE *);
-void sender(SYNCHED_QUEUE *, std::map<int, SOCKET> *);
+void sender(SYNCHED_QUEUE *, SYNCHED_MAP *);
 
 void main() {
 	WSADATA wasData;
@@ -62,7 +63,7 @@ void main() {
 
 	std::map<int, int> users;
 	std::vector<std::thread> vec;
-	std::map<int, SOCKET> *socks = new std::map<int, SOCKET>();
+	SYNCHED_MAP *socks = new SYNCHED_MAP();
 	SYNCHED_QUEUE *que = new SYNCHED_QUEUE();
 
 	std::thread t1(sender, que, socks);
@@ -72,20 +73,15 @@ void main() {
 	while (true) {
 		NewConnection = accept(ListeningSocket, (SOCKADDR *)&ClientAddr, &ClientAddrLen);
 
-//		socks_mtx.lock();
-		(*socks)[User_id] = NewConnection;
-//		socks_mtx.unlock();
+		socks->lock();
+		socks->insert(User_id, NewConnection);
+		socks->unlock();
 
 		vec.push_back(std::thread(each_client, NewConnection, User_id, que));
-
 		User_id++;
 	}
 
 	closesocket(ListeningSocket); // 리스닝 소켓을 닫는다.
 
-	// 클라이언트의 연결을 기다림
-
-	if (WSACleanup() == SOCKET_ERROR) {
-		printf("WASCleanup failed with error %d\n", WSAGetLastError());
-	}
+	
 }
