@@ -12,6 +12,7 @@ void receiver(SOCKET& s)
 	while (true)
 	{
 		recv(s, (char*)&len, sizeof(int), 0);
+
 		int y = recv(s, buf, len, 0);
 		buf[y] = '\0';
 		printf("%s\n", buf);
@@ -24,6 +25,7 @@ void main(void)
 	WSADATA wsaData;
 	SOCKET s;
 	SOCKADDR_IN ServerAddr;
+
 	// 윈속 2.2로 초기화
 
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -54,7 +56,6 @@ void main(void)
 		send(s, (char*)&len, sizeof(int), 0); // message header transfer
 		send(s, buf, len, 0);//message body transgfer
 	}
-
 
 	t.join();
 	closesocket(s);
