@@ -16,7 +16,7 @@ void sender(SYNCHED_QUEUE *que,map<int, SOCKET> *socks) {
 		if (!que->empty()){
 			msg tmp_msg = que->front();
 			que->pop();
-
+			
 //			sock_mtx.lock();
 			vector<int> vec;
 			for (auto iter = socks->begin(); iter != socks->end(); iter++) {
