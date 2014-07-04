@@ -79,11 +79,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="character.cpp" />
     <ClCompile Include="each_client.cpp" />
     <ClCompile Include="sender.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="character.h" />
     <ClInclude Include="msg.h" />
     <ClInclude Include="que.h" />
     <ClInclude Include="smap.h" />
