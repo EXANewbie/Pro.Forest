@@ -23,13 +23,14 @@ void sender(SYNCHED_QUEUE *que, SYNCHED_MAP *socks) {
 			vector<int> vec;
 			for (auto iter = socks->begin(); iter != socks->end(); iter++) {
 
-				int ret = send(iter->second, (char *)&tmp_msg.len, sizeof(int), 0);
+				int ret = send(iter->second, (char *)&tmp_msg.type, sizeof(int), 0);
 
 				if (ret != sizeof(int)) {
 					vec.push_back(iter->first);
 				}
 
 				else{
+					send(iter->second, (char *)&tmp_msg.len, sizeof(int), 0);
 					send(iter->second, tmp_msg.buff, tmp_msg.len, 0);
 				}
 

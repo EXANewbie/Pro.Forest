@@ -4,19 +4,28 @@
 
 #define PORT 78911
 #define SERVER_IP_ADDRESS "10.1.7.10"
+enum packetType{ CONNECT, INIT, SET_USER, MOVE_USER, DISCONN, ERASE_USER };
 
 void receiver(SOCKET& s)
 {
 	char buf[1024];
 	int len;
+	int type;
 	while (true)
 	{
-		recv(s, (char*)&len, sizeof(int), 0);
+		int chk=recv(s, (char*)&type, sizeof(int), 0);
+		if (chk != sizeof(int)) {
+			printf("disconnected\n");
+			break;
+		}
 
+		recv(s, (char*)&len, sizeof(int), 0);
 		int y = recv(s, buf, len, 0);
 		buf[y] = '\0';
+
 		printf("%s\n", buf);
 	}
+	
 }
 
 void main(void)
@@ -47,6 +56,11 @@ void main(void)
 	std::thread t(receiver, s);
 
 	// 데이터 송신 부분
+	int type;
+	int len;
+
+
+	send(s, (char*)&len, sizeof(int), 0);
 
 	char buf[1024] = "up down left right";
 
