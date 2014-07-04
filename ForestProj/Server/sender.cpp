@@ -7,6 +7,7 @@
 #include "msg.h"
 #include "smap.h"
 
+
 using namespace std;
 
 void sender(SYNCHED_QUEUE *que, SYNCHED_MAP *socks) {

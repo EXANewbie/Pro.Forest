@@ -1,3 +1,6 @@
+#ifndef CHARACTER_H
+#define CHARACTER_H
+
 class Character
 {
 private :
@@ -12,3 +15,5 @@ public :
 	void setX(const int);
 	void setY(const int);
 };
+
+#endif
