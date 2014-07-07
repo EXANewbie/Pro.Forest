@@ -7,8 +7,6 @@ private :
 	int ID;
 	int x, y;
 public :
-	Character();
-	Character(int, int=0, int=0);
 	const int getID();
 	const int getX();
 	const int getY();
@@ -16,13 +14,6 @@ public :
 	void setID(const int);
 	void setX(const int);
 	void setY(const int);
-<<<<<<< HEAD
-
-	~Character() 
-	{
-	}
-=======
->>>>>>> MyBranch
 };
 
 #endif
