@@ -8,7 +8,7 @@
 
 struct SYNCHED_CHARACTER_MAP
 {
-	typedef std::map<int, Character> MAP;
+	typedef std::map<SOCKET, Character> MAP;
 	MAP CM;
 	std::mutex mtx;
 
@@ -32,18 +32,18 @@ struct SYNCHED_CHARACTER_MAP
 		return CM.end();
 	}
 
-	void erase(int key)
+	void erase(SOCKET key)
 	{
 		CM.erase(key);
 	}
 
-	void insert(int key, Character& value)
+	void insert(SOCKET key, Character& value)
 	{
 		CM[key] = value;
 	}
 
-	Character find(int key) {
-		return CM[key];
+	Character* find(SOCKET key) {
+		return &CM[key];
 	}
 };
 

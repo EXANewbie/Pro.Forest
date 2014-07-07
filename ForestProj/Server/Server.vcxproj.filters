@@ -30,15 +30,15 @@
     <ClCompile Include="character.cpp">
       <Filter>Member Funtions</Filter>
     </ClCompile>
+    <ClCompile Include="send_erase_user_message.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="msg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="que.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="smap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="character.h">

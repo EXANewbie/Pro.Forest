@@ -11,8 +11,7 @@ struct msg {
 	msg(int type, int len, char *buff) {
 		this->type = type;
 		this->len = len;
-		for (int i = 0; i < len; i++)
-			this->buff[i] = buff[i];
+		memcpy(this->buff, buff, len);
 		this->buff[len] = '\0';
 	}
 };
