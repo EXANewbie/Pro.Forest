@@ -26,37 +26,51 @@ void each_client(SOCKET Connection, int User_ID, SYNCHED_QUEUE *que) {
 
 	do
 	{
-		int ret = recv(Connection, (char *)&type, sizeof(int), 0);
+		auto ret = recv(Connection, (char *)&type, sizeof(int), 0);
 		if (ret != sizeof(int)) // 비정상적인 종료의 경우
 		{
-			printf("User %d is disconnected", User_ID);
+			printf("User %d is disconnected\n", User_ID);
 			break;
 		}
 
 		recv(Connection, (char *)&len, sizeof(int), 0);
 		
 		int USER_ID_SIZE = sizeof(int) / sizeof(char);
-		for (int i = 0; i < USER_ID_SIZE; i++)
-			Buff[i] = ((char *)&User_ID)[i];
 
-			recv(Connection, Buff + USER_ID_SIZE, len, 0);
-			
-		Buff[len+USER_ID_SIZE] = '\0';
+		char* pBuf = Buff;
+		memcpy(pBuf, &User_ID, sizeof(int));
+		pBuf += sizeof(int);
+
+		int inc = 0;
+		do
+		{
+			auto ret = recv(Connection, pBuf, len, 0);
+
+			if (ret == EOF || ret == SOCKET_ERROR)
+			{
+				// 클라이언트가 죽었습니다. ㅠㅠ
+				break;
+			}
+			pBuf += ret;
+			inc += ret;
+		} while (inc < len);
+
+		if (inc > len)
+		{
+			// 패킷이... 이상한데?
+		}
+		//auto ret = recv(Connection, pBuf, len, 0);
+		
+		pBuf += ret;
+		*pBuf = '\0';
 		len += USER_ID_SIZE;
-		Buff[len] = '\0';
-
-		// 유저가 종료 메시지를 전달한 경우
 
 		int temp_user;
 		
-		for (int i = 0; i < 4; i++)
-		{
-			((char *)&temp_user)[i] = Buff[i];
-		}
-		
-		
+		pBuf = Buff;
+		memcpy(&temp_user, Buff, sizeof(int));
 
-		printf("User %d : %s\n", temp_user, Buff+4);
+		printf("User %d : %s\n", temp_user, pBuf);
 
 		que->push(msg(type,len,Buff));
 	} while (true);

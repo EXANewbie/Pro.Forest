@@ -16,6 +16,7 @@ void send_message(msg, vector<SOCKET>&);
 void set_single_cast(SYNCHED_SOCKET_MAP *, int, vector<SOCKET>&);
 void set_broad_cast_except_me(SYNCHED_SOCKET_MAP *, int, vector<SOCKET>&);
 void set_broad_cast_all(SYNCHED_SOCKET_MAP *, vector<SOCKET>&);
+void set_multicast_exist_chars(SYNCHED_SOCKET_MAP *, SYNCHED_CHARACTER_MAP *, vector<SOCKET>& );
 
 void sender(SYNCHED_QUEUE *que, SYNCHED_SOCKET_MAP *socks, SYNCHED_CHARACTER_MAP *chars) {
 
@@ -29,9 +30,10 @@ void sender(SYNCHED_QUEUE *que, SYNCHED_SOCKET_MAP *socks, SYNCHED_CHARACTER_MAP
 			int type;
 			int len;
 			int id;
-			int x = 0, y = 0;
+			int x, y;
 
 			char buff[1024];
+			char *pBuf;
 			vector<SOCKET> receiver;
 
 			switch (tmp_msg.type)
@@ -45,29 +47,77 @@ void sender(SYNCHED_QUEUE *que, SYNCHED_SOCKET_MAP *socks, SYNCHED_CHARACTER_MAP
 					printf("Invalid Client.");
 				}
 
-				//정보 가공
-				chars->insert(id, Character(id));
-
 				{
-					Character c = chars->find(id);
+					Character c(id);
 					x = c.getX();
 					y = c.getY();
-				}
-				for (int i = 0; i < sizeof(int); i++)
-				{
-					buff[i] = ((char *)&id)[i];
-					buff[i + sizeof(int)] = ((char *)&x)[i];
-					buff[i + 2 * sizeof(int)] = ((char *)&y)[i];
-				}
-				len = 3 * sizeof(int);
-				type = INIT;
 
-				//정보 보내기
+					chars->lock();
+					chars->insert(id, Character(id));
+					chars->unlock();
+				} // 임시 캐릭터 객체를 생성 후, x와 y의 초기값을 가져온다.
 
 				set_single_cast(socks, id, receiver);
-				send_message(msg(type, len, buff), receiver);
 
+				type = INIT;
+				len = 3 * sizeof(int);
+
+				pBuf = buff;
+				for (int i = 0; i < 3; i++)
+				{
+					int *param[] = { &id, &x, &y };
+					memcpy(pBuf, param[i], sizeof(int));
+					pBuf += sizeof(int);
+				}
+
+				send_message(msg(type, len, buff), receiver);
 				receiver.clear();
+
+				// CONNECT로 접속한 유저에게 다른 객체들의 정보를 전송한다.
+
+				set_single_cast(socks, id, receiver);
+
+				type = SET_USER;
+				len = 3 * sizeof(int);
+
+				chars->lock();
+				for (auto itr = chars->begin(); itr != chars->end(); itr++)
+				{
+					const int tID = itr->second.getID();
+					const int tx = itr->second.getX();
+					const int ty = itr->second.getY();
+
+					pBuf = buff;
+					for (int i = 0; i < 3; i++)
+					{
+						const int *param[] = { &tID, &tx, &ty };
+						memcpy(pBuf, param[i], sizeof(int));
+						pBuf += sizeof(int);
+					}
+
+					send_message(msg(type, len, buff), receiver);
+				}
+				chars->unlock();
+				receiver.clear();
+
+				// 현재 접속한 캐릭터의 정보를 다른 접속한 유저들에게 전송한다.
+
+				set_multicast_exist_chars(socks, chars, receiver);
+
+				type = SET_USER;
+				len = 3 * sizeof(int);
+
+				pBuf = buff;
+				for (int i = 0; i < 3; i++)
+				{
+					int *param[] = { &id, &x, &y };
+					memcpy(pBuf, param[i], sizeof(int));
+					pBuf += sizeof(int);
+				}
+
+				send_message(msg(type, len, buff), receiver);
+				
+				// 모든 처리가 끝난 후 캐릭터 맵에 삽입
 
 				break;
 			case INIT:
@@ -108,7 +158,25 @@ void set_broad_cast_except_me(SYNCHED_SOCKET_MAP *socks, int id, vector<SOCKET>&
 	socks->unlock();
 }
 
-void set_broad_cast_all(SYNCHED_SOCKET_MAP *socks, vector<SOCKET>& send_list)
+void set_multicast_exist_chars(SYNCHED_SOCKET_MAP *socks, SYNCHED_CHARACTER_MAP *chars, vector<SOCKET>& send_list)
+{
+	vector<int> id_box;
+	chars->lock();
+	for (auto itr = chars->begin(); itr != chars->end(); itr++)
+	{
+		id_box.push_back(itr->first);
+	}
+	chars->unlock();
+
+	socks->lock();
+	for (int i = 0; i < id_box.size(); i++)
+	{
+		send_list.push_back(socks->find(id_box[i]));
+	}
+	socks->unlock();
+}
+
+void set_broad_cast_all(SYNCHED_SOCKET_MAP *socks, vector< SOCKET >& send_list)
 {
 	socks->lock();
 	for (auto iter = socks->begin(); iter != socks->end(); iter++) {

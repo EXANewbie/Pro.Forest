@@ -5,7 +5,7 @@
 #include "character.h"
 
 #define PORT 78911
-#define SERVER_IP_ADDRESS "10.1.7.206"
+#define SERVER_IP_ADDRESS /*"localhost"*/"10.1.7.206"
 enum packetType{ CONNECT, INIT, SET_USER, MOVE_USER, DISCONN, ERASE_USER };
 
 

@@ -16,6 +16,7 @@ void each_client(SOCKET, int, SYNCHED_QUEUE *);
 void sender(SYNCHED_QUEUE *, SYNCHED_SOCKET_MAP *, SYNCHED_CHARACTER_MAP *);
 
 void main() {
+	printf("%d\n", sizeof(SOCKET));
 	WSADATA wasData;
 	SOCKET ListeningSocket;
 	SOCKET NewConnection;
