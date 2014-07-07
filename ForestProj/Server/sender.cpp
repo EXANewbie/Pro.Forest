@@ -22,7 +22,6 @@ void sender(SYNCHED_QUEUE *que, SYNCHED_SOCKET_MAP *socks, SYNCHED_CHARACTER_MAP
 
 	while (true)
 	{
-		// 메시지가 올 경우 이 문장들이 실행
 		if (!que->empty()){
 			msg tmp_msg = que->front();
 			que->pop();
@@ -39,7 +38,6 @@ void sender(SYNCHED_QUEUE *que, SYNCHED_SOCKET_MAP *socks, SYNCHED_CHARACTER_MAP
 			switch (tmp_msg.type)
 			{
 			case CONNECT:
-				//정보 받고
 				for (int i = 0; i < sizeof(int); i++)
 					((char *)&id)[i] = tmp_msg.buff[i];
 
@@ -74,6 +72,7 @@ void sender(SYNCHED_QUEUE *que, SYNCHED_SOCKET_MAP *socks, SYNCHED_CHARACTER_MAP
 				receiver.clear();
 
 				// CONNECT로 접속한 유저에게 다른 객체들의 정보를 전송한다.
+
 
 				set_single_cast(socks, id, receiver);
 
