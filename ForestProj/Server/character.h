@@ -16,13 +16,6 @@ public :
 	void setID(const int);
 	void setX(const int);
 	void setY(const int);
-<<<<<<< HEAD
-
-	~Character() 
-	{
-	}
-=======
->>>>>>> MyBranch
 };
 
 #endif
