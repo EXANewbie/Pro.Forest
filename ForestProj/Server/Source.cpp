@@ -6,17 +6,17 @@
 #include <vector>
 #include <mutex>
 #include <map>
+#include <set>
 
 #include "que.h"
 #include "msg.h"
-#include "smap.h"
+//#include "smap.h"
 #include "cmap.h"
 
 void each_client(SOCKET, int, SYNCHED_QUEUE *);
-void sender(SYNCHED_QUEUE *, SYNCHED_SOCKET_MAP *, SYNCHED_CHARACTER_MAP *);
+void sender(std::set<SOCKET> *, SYNCHED_QUEUE *, SYNCHED_CHARACTER_MAP *);
 
 void main() {
-	printf("%d\n", sizeof(SOCKET));
 	WSADATA wasData;
 	SOCKET ListeningSocket;
 	SOCKET NewConnection;
@@ -65,26 +65,21 @@ void main() {
 
 	std::map<int, int> users;
 	std::vector<std::thread> vec;
-	SYNCHED_SOCKET_MAP *socks = new SYNCHED_SOCKET_MAP();
+	std::set<SOCKET> *sock_set = new std::set<SOCKET>();
 	SYNCHED_CHARACTER_MAP *chars = new SYNCHED_CHARACTER_MAP();
 	SYNCHED_QUEUE *que = new SYNCHED_QUEUE();
 
-	std::thread t1(sender, que, socks, chars);
+	std::thread t1(sender, sock_set, que, chars);
 
 	int User_id = 1;
 
 	while (true) {
 		NewConnection = accept(ListeningSocket, (SOCKADDR *)&ClientAddr, &ClientAddrLen);
 
-		socks->lock();
-		socks->insert(User_id, NewConnection);
-		socks->unlock();
-
+		sock_set->insert(NewConnection);
 		vec.push_back(std::thread(each_client, NewConnection, User_id, que));
 		User_id++;
 	}
 
 	closesocket(ListeningSocket); // 리스닝 소켓을 닫는다.
-
-	
 }
