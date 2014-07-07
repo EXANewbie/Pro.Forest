@@ -21,7 +21,7 @@ void sender(SYNCHED_QUEUE *que, SYNCHED_SOCKET_MAP *socks, SYNCHED_CHARACTER_MAP
 
 	while (true)
 	{
-		// 메시지가 올 경우 이 문장들이 실행
+		// 硫붿떆吏媛 ??寃쎌슦 ??臾몄옣?ㅼ씠 ?ㅽ뻾
 		if (!que->empty()){
 			msg tmp_msg = que->front();
 			que->pop();
@@ -37,7 +37,7 @@ void sender(SYNCHED_QUEUE *que, SYNCHED_SOCKET_MAP *socks, SYNCHED_CHARACTER_MAP
 			switch (tmp_msg.type)
 			{
 			case CONNECT:
-				//정보 받고
+				//?뺣낫 諛쏄퀬
 				for (int i = 0; i < sizeof(int); i++)
 					((char *)&id)[i] = tmp_msg.buff[i];
 
@@ -45,7 +45,7 @@ void sender(SYNCHED_QUEUE *que, SYNCHED_SOCKET_MAP *socks, SYNCHED_CHARACTER_MAP
 					printf("Invalid Client.");
 				}
 
-				//정보 가공
+				//?뺣낫 媛怨?
 				chars->insert(id, Character(id));
 
 				{
@@ -62,7 +62,7 @@ void sender(SYNCHED_QUEUE *que, SYNCHED_SOCKET_MAP *socks, SYNCHED_CHARACTER_MAP
 				len = 3 * sizeof(int);
 				type = INIT;
 
-				//정보 보내기
+				//?뺣낫 蹂대궡湲?
 
 				set_single_cast(socks, id, receiver);
 				send_message(msg(type, len, buff), receiver);
