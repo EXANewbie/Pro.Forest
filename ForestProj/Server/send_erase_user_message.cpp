@@ -1,11 +1,11 @@
 #include <vector>
 
-#include "cmap.h"
 #include "types.h"
+//#include "cmap.h"
 
 using namespace std;
 
-void send_erase_user_message(SYNCHED_CHARACTER_MAP *chars, vector< pair<int, SOCKET> >& errors)
+void send_erase_user_message(Client_Map *CMap, vector< pair<int, SOCKET> >& errors)
 {
 	// 전송 실패한 유저들을 모아서 전송
 	int type = ERASE_USER;
@@ -27,13 +27,13 @@ void send_erase_user_message(SYNCHED_CHARACTER_MAP *chars, vector< pair<int, SOC
 	for (int i = 0; i < errors.size(); i++)
 	{
 		printf("error occured (char id : %d, socket : %d) \n", errors[i].first, errors[i].second);
-		chars->erase(errors[i].second);
-		closesocket(errors[i].second);
+		CMap->erase(errors[i].first);
+		closesocket(errors[i].first);
 	}
 	printf("erase success!\n");
 
-	chars->lock();
-	for (auto itr = chars->begin(); itr != chars->end(); itr++)
+	
+	for (auto itr = CMap->begin(); itr != CMap->end(); itr++)
 	{
 		auto ret = send(itr->first, (char *)&type, sizeof(int), 0);
 		if (ret != sizeof(int))
@@ -44,10 +44,10 @@ void send_erase_user_message(SYNCHED_CHARACTER_MAP *chars, vector< pair<int, SOC
 		send(itr->first, (char *)&len, sizeof(int), 0);
 		send(itr->first, (char *)buff, len, 0);
 	}
-	chars->unlock();
+
 
 	if (!repeat_errors.empty())
 	{
-		send_erase_user_message(chars, repeat_errors);
+		send_erase_user_message(CMap, repeat_errors);
 	}
 }

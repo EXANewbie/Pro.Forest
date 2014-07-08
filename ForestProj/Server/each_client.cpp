@@ -7,7 +7,7 @@
 #include "que.h"
 #include "msg.h"
 #include "types.h"
-#include "cmap.h"
+
 using namespace std;
 
 #define END_MSG "\\QUIT"
@@ -45,14 +45,18 @@ void each_client(SOCKET Connection, int User_ID, SYNCHED_QUEUE *que) {
 
 		}
 
+		int SOCKET_SIZE = 0;
+		char* pBuf = Buff;
+
+		if (type == CONNECT)
+		{
+			SOCKET_SIZE = sizeof(SOCKET) / sizeof(char);
+
+			memcpy(pBuf, &Connection, sizeof(SOCKET));
+			pBuf += sizeof(SOCKET);
+		}
 		recv(Connection, (char *)&len, sizeof(int), 0);
 		
-		int SOCKET_SIZE = sizeof(SOCKET) / sizeof(char);
-
-		char* pBuf = Buff;
-		memcpy(pBuf, &Connection, sizeof(SOCKET));
-		pBuf += sizeof(SOCKET);
-
 		int inc = 0;
 		do
 		{
