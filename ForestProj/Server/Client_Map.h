@@ -14,7 +14,11 @@ private :
 	map<int, SOCKET> id_sock;
 	map<SOCKET, int> sock_id;
 	map<int, Character> id_char;
+
+	static Client_Map *instance;
+	Client_Map(){}
 public :
+	static Client_Map *getInstance();
 	SOCKET find_id_to_sock(int);
 	Character *find_id_to_char(int);
 	Character *find_sock_to_char(SOCKET);

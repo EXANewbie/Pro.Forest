@@ -19,11 +19,12 @@ void send_message(msg, Client_Map *, vector<SOCKET> &, map<SOCKET, int>*);
 void set_single_cast(int id, Client_Map *, vector<SOCKET>&);
 void set_broad_cast_except_me(Client_Map *, int, vector<SOCKET>&);
 void set_broad_cast_all(Client_Map *, vector<SOCKET>&);
-//void set_multicast_exist_chars(SYNCHED_CHARACTER_MAP *, vector<SOCKET>& );
+void set_multicast_in_room_except_me(int id, vector<SOCKET>& send_list);
 void send_erase_user_message(Client_Map *, vector< pair<int, SOCKET> >& );
 
-void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, Client_Map *CMap, map<SOCKET, int>* Disc_User) {
-
+void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, map<SOCKET, int>* Disc_User)
+{
+	Client_Map *CMap = CMap->getInstance();
 	while (true)
 	{
 		while (!que->empty()){
@@ -170,12 +171,35 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, Client_Map *CMap, map<SOC
 				break;
 			case DISCONN:
 			{
-				memcpy(&sock, tmp_msg.buff, sizeof(SOCKET));
-				char_id = chars->find(sock)->getID();
-				printf("Character %d(Socket %d) request disconnecting\n", char_id, sock);
-				vector< pair<int, SOCKET> > errors;
-				errors.push_back(make_pair(char_id, sock));
-				send_erase_user_message(chars, errors);
+							char *pBuf = tmp_msg.buff;
+							SOCKET sock;
+							memcpy(&sock, pBuf, sizeof(SOCKET));
+							pBuf += sizeof(SOCKET);
+
+							auto pairs = Disc_User->find(sock);
+							if (pairs != Disc_User->end()) // 최초 처리일 경우
+							{
+								Disc_User->erase(pairs->first);
+
+								char_id = pairs->second;
+
+								memcpy(buff, &char_id, sizeof(int));
+								msg erase_msg(ERASE_USER, 4, buff);
+
+								set_multicast_in_room_except_me(char_id, receiver);
+								send_message( erase_msg, CMap, receiver, Disc_User);
+								receiver.clear();
+
+								CMap->erase(char_id);
+							}
+							else {
+								// do nothing
+							}
+							//char_id = CMap->find(sock)->getID();
+							//printf("Character %d(Socket %d) request disconnecting\n", char_id, sock);
+							//vector< pair<int, SOCKET> > errors;
+							//errors.push_back(make_pair(char_id, sock));
+							//send_erase_user_message(chars, errors);
 			}
 				break;
 			case ERASE_USER:
@@ -205,27 +229,28 @@ void set_broad_cast_except_me(Client_Map *CMap, int id, vector<SOCKET>& send_lis
 	}
 	//chars->unlock();
 }
-/*
-void set_multicast_exist_chars(SYNCHED_SOCKET_MAP *socks, SYNCHED_CHARACTER_MAP *chars, vector<SOCKET>& send_list)
-{
-	vector<int> id_box;
-	chars->lock();
-	for (auto itr = chars->begin(); itr != chars->end(); itr++)
-	{
-		id_box.push_back(itr->first);
-	}
-	chars->unlock();
 
-	socks->lock();
-	for (int i = 0; i < id_box.size(); i++)
-	{
-		send_list.push_back(socks->find(id_box[i]));
-	}
-	socks->unlock();
-}
-*/
-void set_broad_cast_all(Client_Map *CMap, vector< SOCKET >& send_list)
+void set_multicast_in_room_except_me(int id, vector<SOCKET>& send_list)
 {
+	Client_Map *CMap = CMap->getInstance();
+	auto now = CMap->find_id_to_char(id);
+	
+	for (auto itr = CMap->begin(); itr != CMap->end(); itr++)
+	{
+		if (now->getX() == itr->second.getX() && now->getY() == itr->second.getY())
+		{
+			if (now->getID() != itr->second.getID())
+			{
+				auto sock = CMap->find_id_to_sock(itr->first);
+				send_list.push_back(sock);
+			}
+		}
+	}
+}
+
+void set_broad_cast_all(vector< SOCKET >& send_list)
+{
+	Client_Map *CMap = CMap->getInstance();
 	//chars->lock();
 	for (auto iter = CMap->begin(); iter != CMap->end(); iter++) {
 		SOCKET sock = CMap->find_id_to_sock(iter->first);
