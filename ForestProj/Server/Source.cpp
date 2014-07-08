@@ -14,7 +14,7 @@
 #include "cmap.h"
 
 void each_client(SOCKET, SYNCHED_QUEUE *);
-void sender(std::set<SOCKET> *, SYNCHED_QUEUE *, Client_Map *,std::map<SOCKET,int>);
+void sender(std::set<SOCKET> *, SYNCHED_QUEUE *, std::map<SOCKET,int>);
 
 void main() {
 	WSADATA wasData;
@@ -65,10 +65,10 @@ void main() {
 
 	std::vector<std::thread> vec;
 	std::set<SOCKET> *sock_set = new std::set<SOCKET>();
-	Client_Map *CMap = new Client_Map();
 	SYNCHED_QUEUE *que = new SYNCHED_QUEUE();
 	std::map<SOCKET, int> * Disc_User = new std::map<SOCKET, int>();
-	std::thread t1(sender, sock_set, que, CMap,Disc_User);
+
+	std::thread t1(sender, sock_set, que, Disc_User);
 
 	while (true) {
 		NewConnection = accept(ListeningSocket, (SOCKADDR *)&ClientAddr, &ClientAddrLen);

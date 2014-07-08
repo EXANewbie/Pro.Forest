@@ -19,6 +19,14 @@
 //	pair<int, Character> end();
 //};
 
+Client_Map *Client_Map::getInstance() {
+	if (instance == NULL) {
+		instance = new Client_Map();
+	}
+
+	return instance;
+}
+
 SOCKET Client_Map::find_id_to_sock(int id)
 {
 	auto ret = id_sock.find(id);
