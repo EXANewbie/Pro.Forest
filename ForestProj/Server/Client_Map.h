@@ -4,17 +4,19 @@
 #include <map>
 #include "character.h"
 #include <WinSock2.h>
+#include <mutex>
 
 using std::map;
 using std::pair;
-
+using std::mutex;
 class Client_Map
 {
 private :
 	map<int, SOCKET> id_sock;
 	map<SOCKET, int> sock_id;
 	map<int, Character> id_char;
-
+	
+	static mutex mtx;
 	static Client_Map *instance;
 	Client_Map(){}
 public :
@@ -36,6 +38,9 @@ public :
 	
 	map<int, Character>::iterator begin();
 	map<int, Character>::iterator end();
+
+	void lock();
+	void unlock();
 };
 
 #endif

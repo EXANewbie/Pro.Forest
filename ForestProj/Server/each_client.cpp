@@ -7,12 +7,17 @@
 #include "que.h"
 #include "msg.h"
 #include "types.h"
-
+#include "Disc_user_map.h"
+#include "Client_Map.h"
 using namespace std;
 
 #define END_MSG "\\QUIT"
 
-void each_client(SOCKET Connection,  SYNCHED_QUEUE *que) {
+void each_client(SOCKET Connection) {
+	SYNCHED_QUEUE *que = SYNCHED_QUEUE::getInstance();
+	Disc_User_Map *Disc_User = Disc_User_Map::getInstance();
+	Client_Map *CMap = Client_Map::getInstance();
+	
 	int type;
 	int len;
 	char Buff[1024];
@@ -39,6 +44,11 @@ void each_client(SOCKET Connection,  SYNCHED_QUEUE *que) {
 			*pBuf = '\0';
 
 			len = pBuf - Buff;
+			CMap->lock();
+			int char_id = CMap->find_sock_to_id(Connection);
+			CMap->unlock();
+
+			Disc_User->insert(pair<SOCKET,int>(Connection, char_id));
 			que->push(msg(DISCONN, len, Buff));
 			
 			break;

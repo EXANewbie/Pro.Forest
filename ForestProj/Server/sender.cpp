@@ -10,21 +10,24 @@
 #include "types.h"
 #include "character.h"
 #include "Client_Map.h"
+#include "Disc_user_map.h"
 
 using namespace std;
 
 
-void send_message(msg, vector<SOCKET> &, map<SOCKET, int>*);
+void send_message(msg, vector<SOCKET> &);
 
-void set_single_cast(int id, vector<SOCKET>&);
-void set_broad_cast_except_me( int, vector<SOCKET>&);
+void set_single_cast(int, vector<SOCKET>&);
+void set_broad_cast_except_me(int, vector<SOCKET>&);
 void set_broad_cast_all(vector<SOCKET>&);
-void set_multicast_in_room_except_me(int id, vector<SOCKET>& send_list);
+void set_multicast_in_room_except_me(int, vector<SOCKET>&);
 //void send_erase_user_message(Client_Map *, vector< pair<int, SOCKET> >& );
 
-void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, map<SOCKET, int>* Disc_User)
+void sender(set<SOCKET> *sock_set)
 {
 	Client_Map *CMap = Client_Map::getInstance();
+	SYNCHED_QUEUE *que = SYNCHED_QUEUE::getInstance();
+	Disc_User_Map *Disc_User = Disc_User_Map::getInstance();
 	while (true)
 	{
 		while (!que->empty()){
@@ -45,7 +48,7 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, map<SOCKET, int>* Disc_Us
 			case CONNECT:
 
 				//정보 받고
-				
+
 				if (strcmp("HELLO SERVER!", tmp_msg.buff + sizeof(int))){
 					printf("Invalid Client.");
 				}
@@ -64,11 +67,13 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, map<SOCKET, int>* Disc_Us
 
 					//chars->lock();
 					sock_set->erase(sock);
+					CMap->lock();
 					CMap->insert(char_id, sock, c);
+					CMap->unlock();
 					//chars->unlock();
 				} // 임시 캐릭터 객체를 생성 후, x와 y의 초기값을 가져온다.
 
-				set_single_cast(char_id,receiver);
+				set_single_cast(char_id, receiver);
 
 				type = INIT;
 				len = 3 * sizeof(int);
@@ -82,17 +87,18 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, map<SOCKET, int>* Disc_Us
 					pBuf += sizeof(int);
 				}
 
-				send_message(msg(type, len, buff), receiver,Disc_User);
+				send_message(msg(type, len, buff), receiver);
 				receiver.clear();
 
 				// CONNECT로 접속한 유저에게 다른 객체들의 정보를 전송한다.
 
-				set_single_cast(char_id,receiver);
+				set_single_cast(char_id, receiver);
 
 				type = SET_USER;
 				len = 0;
 				pBuf = buff;
 				//chars->lock();
+				CMap->lock();
 				for (auto itr = CMap->begin(); itr != CMap->end(); itr++)
 				{
 					const int tID = itr->second.getID();
@@ -102,23 +108,25 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, map<SOCKET, int>* Disc_Us
 					if (tID == char_id) // 캐릭터 맵에 현재 들어간 내 객체의 정보를 보내려 할 때는 건너뛴다.
 						continue;
 
-					
-					for (int i = 0; i < 3; i++)
+					if (tx == x && ty == y)
 					{
-						const int *param[] = { &tID, &tx, &ty };
-						memcpy(pBuf, param[i], sizeof(int));
-						pBuf += sizeof(int);
+						for (int i = 0; i < 3; i++)
+						{
+							const int *param[] = { &tID, &tx, &ty };
+							memcpy(pBuf, param[i], sizeof(int));
+							pBuf += sizeof(int);
+						}
+						len += 3 * sizeof(int);
 					}
-//					pBuf += (sizeof(int)* 2);
-					len += 3 * sizeof(int);					
 				}
+				CMap->unlock();
 				//chars->unlock();
-				send_message(msg(type, len, buff), receiver, Disc_User);
+				send_message(msg(type, len, buff), receiver);
 				receiver.clear();
 
 				// 현재 접속한 캐릭터의 정보를 다른 접속한 유저들에게 전송한다.
 
-				set_broad_cast_except_me(char_id, receiver);
+				set_multicast_in_room_except_me(char_id, receiver);
 
 				type = SET_USER;
 				len = 3 * sizeof(int);
@@ -131,9 +139,9 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, map<SOCKET, int>* Disc_Us
 					pBuf += sizeof(int);
 				}
 
-				send_message(msg(type, len, buff), receiver, Disc_User);
+				send_message(msg(type, len, buff), receiver);
 				receiver.clear();
-				
+
 				// 모든 처리가 끝난 후 캐릭터 맵에 삽입
 
 				break;
@@ -146,6 +154,7 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, map<SOCKET, int>* Disc_Us
 							  char *pBuf = tmp_msg.buff;
 							  len = tmp_msg.len;
 							  int cur_id, x_off, y_off;
+							  int cnt;
 
 							  for (int i = 0; i < len; i += sizeof(int)* 3)
 							  {
@@ -155,18 +164,83 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, map<SOCKET, int>* Disc_Us
 									  memcpy(param[j], pBuf, sizeof(int));
 									  pBuf += sizeof(int);
 								  }
-
+								  CMap->lock();
 								  Character *now = CMap->find_id_to_char(cur_id);
+								  CMap->unlock();
+
+								  // 기존의 방의 유저들의 정보를 삭제함
+								  pBuf = buff;
+								  cnt = 0;
+								  CMap->lock();
+								  for (auto iter = CMap->begin(); iter != CMap->end(); iter++)
+								  {
+									  if (iter->second.getX() == now->getX() && iter->second.getY() == now->getY())
+									  {
+										  int nid = iter->second.getID();
+
+										  if (nid == now->getID())
+											  continue;
+
+										  memcpy(pBuf, &nid, sizeof(int));
+										  pBuf += sizeof(int);
+										  cnt++;
+									  }
+								  }
+								  CMap->unlock();
+								  set_single_cast(now->getID(), receiver);
+								  send_message(msg(ERASE_USER, sizeof(int)* cnt, buff), receiver);
+								  receiver.clear();
+
+								  // 기존 방의 유저들에게 내가 사라짐을 알림
+								  set_multicast_in_room_except_me(now->getID(), receiver);
+								  send_message(msg(ERASE_USER, sizeof(int), (char *)&cur_id), receiver);
+								  receiver.clear();
+
 								  now->setX(now->getX() + x_off);
 								  now->setY(now->getY() + y_off);
+
+								  // 새로운 방의 유저들에게 내가 등장함을 알림
+								  set_multicast_in_room_except_me(now->getID(), receiver);
+
+								  int id = now->getID(), x = now->getX(), y = now->getY();
+								  char *pBuf = buff;
+								  for (int i = 0; i < 3; i++)
+								  {
+									  int *param[] = { &id, &x, &y };
+									  memcpy(pBuf, param[i], sizeof(int));
+									  pBuf += sizeof(int);
+								  }
+
+								  send_message(msg(SET_USER, 3 * sizeof(int), buff), receiver);
+								  receiver.clear();
+
+								  // 새로운 방의 유저들의 정보를 불러옴
+								  pBuf = buff;
+								  cnt = 0;
+								  CMap->lock();
+								  for (auto iter = CMap->begin(); iter != CMap->end(); iter++)
+								  {
+									  if (iter->second.getX() == x && iter->second.getY() == y)
+									  {
+										  int nid = iter->second.getID();
+										  int nx = iter->second.getX();
+										  int ny = iter->second.getY();
+										  for (int i = 0; i < 3; i++)
+										  {
+											  int *param[] = { &nid, &nx, &ny };
+											  memcpy(pBuf, param[i], sizeof(int));
+											  pBuf += sizeof(int);
+										  }
+										  cnt++;
+									  }
+								  }
+								  CMap->unlock();
+								  set_single_cast(now->getID(), receiver);
+								  send_message(msg(SET_USER, 3 * sizeof(int)* cnt, buff), receiver);
+								  receiver.clear();
+
 								  printf("id : %d, x_off : %d, y_off : %d\n", cur_id, x_off, y_off);
 							  }
-
-							  pBuf = tmp_msg.buff ;
-
-							  set_broad_cast_all(receiver);
-							  send_message(tmp_msg, receiver,Disc_User);
-							  receiver.clear();
 			}
 				break;
 			case DISCONN:
@@ -179,18 +253,18 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, map<SOCKET, int>* Disc_Us
 							auto pairs = Disc_User->find(sock);
 							if (pairs != Disc_User->end()) // 최초 처리일 경우
 							{
-								Disc_User->erase(pairs->first);
-
 								char_id = pairs->second;
+								Disc_User->erase(pairs->first);
 
 								memcpy(buff, &char_id, sizeof(int));
 								msg erase_msg(ERASE_USER, 4, buff);
 
 								set_multicast_in_room_except_me(char_id, receiver);
-								send_message( erase_msg, receiver, Disc_User);
+								send_message(erase_msg, receiver);
 								receiver.clear();
-
+								CMap->lock();
 								CMap->erase(char_id);
+								CMap->unlock();
 							}
 							else {
 								// do nothing
@@ -215,28 +289,34 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, map<SOCKET, int>* Disc_Us
 void set_single_cast(int id, vector<SOCKET>& send_list)
 {
 	Client_Map *CMap = Client_Map::getInstance();
+	CMap->lock();
 	SOCKET sock = CMap->find_id_to_sock(id);
+	CMap->unlock();
 	send_list.push_back(sock);
 }
 
 void set_broad_cast_except_me(int id, vector<SOCKET>& send_list)
 {
 	Client_Map *CMap = Client_Map::getInstance();
-	//chars->lock();
+	CMap->lock();
 	for (auto iter = CMap->begin(); iter != CMap->end(); iter++) {
 		if (iter->first == id)
 			continue;
 		SOCKET sock = CMap->find_id_to_sock(iter->first);
 		send_list.push_back(sock);
 	}
-	//chars->unlock();
+	CMap->unlock();
 }
 
 void set_multicast_in_room_except_me(int id, vector<SOCKET>& send_list)
 {
 	Client_Map *CMap = Client_Map::getInstance();
+
+	CMap->lock();
+
 	auto now = CMap->find_id_to_char(id);
-	
+	printf("cc : %d %d\n", now->getX(), now->getY());
+
 	for (auto itr = CMap->begin(); itr != CMap->end(); itr++)
 	{
 		if (now->getX() == itr->second.getX() && now->getY() == itr->second.getY())
@@ -248,21 +328,24 @@ void set_multicast_in_room_except_me(int id, vector<SOCKET>& send_list)
 			}
 		}
 	}
+	CMap->unlock();
 }
 
 void set_broad_cast_all(vector< SOCKET >& send_list)
 {
 	Client_Map *CMap = Client_Map::getInstance();
-	//chars->lock();
+	CMap->lock();
 	for (auto iter = CMap->begin(); iter != CMap->end(); iter++) {
 		SOCKET sock = CMap->find_id_to_sock(iter->first);
 		send_list.push_back(sock);
 	}
-	//chars->unlock();
+	CMap->unlock();
 }
 
-void send_message(msg message, vector<SOCKET> &send_list, std::map<SOCKET, int>* Disc_User) {
+void send_message(msg message, vector<SOCKET> &send_list) {
 	Client_Map *CMap = Client_Map::getInstance();
+	SYNCHED_QUEUE *que = SYNCHED_QUEUE::getInstance();
+	Disc_User_Map *Disc_User = Disc_User_Map::getInstance();
 	//vector< pair<int,SOCKET> > errors;
 	for (int i = 0; i < send_list.size(); i++)
 	{
@@ -273,8 +356,11 @@ void send_message(msg message, vector<SOCKET> &send_list, std::map<SOCKET, int>*
 			auto it = Disc_User->find(sock);
 			if (it == Disc_User->end())
 			{
+				CMap->lock();
 				int erase_id = CMap->find_sock_to_id(sock);
+				CMap->unlock();
 				Disc_User->insert(pair<SOCKET, int>(sock, erase_id));
+				que->push(msg(DISCONN, sizeof(SOCKET), (char *)&sock));
 				//(*Disc_User)[sock] = erase_id;
 			}
 			continue;
@@ -287,6 +373,6 @@ void send_message(msg message, vector<SOCKET> &send_list, std::map<SOCKET, int>*
 
 	//if (!errors.empty())
 	//{
-		//send_erase_user_message(CMap, errors);
+	//send_erase_user_message(CMap, errors);
 	//}
 }

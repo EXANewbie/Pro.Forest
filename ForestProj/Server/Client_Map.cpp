@@ -102,3 +102,11 @@ map<int, Character>::iterator Client_Map::end()
 {
 	return id_char.end();
 }
+
+void Client_Map::lock() {
+	mtx.lock();
+}
+
+void Client_Map::unlock() {
+	mtx.unlock();
+}

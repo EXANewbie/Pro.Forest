@@ -32,10 +32,10 @@ public:
 		return instance;
 	}
 
-	void insert(SOCKET s,int id)
+	void insert(pair<SOCKET ,int>& pairs)
 	{
 		mtx.lock();
-		DMap.insert(pair<SOCKET, int>(s, id));
+		DMap.insert(pairs);
 		mtx.unlock();
 	}
 	void erase(SOCKET s)
@@ -44,10 +44,24 @@ public:
 		DMap.erase(s);
 		mtx.unlock();
 	}
-	int find(SOCKET s)
+	map<SOCKET, int>::iterator begin()
 	{
 		mtx.lock();
-		int ret = DMap[s];
+		auto ret = DMap.begin();
+		mtx.unlock();
+		return ret;
+	}
+	map<SOCKET, int>::iterator end()
+	{
+		mtx.lock();
+		auto ret = DMap.end();
+		mtx.unlock();
+		return ret;
+	}
+	map<SOCKET, int>::iterator find(SOCKET s)
+	{
+		mtx.lock();
+		auto ret = DMap.find(s);
 		mtx.unlock();
 		return ret;
 	}
