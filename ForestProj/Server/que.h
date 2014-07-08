@@ -5,50 +5,34 @@
 #include <mutex>
 
 #include "msg.h"
-struct SYNCHED_QUEUE {
+
+class SYNCHED_QUEUE {
+private :
 	std::queue<msg> que;
-	std::mutex mtx;
-	
-	void push(msg i) {
-		lock();
-		que.push(i);
-		unlock();
-	}
 
-	msg front() {
-		lock();
-		msg t = que.front();
-		unlock();
-		return t;
-	}
+	static std::mutex mtx;
+	static SYNCHED_QUEUE *instance;
+	SYNCHED_QUEUE() {}
+public :
+	static SYNCHED_QUEUE *getInstance() {
+		if (instance != NULL)
+			return instance;
 
-	void pop() {
-		lock();
-		que.pop();
-		unlock();
-	}
-	
-	int size() {
-		lock();
-		int t = que.size();
-		unlock();
-		return t;
-	}
-
-	bool empty() {
-		lock();
-		bool t = que.empty();
-		unlock();
-		return t;
-	}
-
-	void lock() {
 		mtx.lock();
+		if (instance == NULL)
+		{
+			instance = new SYNCHED_QUEUE();
+		}
+		mtx.unlock();
+
+		return instance;
 	}
 
-	void unlock() {
-		mtx.unlock();
-	}
+	void push(msg);
+	msg& front();
+	void pop();
+	int size();
+	bool empty();
 };
 
 #endif

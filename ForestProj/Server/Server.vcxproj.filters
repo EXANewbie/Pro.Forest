@@ -36,6 +36,9 @@
     <ClCompile Include="Client_Map.cpp">
       <Filter>Member Funtions</Filter>
     </ClCompile>
+    <ClCompile Include="que.cpp">
+      <Filter>Member Funtions</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="msg.h">
