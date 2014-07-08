@@ -56,7 +56,7 @@ void each_client(SOCKET Connection, int User_ID, SYNCHED_QUEUE *que) {
 		int inc = 0;
 		do
 		{
-			auto ret = recv(Connection, pBuf, len, 0);
+			auto ret = recv(Connection, pBuf, len-inc, 0);
 
 			if (ret == EOF || ret == SOCKET_ERROR)
 			{

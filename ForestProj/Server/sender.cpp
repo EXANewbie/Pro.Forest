@@ -24,7 +24,7 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, SYNCHED_CHARACTER_MAP *ch
 
 	while (true)
 	{
-		if (!que->empty()){
+		while (!que->empty()){
 			msg tmp_msg = que->front();
 			que->pop();
 
@@ -182,9 +182,8 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, SYNCHED_CHARACTER_MAP *ch
 			default:
 				break;
 			}
-
 		}
-
+		Sleep(1);
 	}
 }
 

@@ -26,9 +26,11 @@ void send_erase_user_message(SYNCHED_CHARACTER_MAP *chars, vector< pair<int, SOC
 
 	for (int i = 0; i < errors.size(); i++)
 	{
+		printf("error occured (char id : %d, socket : %d) \n", errors[i].first, errors[i].second);
 		chars->erase(errors[i].second);
 		closesocket(errors[i].second);
 	}
+	printf("erase success!\n");
 
 	chars->lock();
 	for (auto itr = chars->begin(); itr != chars->end(); itr++)
