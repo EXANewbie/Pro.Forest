@@ -83,6 +83,7 @@
     <ClCompile Include="Client_Map.cpp" />
     <ClInclude Include="Disc_user_map.h" />
     <ClCompile Include="each_client.cpp" />
+    <ClCompile Include="que.cpp" />
     <ClCompile Include="sender.cpp" />
     <ClCompile Include="send_erase_user_message.cpp" />
     <ClCompile Include="Source.cpp" />
