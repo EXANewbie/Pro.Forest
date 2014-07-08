@@ -10,11 +10,11 @@
 
 #include "que.h"
 #include "msg.h"
-//#include "smap.h"
+#include "Client_Map.h"
 #include "cmap.h"
 
-void each_client(SOCKET, int, SYNCHED_QUEUE *);
-void sender(std::set<SOCKET> *, SYNCHED_QUEUE *, SYNCHED_CHARACTER_MAP *);
+void each_client(SOCKET, SYNCHED_QUEUE *);
+void sender(std::set<SOCKET> *, SYNCHED_QUEUE *, Client_Map *,std::map<SOCKET,int>);
 
 void main() {
 	WSADATA wasData;
@@ -63,22 +63,18 @@ void main() {
 	//새로운 연결을 하나 수락
 	int ClientAddrLen = sizeof(ClientAddr); // 클라이언트 어드레스의 길이를 저장
 
-	std::map<int, int> users;
 	std::vector<std::thread> vec;
 	std::set<SOCKET> *sock_set = new std::set<SOCKET>();
-	SYNCHED_CHARACTER_MAP *chars = new SYNCHED_CHARACTER_MAP();
+	Client_Map *CMap = new Client_Map();
 	SYNCHED_QUEUE *que = new SYNCHED_QUEUE();
-
-	std::thread t1(sender, sock_set, que, chars);
-
-	int User_id = 1;
+	std::map<SOCKET, int> * Disc_User = new std::map<SOCKET, int>();
+	std::thread t1(sender, sock_set, que, CMap,Disc_User);
 
 	while (true) {
 		NewConnection = accept(ListeningSocket, (SOCKADDR *)&ClientAddr, &ClientAddrLen);
 
 		sock_set->insert(NewConnection);
-		vec.push_back(std::thread(each_client, NewConnection, User_id, que));
-		User_id++;
+		vec.push_back(std::thread(each_client, NewConnection, que));
 	}
 
 	closesocket(ListeningSocket); // 리스닝 소켓을 닫는다.

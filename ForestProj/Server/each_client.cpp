@@ -12,12 +12,12 @@ using namespace std;
 
 #define END_MSG "\\QUIT"
 
-void each_client(SOCKET Connection, int User_ID, SYNCHED_QUEUE *que) {
+void each_client(SOCKET Connection,  SYNCHED_QUEUE *que) {
 	int type;
 	int len;
 	char Buff[1024];
 
-	printf("User %d(Socket : %d) is connected\n", User_ID, Connection);
+	printf("User (Socket : %d) is connected\n",  Connection);
 
 	// GET IP ADDRESS
 	SOCKADDR_IN temp_sock;
@@ -41,7 +41,7 @@ void each_client(SOCKET Connection, int User_ID, SYNCHED_QUEUE *que) {
 			len = pBuf - Buff;
 			que->push(msg(DISCONN, len, Buff));
 			
-			return;
+			break;
 
 		}
 

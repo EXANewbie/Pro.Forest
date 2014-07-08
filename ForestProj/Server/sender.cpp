@@ -9,11 +9,12 @@
 //#include "cmap.h"
 #include "types.h"
 #include "character.h"
+#include "Client_Map.h"
 
 using namespace std;
 
 
-void send_message(msg, Client_Map *, vector<SOCKET> &);
+void send_message(msg, Client_Map *, vector<SOCKET> &, map<SOCKET, int>*);
 
 void set_single_cast(int id, Client_Map *, vector<SOCKET>&);
 void set_broad_cast_except_me(Client_Map *, int, vector<SOCKET>&);
@@ -21,7 +22,7 @@ void set_broad_cast_all(Client_Map *, vector<SOCKET>&);
 //void set_multicast_exist_chars(SYNCHED_CHARACTER_MAP *, vector<SOCKET>& );
 void send_erase_user_message(Client_Map *, vector< pair<int, SOCKET> >& );
 
-void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, Client_Map *CMap) {
+void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, Client_Map *CMap, map<SOCKET, int>* Disc_User) {
 
 	while (true)
 	{
@@ -80,7 +81,7 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, Client_Map *CMap) {
 					pBuf += sizeof(int);
 				}
 
-				send_message(msg(type, len, buff), CMap, receiver);
+				send_message(msg(type, len, buff), CMap, receiver,Disc_User);
 				receiver.clear();
 
 				// CONNECT로 접속한 유저에게 다른 객체들의 정보를 전송한다.
@@ -111,7 +112,7 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, Client_Map *CMap) {
 					len += 3 * sizeof(int);					
 				}
 				//chars->unlock();
-				send_message(msg(type, len, buff), CMap, receiver);
+				send_message(msg(type, len, buff), CMap, receiver, Disc_User);
 				receiver.clear();
 
 				// 현재 접속한 캐릭터의 정보를 다른 접속한 유저들에게 전송한다.
@@ -129,7 +130,7 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, Client_Map *CMap) {
 					pBuf += sizeof(int);
 				}
 
-				send_message(msg(type, len, buff), CMap, receiver);
+				send_message(msg(type, len, buff), CMap, receiver, Disc_User);
 				receiver.clear();
 				
 				// 모든 처리가 끝난 후 캐릭터 맵에 삽입
@@ -163,7 +164,7 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, Client_Map *CMap) {
 							  pBuf = tmp_msg.buff ;
 
 							  set_broad_cast_all(CMap, receiver);
-							  send_message(tmp_msg, CMap, receiver);
+							  send_message(tmp_msg, CMap, receiver,Disc_User);
 							  receiver.clear();
 			}
 				break;
@@ -233,14 +234,15 @@ void set_broad_cast_all(Client_Map *CMap, vector< SOCKET >& send_list)
 	//chars->unlock();
 }
 
-void send_message(msg message, Client_Map *CMap, vector<SOCKET> &send_list) {
+void send_message(msg message, Client_Map *CMap, vector<SOCKET> &send_list, std::map<SOCKET, int>* Disc_User) {
 	vector< pair<int,SOCKET> > errors;
 	for (int i = 0; i < send_list.size(); i++)
 	{
 		int ret = send(send_list[i], (char *)&message.type, sizeof(int), 0);
 		if (ret != sizeof(int))
 		{
-			Character c = *chars->find(send_list[i]);
+
+			Character c = *CMap->find(send_list[i]);
 			errors.push_back( make_pair(c.getID(),send_list[i]) );
 			continue;
 		}
@@ -252,6 +254,6 @@ void send_message(msg message, Client_Map *CMap, vector<SOCKET> &send_list) {
 
 	if (!errors.empty())
 	{
-		send_erase_user_message(chars, errors);
+		send_erase_user_message(CMap, errors);
 	}
 }
