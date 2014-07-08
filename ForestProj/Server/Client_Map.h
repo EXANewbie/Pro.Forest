@@ -18,14 +18,21 @@ private :
 	static Client_Map *instance;
 	Client_Map(){}
 public :
-	static Client_Map *getInstance();
+	static Client_Map *getInstance()
+	{
+		if (instance == NULL)
+		{
+			instance = new Client_Map();
+		}
+		return instance;
+	}
 	SOCKET find_id_to_sock(int);
 	Character *find_id_to_char(int);
 	Character *find_sock_to_char(SOCKET);
 	int find_sock_to_id(SOCKET);
 
 	void erase(int);
-	void insert(int, SOCKET);
+	void insert(int, SOCKET, Character&);
 	
 	map<int, Character>::iterator begin();
 	map<int, Character>::iterator end();

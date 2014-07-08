@@ -14,7 +14,8 @@
 #include "cmap.h"
 
 void each_client(SOCKET, SYNCHED_QUEUE *);
-void sender(std::set<SOCKET> *, SYNCHED_QUEUE *, std::map<SOCKET,int>);
+void sender(std::set<SOCKET> *, SYNCHED_QUEUE *, std::map<SOCKET,int> *);
+Client_Map *Client_Map::instance;
 
 void main() {
 	WSADATA wasData;

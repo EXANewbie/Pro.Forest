@@ -19,14 +19,6 @@
 //	pair<int, Character> end();
 //};
 
-Client_Map *Client_Map::getInstance() {
-	if (instance == NULL) {
-		instance = new Client_Map();
-	}
-
-	return instance;
-}
-
 SOCKET Client_Map::find_id_to_sock(int id)
 {
 	auto ret = id_sock.find(id);
@@ -94,11 +86,11 @@ void Client_Map::erase(int id)
 		id_char.erase(id);
 	}
 }
-void Client_Map::insert(int id, SOCKET sock)
+void Client_Map::insert(int id, SOCKET sock, Character &now)
 {
 	id_sock.insert(pair<int, SOCKET>(id, sock));
 	sock_id.insert(pair<SOCKET, int>(sock, id));
-	id_char.insert(pair<int, Character>(id, Character(id)));
+	id_char.insert(pair<int, Character>(id, now));
 }
 
 map<int, Character>::iterator Client_Map::begin()

@@ -6,7 +6,7 @@
 
 #include "que.h"
 #include "msg.h"
-//#include "cmap.h"
+//#include "CMap->h"
 #include "types.h"
 #include "character.h"
 #include "Client_Map.h"
@@ -16,15 +16,15 @@ using namespace std;
 
 void send_message(msg, vector<SOCKET> &, map<SOCKET, int>*);
 
-void set_single_cast(int id, Client_Map *, vector<SOCKET>&);
-void set_broad_cast_except_me(Client_Map *, int, vector<SOCKET>&);
-void set_broad_cast_all(Client_Map *, vector<SOCKET>&);
+void set_single_cast(int id, vector<SOCKET>&);
+void set_broad_cast_except_me( int, vector<SOCKET>&);
+void set_broad_cast_all(vector<SOCKET>&);
 void set_multicast_in_room_except_me(int id, vector<SOCKET>& send_list);
 //void send_erase_user_message(Client_Map *, vector< pair<int, SOCKET> >& );
 
 void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, map<SOCKET, int>* Disc_User)
 {
-	Client_Map *CMap = CMap->getInstance();
+	Client_Map *CMap = Client_Map::getInstance();
 	while (true)
 	{
 		while (!que->empty()){
@@ -64,11 +64,11 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, map<SOCKET, int>* Disc_Us
 
 					//chars->lock();
 					sock_set->erase(sock);
-					CMap->insert(char_id, sock);
+					CMap->insert(char_id, sock, c);
 					//chars->unlock();
 				} // 임시 캐릭터 객체를 생성 후, x와 y의 초기값을 가져온다.
 
-				set_single_cast(char_id, CMap,receiver);
+				set_single_cast(char_id,receiver);
 
 				type = INIT;
 				len = 3 * sizeof(int);
@@ -87,7 +87,7 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, map<SOCKET, int>* Disc_Us
 
 				// CONNECT로 접속한 유저에게 다른 객체들의 정보를 전송한다.
 
-				set_single_cast(char_id, CMap,receiver);
+				set_single_cast(char_id,receiver);
 
 				type = SET_USER;
 				len = 0;
@@ -109,7 +109,7 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, map<SOCKET, int>* Disc_Us
 						memcpy(pBuf, param[i], sizeof(int));
 						pBuf += sizeof(int);
 					}
-					pBuf += (sizeof(int)* 2);
+//					pBuf += (sizeof(int)* 2);
 					len += 3 * sizeof(int);					
 				}
 				//chars->unlock();
@@ -118,7 +118,7 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, map<SOCKET, int>* Disc_Us
 
 				// 현재 접속한 캐릭터의 정보를 다른 접속한 유저들에게 전송한다.
 
-				set_broad_cast_except_me(CMap, char_id, receiver);
+				set_broad_cast_except_me(char_id, receiver);
 
 				type = SET_USER;
 				len = 3 * sizeof(int);
@@ -164,7 +164,7 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, map<SOCKET, int>* Disc_Us
 
 							  pBuf = tmp_msg.buff ;
 
-							  set_broad_cast_all(CMap, receiver);
+							  set_broad_cast_all(receiver);
 							  send_message(tmp_msg, receiver,Disc_User);
 							  receiver.clear();
 			}
@@ -212,19 +212,21 @@ void sender(set<SOCKET> *sock_set, SYNCHED_QUEUE *que, map<SOCKET, int>* Disc_Us
 	}
 }
 
-void set_single_cast(int id, Client_Map * CMap, vector<SOCKET>& send_list)
+void set_single_cast(int id, vector<SOCKET>& send_list)
 {
+	Client_Map *CMap = Client_Map::getInstance();
 	SOCKET sock = CMap->find_id_to_sock(id);
 	send_list.push_back(sock);
 }
 
-void set_broad_cast_except_me(Client_Map *CMap, int id, vector<SOCKET>& send_list)
+void set_broad_cast_except_me(int id, vector<SOCKET>& send_list)
 {
+	Client_Map *CMap = Client_Map::getInstance();
 	//chars->lock();
 	for (auto iter = CMap->begin(); iter != CMap->end(); iter++) {
 		if (iter->first == id)
 			continue;
-		SOCKET sock = CMap->find_id_to_sock(id);
+		SOCKET sock = CMap->find_id_to_sock(iter->first);
 		send_list.push_back(sock);
 	}
 	//chars->unlock();
@@ -232,7 +234,7 @@ void set_broad_cast_except_me(Client_Map *CMap, int id, vector<SOCKET>& send_lis
 
 void set_multicast_in_room_except_me(int id, vector<SOCKET>& send_list)
 {
-	Client_Map *CMap = CMap->getInstance();
+	Client_Map *CMap = Client_Map::getInstance();
 	auto now = CMap->find_id_to_char(id);
 	
 	for (auto itr = CMap->begin(); itr != CMap->end(); itr++)
@@ -250,7 +252,7 @@ void set_multicast_in_room_except_me(int id, vector<SOCKET>& send_list)
 
 void set_broad_cast_all(vector< SOCKET >& send_list)
 {
-	Client_Map *CMap = CMap->getInstance();
+	Client_Map *CMap = Client_Map::getInstance();
 	//chars->lock();
 	for (auto iter = CMap->begin(); iter != CMap->end(); iter++) {
 		SOCKET sock = CMap->find_id_to_sock(iter->first);
@@ -260,7 +262,7 @@ void set_broad_cast_all(vector< SOCKET >& send_list)
 }
 
 void send_message(msg message, vector<SOCKET> &send_list, std::map<SOCKET, int>* Disc_User) {
-	Client_Map *CMap = CMap->getInstance();
+	Client_Map *CMap = Client_Map::getInstance();
 	//vector< pair<int,SOCKET> > errors;
 	for (int i = 0; i < send_list.size(); i++)
 	{
