@@ -33,6 +33,9 @@
     <ClCompile Include="send_erase_user_message.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Client_Map.cpp">
+      <Filter>Member Funtions</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="msg.h">
@@ -51,6 +54,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Client_Map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

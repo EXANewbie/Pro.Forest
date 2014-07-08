@@ -80,6 +80,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="character.cpp" />
+    <ClCompile Include="Client_Map.cpp" />
     <ClCompile Include="each_client.cpp" />
     <ClCompile Include="sender.cpp" />
     <ClCompile Include="send_erase_user_message.cpp" />
@@ -87,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="character.h" />
+    <ClInclude Include="Client_Map.h" />
     <ClInclude Include="cmap.h" />
     <ClInclude Include="msg.h" />
     <ClInclude Include="que.h" />
