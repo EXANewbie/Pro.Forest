@@ -235,19 +235,25 @@ void set_broad_cast_all(Client_Map *CMap, vector< SOCKET >& send_list)
 }
 
 void send_message(msg message, Client_Map *CMap, vector<SOCKET> &send_list, std::map<SOCKET, int>* Disc_User) {
+
 	vector< pair<int,SOCKET> > errors;
 	for (int i = 0; i < send_list.size(); i++)
 	{
-		int ret = send(send_list[i], (char *)&message.type, sizeof(int), 0);
+		SOCKET sock = send_list[i];
+		int ret = send(sock, (char *)&message.type, sizeof(int), 0);
 		if (ret != sizeof(int))
 		{
-
-			Character c = *CMap->find(send_list[i]);
-			errors.push_back( make_pair(c.getID(),send_list[i]) );
+			auto it = Disc_User->find(sock);
+			if (it == Disc_User->end())
+			{
+				int erase_id = CMap->find_sock_to_id(sock);
+				Disc_User->insert(pair<SOCKET, int>(sock, erase_id));
+				//(*Disc_User)[sock] = erase_id;
+			}
 			continue;
 		}
-		send(send_list[i], (char *)&message.len, sizeof(int), 0);
-		send(send_list[i], (char *)&message.buff, message.len, 0);
+		send(sock, (char *)&message.len, sizeof(int), 0);
+		send(sock, (char *)&message.buff, message.len, 0);
 	}
 
 	// 전송 실패한 유저들을 모아서 전송

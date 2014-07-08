@@ -2,7 +2,7 @@
 
 #include "types.h"
 //#include "cmap.h"
-
+#include "Client_Map.h"
 using namespace std;
 
 void send_erase_user_message(Client_Map *CMap, vector< pair<int, SOCKET> >& errors)
