@@ -7,7 +7,7 @@
 #include "cmap.h"
 
 #define PORT 78911
-#define SERVER_IP_ADDRESS /*"localhost"*/"10.1.7.10"/*206"*/
+#define SERVER_IP_ADDRESS /*"localhost"*/"10.1.7.206"/*206"*/
 enum packetType{ CONNECT, INIT, SET_USER, MOVE_USER, DISCONN, ERASE_USER };
 
 void send_move(const SOCKET s,const char& c,const int& myID);
@@ -28,6 +28,7 @@ void receiver(const SOCKET s, int* myID, SYNCHED_CHARACTER_MAP* chars)
 		recv(s, (char*)&len, sizeof(int), 0);		
 
 		int end = recv(s, buf, len, 0);
+
 		buf[end] = '\0';
 
 		if (type == SET_USER)
@@ -146,6 +147,7 @@ void main(void)
 	//CONNECT 전송.
 	type = CONNECT;
 	//strncpy_s(buf, "HELLO SERVER!",13);
+	printf("%d\n", sizeof("HELLO SERVER!"));
 	memcpy(buf, "HELLO SERVER!", sizeof("HELLO SERVER!"));
 	len = strlen(buf);
 	send(s, (char*)&type, sizeof(int), 0);
