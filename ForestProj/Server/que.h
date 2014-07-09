@@ -14,10 +14,10 @@ private :
 	static SYNCHED_QUEUE *instance;
 	SYNCHED_QUEUE() {}
 public :
+
 	static SYNCHED_QUEUE *getInstance() {
 		if (instance != NULL)
 			return instance;
-
 		mtx.lock();
 		if (instance == NULL)
 		{

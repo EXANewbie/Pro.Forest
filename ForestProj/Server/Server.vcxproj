@@ -94,6 +94,7 @@
     <ClInclude Include="cmap.h" />
     <ClInclude Include="msg.h" />
     <ClInclude Include="que.h" />
+    <ClInclude Include="Synched_list.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="user_pair.h" />
   </ItemGroup>

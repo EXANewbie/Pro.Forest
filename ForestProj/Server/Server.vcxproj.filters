@@ -65,5 +65,8 @@
     <ClInclude Include="Disc_user_map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Synched_list.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
