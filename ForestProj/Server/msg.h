@@ -12,7 +12,6 @@ struct msg {
 		this->type = type;
 		this->len = len;
 		memcpy(this->buff, buff, len);
-		this->buff[len] = '\0';
 	}
 };
 

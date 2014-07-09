@@ -253,6 +253,9 @@ void sender(set<SOCKET> *sock_set)
 							auto pairs = Disc_User->find(sock);
 							if (pairs != Disc_User->end()) // 최초 처리일 경우
 							{
+								char_id = CMap->find_sock_to_char(sock)->getID();
+								printf("Character %d(Socket %d) request disconnecting\n", char_id, sock);
+
 								char_id = pairs->second;
 								Disc_User->erase(pairs->first);
 
@@ -269,8 +272,6 @@ void sender(set<SOCKET> *sock_set)
 							else {
 								// do nothing
 							}
-							//char_id = CMap->find(sock)->getID();
-							//printf("Character %d(Socket %d) request disconnecting\n", char_id, sock);
 							//vector< pair<int, SOCKET> > errors;
 							//errors.push_back(make_pair(char_id, sock));
 							//send_erase_user_message(chars, errors);
@@ -315,7 +316,6 @@ void set_multicast_in_room_except_me(int id, vector<SOCKET>& send_list)
 	CMap->lock();
 
 	auto now = CMap->find_id_to_char(id);
-	printf("cc : %d %d\n", now->getX(), now->getY());
 
 	for (auto itr = CMap->begin(); itr != CMap->end(); itr++)
 	{
@@ -347,10 +347,33 @@ void send_message(msg message, vector<SOCKET> &send_list) {
 	SYNCHED_QUEUE *que = SYNCHED_QUEUE::getInstance();
 	Disc_User_Map *Disc_User = Disc_User_Map::getInstance();
 	//vector< pair<int,SOCKET> > errors;
+
+	char buf[1024];
 	for (int i = 0; i < send_list.size(); i++)
 	{
 		SOCKET sock = send_list[i];
-		int ret = send(sock, (char *)&message.type, sizeof(int), 0);
+		char* pBuf = buf;
+		int tlen = 0;
+		memcpy(pBuf, &message.type, sizeof(int));
+		pBuf += sizeof(int);
+		tlen += sizeof(int);
+		memcpy(pBuf, &message.len, sizeof(int));
+		pBuf += sizeof(int);
+		tlen += sizeof(int);
+		memcpy(pBuf, message.buff, message.len);
+		tlen += message.len;
+		
+		
+//		for (int inc = 0; inc < tlen;)
+//		{
+			int ret = send(sock, buf/*+inc*/, tlen/*-inc*/, 0);
+//			if (ret != SOCKET_ERROR)
+//			{
+//				inc += ret;
+//			}
+//		}
+
+		/*int ret = send(sock, (char *)&message.type, sizeof(int), 0);
 		if (ret != sizeof(int))
 		{
 			auto it = Disc_User->find(sock);
@@ -366,7 +389,7 @@ void send_message(msg message, vector<SOCKET> &send_list) {
 			continue;
 		}
 		send(sock, (char *)&message.len, sizeof(int), 0);
-		send(sock, (char *)&message.buff, message.len, 0);
+		send(sock, (char *)&message.buff, message.len, 0);*/
 	}
 
 	// 전송 실패한 유저들을 모아서 전송

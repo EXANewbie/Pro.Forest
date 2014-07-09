@@ -13,17 +13,22 @@
 #include "Client_Map.h"
 #include "cmap.h"
 #include "Disc_user_map.h"
+#include "Synched_list.h"
 
-void each_client(SOCKET);
+void each_client();
 void sender(std::set<SOCKET> *);
 Client_Map *Client_Map::instance;
 SYNCHED_QUEUE *SYNCHED_QUEUE::instance;
 Disc_User_Map *Disc_User_Map::instance;
+Synched_List *Synched_List::instance;
 
 std::mutex Client_Map::mtx;
 std::mutex SYNCHED_QUEUE::mtx;
 std::mutex Disc_User_Map::mtx;
+std::mutex Synched_List::mtx;
 
+using std::cout;
+using std::endl;
 
 void main() {
 	WSADATA wasData;
@@ -72,17 +77,32 @@ void main() {
 	//새로운 연결을 하나 수락
 	int ClientAddrLen = sizeof(ClientAddr); // 클라이언트 어드레스의 길이를 저장
 
-	std::vector<std::thread> vec;
 	std::set<SOCKET> *sock_set = new std::set<SOCKET>();
 
 	std::thread t1(sender, sock_set);
+	std::thread t2(each_client); // each_client -> receiver
+
+	u_long ul = 1;
+
+	Synched_List *List = Synched_List::getInstance();
 
 	while (true) {
 		NewConnection = accept(ListeningSocket, (SOCKADDR *)&ClientAddr, &ClientAddrLen);
 
-		sock_set->insert(NewConnection);
-		vec.push_back(std::thread(each_client, NewConnection));
-	}
+		printf("User (Socket : %d) is connected\n", NewConnection);
 
+		// GET IP ADDRESS
+		SOCKADDR_IN temp_sock;
+		int temp_sock_size = sizeof(temp_sock);
+		getpeername(NewConnection, (SOCKADDR *)&temp_sock, &temp_sock_size);
+		cout << "Connect IP : " << inet_ntoa(temp_sock.sin_addr) << endl;
+
+		ioctlsocket(NewConnection, FIONBIO, &ul); // set Non-Blocking Socket
+
+		List->push_back(NewConnection);
+
+		sock_set->insert(NewConnection);
+	}
+	 
 	closesocket(ListeningSocket); // 리스닝 소켓을 닫는다.
 }
