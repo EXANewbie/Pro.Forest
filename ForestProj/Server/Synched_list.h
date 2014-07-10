@@ -54,6 +54,15 @@ public :
 		slist.push_back(s);
 		mtx.unlock();
 	}
+
+	bool empty()
+	{
+		mtx.lock();
+		bool res = slist.empty();
+		mtx.unlock();
+
+		return res;
+	}
 };
 
 #endif

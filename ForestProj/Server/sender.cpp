@@ -257,7 +257,7 @@ void sender(set<SOCKET> *sock_set)
 								printf("Character %d(Socket %d) request disconnecting\n", char_id, sock);
 
 								char_id = pairs->second;
-								Disc_User->erase(pairs->first);
+								Disc_User->erase(pairs);
 
 								memcpy(buff, &char_id, sizeof(int));
 								msg erase_msg(ERASE_USER, 4, buff);
