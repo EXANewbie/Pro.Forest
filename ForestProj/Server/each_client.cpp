@@ -27,7 +27,7 @@ void each_client() {
 
 	do
 	{
-		for (auto itr = List->begin(); itr != List->end(); itr++)
+		for (auto itr = List->begin(); itr != List->end();)
 		{
 			SOCKET Connection = *itr;
 			int ret = recv(Connection, (char *)&type, sizeof(int), 0);
@@ -38,6 +38,7 @@ void each_client() {
 				// 소켓에서 메시지를 아직 받지 못한 경우
 				//printf("nerror : %d\n", nError);
 				// 건너뜁시다!! 아직 안온거니까
+				itr++;
 			}
 			else if (nError == 0)
 			{
@@ -60,11 +61,13 @@ void each_client() {
 					Disc_User->insert(pair<SOCKET, int>(Connection, char_id));
 					que->push(msg(DISCONN, len, Buff));
 
+					auto itr2 = itr;
+					itr2++;
+
 					List->erase(itr);
 					closesocket(Connection); // 연결 소켓을 닫는다.
 
-					if (itr == List->end())
-						break;
+					itr = itr2;
 				}
 				else if (type == CONNECT) // 새로 들어온 경우
 				{
@@ -96,6 +99,7 @@ void each_client() {
 					len += sizeof(SOCKET);
 					*pBuf = '/0';
 					que->push(msg(type, len, Buff));
+					itr++;
 				}
 				else // 나머지 문자의 경우
 				{
@@ -119,6 +123,7 @@ void each_client() {
 					}
 
 					que->push(msg(type, len, Buff));
+					itr++;
 				}
 			}
 			else
@@ -138,11 +143,12 @@ void each_client() {
 				Disc_User->insert(pair<SOCKET, int>(Connection, char_id));
 				que->push(msg(DISCONN, len, Buff));
 
+				auto itr2 = itr;
+				itr2++;
 				List->erase(itr);
 				closesocket(Connection); // 연결 소켓을 닫는다.
 
-				if (itr == List->end())
-					break;
+				itr = itr2;
 			}
 		}
 		Sleep(1);
