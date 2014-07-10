@@ -44,6 +44,12 @@ public:
 		DMap.erase(s);
 		mtx.unlock();
 	}
+	void erase(map<SOCKET, int>::iterator s)
+	{
+		mtx.lock();
+		DMap.erase(s);
+		mtx.unlock();
+	}
 	map<SOCKET, int>::iterator begin()
 	{
 		mtx.lock();
