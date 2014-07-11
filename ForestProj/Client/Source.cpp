@@ -27,10 +27,8 @@ void receiver(const SOCKET s, int* myID, SYNCHED_CHARACTER_MAP* chars)
 			printf("disconnected\n");
 			break;
 		}
-		recv(s, (char*)&len, sizeof(int), 0);		
-
+		int tmp1 = recv(s, (char*)&len, sizeof(int), 0);		
 		int end = recv(s, buf, len, 0);
-
 		buf[end] = '\0';
 
 		if (type == SET_USER)
@@ -138,7 +136,7 @@ void main(void)
 	// 서버에 연결
 
 	connect(s, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr));
-	printf("connection success");
+	printf("connection success\n");
 
 
 	// 데이터 송신 부분
@@ -149,12 +147,18 @@ void main(void)
 	//CONNECT 전송.
 	type = CONNECT;
 	//strncpy_s(buf, "HELLO SERVER!",13);
-	printf("%d\n", sizeof("HELLO SERVER!"));
-	memcpy(buf, "HELLO SERVER!", sizeof("HELLO SERVER!"));
-	len = strlen(buf);
-	send(s, (char*)&type, sizeof(int), 0);
-	send(s, (char*)&len, sizeof(int), 0);
-	send(s, buf, len, 0);
+	//printf("%d\n", sizeof("HELLO SERVER!"));
+	
+	char* pBuf = buf;
+	memcpy(pBuf, (char *)&type, sizeof(int));
+	pBuf += sizeof(int);
+	len = sizeof("HELLO SERVER!");
+	memcpy(pBuf, (char *)&len, sizeof(int));
+	pBuf += sizeof(int);
+	memcpy(pBuf, "HELLO SERVER!", sizeof("HELLO SERVER!"));
+
+	send(s, buf, len + sizeof(int)* 2, 0);
+//	send(s, buf, len + sizeof(int)* 2, 0);
 	
 	//자신의 캐릭터 생성
 	int myID;
@@ -199,17 +203,25 @@ void send_move(const SOCKET s, const char& c, const int& myID)
 	else if (c == 's'){	x_off = 0;	y_off = 1;}
 	else if (c == 'd'){	x_off = 1;	y_off = 0;}
 	
+	len = sizeof(int)* 3;
+
 	char* pBuf = buf;
+	memcpy(pBuf, (char *)&type, sizeof(int));
+	pBuf += sizeof(int);
+
+	memcpy(pBuf, (char *)&len, sizeof(int));
+	pBuf += sizeof(int);
+	
 	memcpy(pBuf, &myID, sizeof(int));
 	pBuf += sizeof(int);
 	memcpy(pBuf, &x_off, sizeof(int));
 	pBuf += sizeof(int);
 	memcpy(pBuf, &y_off, sizeof(int));
 	pBuf += sizeof(int);
-	len = sizeof(int)* 3;
+	
 
-	send(s, (char*)&type, sizeof(int), 0);
-	send(s, (char*)&len, sizeof(int), 0);
-	send(s, buf, len, 0);
+	send(s, buf, len+sizeof(int)*2, 0);
+
+
 
 }
