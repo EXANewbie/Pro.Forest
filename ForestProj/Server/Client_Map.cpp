@@ -86,6 +86,25 @@ void Client_Map::erase(int id)
 		id_char.erase(id);
 	}
 }
+
+void Client_Map::erase(SOCKET sock)
+{
+	auto id = find_sock_to_id(sock);
+
+	if (sock != SOCKET_ERROR)
+	{
+		sock_id.erase(sock);
+		id_sock.erase(id);
+	}
+
+	auto cha = find_id_to_char(id);
+
+	if (cha != NULL)
+	{
+		id_char.erase(id);
+	}
+}
+
 void Client_Map::insert(int id, SOCKET sock, Character &now)
 {
 	id_sock.insert(pair<int, SOCKET>(id, sock));

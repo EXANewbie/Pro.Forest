@@ -81,11 +81,13 @@
   <ItemGroup>
     <ClCompile Include="character.cpp" />
     <ClCompile Include="Client_Map.cpp" />
+    <ClInclude Include="Completion_Port.h" />
     <ClInclude Include="Disc_user_map.h" />
     <ClCompile Include="each_client.cpp" />
     <ClCompile Include="que.cpp" />
     <ClCompile Include="sender.cpp" />
     <ClCompile Include="send_erase_user_message.cpp" />
+    <ClCompile Include="Server_Worker.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>

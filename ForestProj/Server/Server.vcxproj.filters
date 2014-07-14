@@ -39,6 +39,9 @@
     <ClCompile Include="que.cpp">
       <Filter>Member Funtions</Filter>
     </ClCompile>
+    <ClCompile Include="Server_Worker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="msg.h">
@@ -66,6 +69,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Synched_list.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Completion_Port.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
