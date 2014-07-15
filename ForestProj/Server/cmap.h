@@ -11,7 +11,7 @@ struct SYNCHED_CHARACTER_MAP
 	typedef std::map<SOCKET, Character> MAP;
 	MAP CM;
 	std::mutex mtx;
-
+	
 	void lock()
 	{
 		mtx.lock();

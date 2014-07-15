@@ -34,6 +34,7 @@ public :
 	int find_sock_to_id(SOCKET);
 
 	void erase(int);
+	void erase(SOCKET);
 	void insert(int, SOCKET, Character&);
 	
 	map<int, Character>::iterator begin();
