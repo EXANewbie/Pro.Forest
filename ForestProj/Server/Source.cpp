@@ -97,6 +97,8 @@ void main() {
 		getpeername(NewConnection, (SOCKADDR *)&temp_sock, &temp_sock_size);
 		cout << "Connect IP : " << inet_ntoa(temp_sock.sin_addr) << endl;
 
+		bool opt = TRUE;
+		setsockopt(NewConnection, IPPROTO_TCP, TCP_NODELAY, (char *)&opt, sizeof(opt));
 		ioctlsocket(NewConnection, FIONBIO, &ul); // set Non-Blocking Socket
 
 		List->push_back(NewConnection);
