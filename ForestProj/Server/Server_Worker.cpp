@@ -8,12 +8,17 @@
 #include "msg.h"
 #include "Sock_set.h"
 
+#include <Windows.h>
+
 using std::vector;
 
 void set_single_cast(int , vector<SOCKET>& );
 void set_multicast_in_room_except_me(int, vector<SOCKET>&);
 void send_message(msg , vector<SOCKET> &);
 void unpack(msg, char *, int *);
+void closeClient(SOCKET sock);
+
+extern CRITICAL_SECTION cs;
 
 unsigned WINAPI Server_Worker(LPVOID pComPort)
 {
@@ -38,7 +43,8 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 		puts("MESSAGE RECEIVED!");
 		if ( bytesTrans == 0) // 올바르지 않은 종류의 경우
 		{
-			closesocket(sock);
+			printf("나옴ㅋ\n");
+			closeClient(sock);
 			free(handleInfo); free(ioInfo);
 			continue;
 		}
@@ -57,22 +63,19 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 		if (type == DISCONN) // 정상적인 종료의 경우
 		{
 			memcpy(buf, ioInfo->buffer + readbyte, len);
-			if (strcmp(DSCMSG, buf))
+			if (strcmp("BYE SERVER!", buf))
 			{
 				//가짜 클라이언트
 			}
 
-			CMap->lock();
-			CMap->erase(sock);
-			CMap->unlock();
-						
-			closesocket(sock); // 연결 소켓을 닫는다.
-
+			closeClient(sock);
+			free(handleInfo); free(ioInfo);
+			continue;
 		}
 		else if (type == CONNECT) // 새로 들어온 경우
 		{
 			memcpy(buf, ioInfo->buffer + readbyte, len);
-			if (strcmp(CONMSG, buf))
+			if (strcmp("HELLO SERVER!", buf))
 			{
 				//가짜 클라이언트
 			}
@@ -90,7 +93,6 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 			y = c.getY();
 			id++;
 
-			
 			sock_set->erase(sock);
 			CMap->lock();
 			CMap->insert(char_id, sock, c);
@@ -166,12 +168,14 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 
 			int writebyte;
 
+			writebyte = 0;
 			for (int i = 0; i < len; i += sizeof(int)* 3)
 			{
 				int *param[] = { &cur_id, &x_off, &y_off };
 				for (int j = 0; j < 3; j++)
 				{
-					memcpy(param[j], buf+i, sizeof(int));
+					memcpy(param[j], buf+writebyte, sizeof(int));
+					writebyte += sizeof(int);
 				}
 
 				CMap->lock();
@@ -217,8 +221,6 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				now->setY(now->getY() + y_off);
 
 				// 새로운 방의 유저들에게 내가 등장함을 알림
-				set_multicast_in_room_except_me(now->getID(), receiver);
-
 				int id = now->getID(), x = now->getX(), y = now->getY();
 				pBuf = nbuf;
 				for (int i = 0; i < 3; i++)
@@ -228,8 +230,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					pBuf += sizeof(int);
 				}
 
-				
-
+				set_multicast_in_room_except_me(now->getID(), receiver);
 				send_message(msg(SET_USER, 3 * sizeof(int), nbuf), receiver);
 				receiver.clear();
 
@@ -308,6 +309,8 @@ void set_multicast_in_room_except_me(int id, vector<SOCKET>& send_list)
 	CMap->unlock();
 }
 
+
+
 void send_message(msg message, vector<SOCKET> &send_list) {
 	Client_Map *CMap = Client_Map::getInstance();
 	Disc_User_Map *Disc_User = Disc_User_Map::getInstance();
@@ -326,8 +329,15 @@ void send_message(msg message, vector<SOCKET> &send_list) {
 	{
 		SOCKET sock = send_list[i];
 
-		WSASend(sock, &wsabuf, 1, NULL, 0, NULL, NULL);
-
+		//int ret = WSASend(sock, &wsabuf, 1, NULL, 0, NULL, NULL);
+		send(sock, buff, len, 0);
+/*		if (ret == SOCKET_ERROR)
+		{
+			printf("%d\n", GetLastError());
+			CMap->lock();
+			CMap->erase(sock);
+			CMap->unlock();
+		}*/
 		/*
 		char* pBuf = buf;
 		int tlen = 0;
@@ -389,4 +399,41 @@ void unpack(msg message, char *buf, int *size)
 	writebyte += message.len;
 
 	*size = writebyte;
+}
+
+void closeClient(SOCKET sock)
+{
+	Client_Map *CMap = Client_Map::getInstance();
+	vector<SOCKET> send_list;
+
+	EnterCriticalSection(&cs);
+	int ret = closesocket(sock);
+	LeaveCriticalSection(&cs);
+
+	if (ret != WSAENOTSOCK)
+	{
+		// 처음으로 소켓을 닫을 때.
+		CMap->lock();
+		int char_id = CMap->find_sock_to_id(sock);
+		CMap->unlock();
+
+		//아이디가 존재하지 않는 경우이므로, 이 경우는 제외한다.
+		if (char_id == -1)
+		{
+			//아이디가 존재하지 않는 경우이므로, 이 경우는 제외한다.
+			return;
+		}
+
+		set_multicast_in_room_except_me(char_id, send_list);
+
+		CMap->lock();
+		CMap->erase(sock);
+		CMap->unlock();
+
+		send_message(msg(ERASE_USER, sizeof(int), (char*)&char_id), send_list);		
+	}
+	else
+	{//이미 삭제된 소켓.
+	}
+	
 }

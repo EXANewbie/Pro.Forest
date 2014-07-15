@@ -3,6 +3,7 @@
 
 #include <process.h>
 #include <WinSock2.h>
+#include <Windows.h>
 
 #include "Client_Map.h"
 #include "Disc_user_map.h"
@@ -10,6 +11,7 @@
 #include "Sock_set.h"
 
 unsigned WINAPI Server_Worker(LPVOID);
+CRITICAL_SECTION cs;
 
 Client_Map *Client_Map::instance;
 Disc_User_Map *Disc_User_Map::instance;
@@ -35,6 +37,8 @@ void main() {
 	SOCKADDR_IN ClientAddr;
 	DWORD recvBytes, flags = 0;
 
+	InitializeCriticalSection(&cs);
+
 	int ClientAddrLen = sizeof(ClientAddr); // 클라이언트 어드레스의 길이를 저장
 
 	// 윈도우 소켓 2.2로 초기화
@@ -51,7 +55,7 @@ void main() {
 	GetSystemInfo(&sysInfo);
 
 	// 시스템의 수만큼 스레드를 생성하여 CP에 등록
-	for (int i = 0; i < 2*sysInfo.dwNumberOfProcessors; ++i)
+	for (int i = 0; i < /*2*sysInfo.dwNumberOfProcessors*/1; ++i)
 	{
 		_beginthreadex(NULL, 0, Server_Worker, (LPVOID)hComPort, 0, 0);
 	}
@@ -110,8 +114,8 @@ void main() {
 		getpeername(NewConnection, (SOCKADDR *)&temp_sock, &temp_sock_size);
 		cout << "Connect IP : " << inet_ntoa(temp_sock.sin_addr) << endl;
 
-		sock_set->insert(NewConnection);
 	}
 	 
+	DeleteCriticalSection(&cs);
 	closesocket(ListeningSocket); // 리스닝 소켓을 닫는다.
 }

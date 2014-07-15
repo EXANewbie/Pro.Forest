@@ -21,22 +21,10 @@
     <ClCompile Include="Source.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="each_client.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sender.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="character.cpp">
       <Filter>Member Funtions</Filter>
     </ClCompile>
-    <ClCompile Include="send_erase_user_message.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Client_Map.cpp">
-      <Filter>Member Funtions</Filter>
-    </ClCompile>
-    <ClCompile Include="que.cpp">
       <Filter>Member Funtions</Filter>
     </ClCompile>
     <ClCompile Include="Server_Worker.cpp">
@@ -47,28 +35,16 @@
     <ClInclude Include="msg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="que.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="character.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="user_pair.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cmap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Client_Map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Disc_user_map.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Synched_list.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Completion_Port.h">
