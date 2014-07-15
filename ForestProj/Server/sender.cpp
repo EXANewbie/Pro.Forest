@@ -28,7 +28,7 @@ void sender()
 	Client_Map *CMap = Client_Map::getInstance();
 	SYNCHED_QUEUE *que = SYNCHED_QUEUE::getInstance();
 	Disc_User_Map *Disc_User = Disc_User_Map::getInstance();
-	Sock_set
+
 	while (true)
 	{
 		while (!que->empty()){
