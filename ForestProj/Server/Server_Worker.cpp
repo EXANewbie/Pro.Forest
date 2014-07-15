@@ -5,17 +5,21 @@
 #include "types.h"
 #include "Disc_user_map.h"
 #include "Client_Map.h"
+#include "msg.h"
+#include "Sock_set.h"
 
 using std::vector;
 
 void set_single_cast(int , vector<SOCKET>& );
-void set_multicast_in_room_except_me(int id, vector<SOCKET>& send_list);
-void send_message(char*, int, vector<SOCKET> &);
+void set_multicast_in_room_except_me(int, vector<SOCKET>&);
+void send_message(msg , vector<SOCKET> &);
+void unpack(msg, char *, int *);
 
 unsigned WINAPI Server_Worker(LPVOID pComPort)
 {
 	Client_Map *CMap = Client_Map::getInstance();
 	Disc_User_Map *Disc_User = Disc_User_Map::getInstance();
+	Sock_set *sock_set = Sock_set::getInstance();
 
 	HANDLE hComPort = (HANDLE)pComPort;
 	SOCKET sock;
@@ -98,31 +102,23 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 
 			writebyte = 0;
 
-			for (int i = 0; i < 5; i++)
+			for (int i = 0; i < 3; i++)
 			{
-				int *param[] = { &type, &len, &char_id, &x, &y };
+				int *param[] = { &char_id, &x, &y };
 				memcpy(buf + writebyte, param[i], sizeof(int));
 				writebyte += sizeof(int);
 			}
 
 			set_single_cast(char_id, receiver);
-			send_message(buf, writebyte, receiver);
+			send_message(msg(type,len,buf), receiver);
 			receiver.clear();
 
 			// 현재 접속한 캐릭터의 정보를 다른 접속한 유저들에게 전송한다.
 
 			type = SET_USER;
-/*			len = 3 * sizeof(int);
 
-			for (int i = 0; i < 5; i++)
-			{
-				int *param[] = { &type, &len, &char_id, &x, &y };
-				memcpy(buf + writebyte, param[i], sizeof(int));
-				writebyte += sizeof(int);
-			}
-			*/
 			set_multicast_in_room_except_me(char_id, receiver);
-			send_message(buf, writebyte, receiver);
+			send_message(msg(type,len,buf), receiver);
 			receiver.clear();
 
 			// CONNECT로 접속한 유저에게 다른 객체들의 정보를 전송한다.
@@ -130,7 +126,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 			type = SET_USER;
 			len = 0;
 
-			writebyte = sizeof(int) * 2;
+			writebyte = 0;
 
 			CMap->lock();
 			for (auto itr = CMap->begin(); itr != CMap->end(); itr++)
@@ -155,43 +151,115 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 			}
 			CMap->unlock();
 
-			writebyte = 0;
-			for (int i = 0; i < 2; i++)
-			{
-				const int *param[] = { &type, &len };
-				memcpy(buf + writebyte, param[i], sizeof(int));
-				writebyte += sizeof(int);
-			}
-
-			writebyte += len;
-
 			set_single_cast(char_id, receiver);
-			send_message(buf, writebyte, receiver);
+			send_message(msg(type,len,buf), receiver);
 			receiver.clear();	
 		}
-		else // 나머지 문자의 경우
+		else if( type == MOVE_USER )// 유저가 이동하는 경우
 		{
-			for (int inc = 0; inc < sizeof(int);)
-			{
-				int ret = recv(Connection, (char *)&len, sizeof(int), 0);
-				if (ret != SOCKET_ERROR)
-				{
-					inc += ret;
-				}
-			}
-			char* pBuf = Buff;
-			printf("len : %d\n", len);
-			for (int inc = 0; inc < len;)
-			{
-				int ret = recv(Connection, pBuf + inc, len - inc, 0);
-				if (ret != SOCKET_ERROR)
-				{
-					inc += ret;
-				}
-			}
+			memcpy(buf, ioInfo->buffer + readbyte, len);
 
-			que->push(msg(type, len, Buff));
-			itr++;
+			int ntype, nlen;
+			int cur_id, x_off, y_off;
+			int cnt;
+			char *pBuf;
+
+			int writebyte;
+
+			for (int i = 0; i < len; i += sizeof(int)* 3)
+			{
+				int *param[] = { &cur_id, &x_off, &y_off };
+				for (int j = 0; j < 3; j++)
+				{
+					memcpy(param[j], buf+i, sizeof(int));
+				}
+
+				CMap->lock();
+				Character *now = CMap->find_id_to_char(cur_id);
+				CMap->unlock();
+
+				char nbuf[BUFFER_SIZE];
+				pBuf = nbuf;
+
+				// 기존의 방의 유저들의 정보를 삭제함
+				cnt = 0;
+				CMap->lock();
+				for (auto iter = CMap->begin(); iter != CMap->end(); iter++)
+				{
+					if (iter->second.getX() == now->getX() && iter->second.getY() == now->getY())
+					{
+						int nid = iter->second.getID();
+
+						if (nid == now->getID())
+							continue;
+
+						memcpy(pBuf, &nid, sizeof(int));
+						pBuf += sizeof(int);
+						cnt++;
+					}
+				}
+				CMap->unlock();
+
+				ntype = ERASE_USER;
+				nlen = sizeof(int)*cnt;
+
+				set_single_cast(now->getID(), receiver);
+				send_message(msg(ntype,nlen,nbuf), receiver);
+				receiver.clear();
+
+				// 기존 방의 유저들에게 내가 사라짐을 알림
+				set_multicast_in_room_except_me(now->getID(), receiver);
+				send_message(msg(ntype,sizeof(int),(char *)&cur_id), receiver);
+				receiver.clear();
+
+				// 캐릭터를 해당 좌표만큼 이동시킴
+				now->setX(now->getX() + x_off);
+				now->setY(now->getY() + y_off);
+
+				// 새로운 방의 유저들에게 내가 등장함을 알림
+				set_multicast_in_room_except_me(now->getID(), receiver);
+
+				int id = now->getID(), x = now->getX(), y = now->getY();
+				pBuf = nbuf;
+				for (int i = 0; i < 3; i++)
+				{
+					int *param[] = { &id, &x, &y };
+					memcpy(pBuf, param[i], sizeof(int));
+					pBuf += sizeof(int);
+				}
+
+				
+
+				send_message(msg(SET_USER, 3 * sizeof(int), nbuf), receiver);
+				receiver.clear();
+
+				// 새로운 방의 유저들의 정보를 불러옴
+				pBuf = nbuf;
+				cnt = 0;
+				CMap->lock();
+				for (auto iter = CMap->begin(); iter != CMap->end(); iter++)
+				{
+					if (iter->second.getX() == x && iter->second.getY() == y)
+					{
+						int nid = iter->second.getID();
+						int nx = iter->second.getX();
+						int ny = iter->second.getY();
+						for (int i = 0; i < 3; i++)
+						{
+							int *param[] = { &nid, &nx, &ny };
+							memcpy(pBuf, param[i], sizeof(int));
+							pBuf += sizeof(int);
+						}
+						cnt++;
+					}
+				}
+				CMap->unlock();
+				set_single_cast(now->getID(), receiver);
+				send_message(msg(SET_USER, 3 * sizeof(int)* cnt, nbuf), receiver);
+				receiver.clear();
+
+				printf("id : %d, x_off : %d, y_off : %d\n", cur_id, x_off, y_off);
+			}
 		}
 		/*SEND가 처리해야될 부분
 		memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
@@ -240,13 +308,18 @@ void set_multicast_in_room_except_me(int id, vector<SOCKET>& send_list)
 	CMap->unlock();
 }
 
-void send_message(char* msg, int len, vector<SOCKET> &send_list) {
+void send_message(msg message, vector<SOCKET> &send_list) {
 	Client_Map *CMap = Client_Map::getInstance();
 	Disc_User_Map *Disc_User = Disc_User_Map::getInstance();
 	//vector< pair<int,SOCKET> > errors;
 
+	int len;
+	char buff[BUFFER_SIZE];
+	
+	unpack(message, buff, &len);
+
 	WSABUF wsabuf;
-	wsabuf.buf = msg;
+	wsabuf.buf = buff;
 	wsabuf.len = len;
 
 	for (int i = 0; i < send_list.size(); i++)
@@ -302,4 +375,18 @@ void send_message(char* msg, int len, vector<SOCKET> &send_list) {
 	//{
 	//send_erase_user_message(CMap, errors);
 	//}
+}
+
+void unpack(msg message, char *buf, int *size)
+{
+	int writebyte = 0;
+
+	memcpy(buf + writebyte, &message.type, sizeof(int));
+	writebyte += sizeof(int);
+	memcpy(buf + writebyte, &message.len, sizeof(int));
+	writebyte += sizeof(int);
+	memcpy(buf + writebyte, message.buff, message.len);
+	writebyte += message.len;
+
+	*size = writebyte;
 }

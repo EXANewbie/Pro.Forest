@@ -7,14 +7,17 @@
 #include "Client_Map.h"
 #include "Disc_user_map.h"
 #include "Completion_Port.h"
+#include "Sock_set.h"
 
 unsigned WINAPI Server_Worker(LPVOID);
 
 Client_Map *Client_Map::instance;
 Disc_User_Map *Disc_User_Map::instance;
+Sock_set *Sock_set::instance;
 
 std::mutex Client_Map::mtx;
 std::mutex Disc_User_Map::mtx;
+std::mutex Sock_set::mtx;
 
 using std::cout;
 using std::endl;
@@ -106,12 +109,6 @@ void main() {
 		int temp_sock_size = sizeof(temp_sock);
 		getpeername(NewConnection, (SOCKADDR *)&temp_sock, &temp_sock_size);
 		cout << "Connect IP : " << inet_ntoa(temp_sock.sin_addr) << endl;
-
-		bool opt = TRUE;
-		setsockopt(NewConnection, IPPROTO_TCP, TCP_NODELAY, (char *)&opt, sizeof(opt));
-		ioctlsocket(NewConnection, FIONBIO, &ul); // set Non-Blocking Socket
-
-		List->push_back(NewConnection);
 
 		sock_set->insert(NewConnection);
 	}

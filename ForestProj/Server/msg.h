@@ -6,12 +6,12 @@
 struct msg {
 	int type;
 	int len;
-	char buff[1024];
+	char *buff;
 
 	msg(int type, int len, char *buff) {
 		this->type = type;
 		this->len = len;
-		memcpy(this->buff, buff, len);
+		this->buff = buff;
 	}
 };
 
