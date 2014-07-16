@@ -46,7 +46,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 			puts("MESSAGE RECEIVED!");
 			if (bytesTrans == 0) // 올바르지 않은 종류의 경우
 			{
-				printf("나옴ㅋ\n");
+				printf("@Abnomal turn off ");
 				CMap->lock();
 				int char_id = CMap->find_sock_to_id(sock);
 				// 아이디가 비어있는 경우
@@ -57,7 +57,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				else
 				{
 					printf("sock : %d char_id : %d\n", sock, char_id);
-					closeClient(sock);
+					closeClient(char_id);
 					free(handleInfo); free(ioInfo);
 				}
 				CMap->unlock();
@@ -83,6 +83,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					//가짜 클라이언트
 				}
 
+				printf("Nomal turn off ");
 				CMap->lock();
 				int char_id = CMap->find_sock_to_id(sock);
 				// 아이디가 비어있는 경우
@@ -92,7 +93,8 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				}
 				else
 				{
-					closeClient(sock);
+					printf("sock : %d char_id : %d", sock, char_id);
+					closeClient(char_id);
 					free(handleInfo); free(ioInfo);
 				}
 				CMap->unlock();
@@ -311,9 +313,21 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 		{
 			if (bytesTrans == 0) // 올바르지 않은 종류의 경우
 			{
-				printf("나감ㅋ\n");
-				closeClient(sock);
-				free(handleInfo); free(ioInfo);
+				printf("나 출력되는거 맞음?ㅋ\n");
+				CMap->lock();
+				int char_id = CMap->find_sock_to_id(sock);
+				// 아이디가 비어있는 경우
+				if (char_id == -1)
+				{
+					// 이미 삭제 처리 된 경우를 여기에 명시한다.
+				}
+				else
+				{
+					printf("sock : %d char_id : %d\n", sock, char_id);
+					closeClient(char_id);
+					free(handleInfo); free(ioInfo);
+				}
+				CMap->unlock();
 				continue;
 			}
 
@@ -398,7 +412,6 @@ void send_message(msg message, vector<SOCKET> &send_list) {
 			if (WSAGetLastError() == ERROR_IO_PENDING)
 			{
 				printf("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
-
 				// 큐에 들어감 ^.^
 			}
 			else
@@ -450,7 +463,7 @@ void closeClient(int id)
 
 		set_multicast_in_room_except_me(char_id, send_list, false/*not autolock*/ );
 
-		CMap->erase(sock);
+		CMap->erase(id);
 
 		send_message(msg(ERASE_USER, sizeof(int), (char*)&char_id), send_list);		
 	}
