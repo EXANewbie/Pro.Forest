@@ -19,6 +19,7 @@ void unpack(msg, char *, int *);
 void closeClient(SOCKET sock);
 
 extern CRITICAL_SECTION cs;
+int k;
 
 unsigned WINAPI Server_Worker(LPVOID pComPort)
 {
@@ -46,6 +47,11 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 			if (bytesTrans == 0) // 올바르지 않은 종류의 경우
 			{
 				printf("나옴ㅋ\n");
+				CMap->lock();
+				int char_id = CMap->find_sock_to_id(sock);
+				CMap->unlock();
+				printf("sock : %d char_id : ", sock, char_id);
+
 				closeClient(sock);
 				free(handleInfo); free(ioInfo);
 				continue;
@@ -264,11 +270,24 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					printf("id : %d, x_off : %d, y_off : %d\n", cur_id, x_off, y_off);
 				}
 			}
+			memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
+			ioInfo->wsaBuf.len = BUFFER_SIZE;
+			ioInfo->wsaBuf.buf = ioInfo->buffer;
+			ioInfo->RWmode = READ;
+			WSARecv(sock, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
 		}
 		else // WRITE
 		{
-			puts("MESSAGE RECEIVED!");
+			if (bytesTrans == 0) // 올바르지 않은 종류의 경우
+			{
+				printf("나감ㅋ\n");
+				closeClient(sock);
+				free(handleInfo); free(ioInfo);
+				continue;
+			}
+			puts("MESSAGE SENT!");
 			free(ioInfo);
+			printf("free %d\n", InterlockedDecrement((unsigned long *)&k));
 		}
 		/*SEND가 처리해야될 부분
 		memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
@@ -277,11 +296,8 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 		*/ 
 
 		// 다시 받을 준비를 하는 부분
-		memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
-		ioInfo->wsaBuf.len = BUFFER_SIZE;
-		ioInfo->wsaBuf.buf = ioInfo->buffer;
-		ioInfo->RWmode = READ;
-		WSARecv(sock, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
+		//free(ioInfo);
+		
 	}
 
 	return 0;
@@ -337,8 +353,10 @@ void send_message(msg message, vector<SOCKET> &send_list) {
 	for (int i = 0; i < send_list.size(); i++)
 	{
 		SOCKET sock = send_list[i];
+		PER_IO_DATA *ioInfo = new PER_IO_DATA;
 
-		PER_IO_DATA *ioInfo = (LPPER_IO_DATA)malloc(sizeof(PER_IO_DATA));
+		printf("malloc %d\n", InterlockedIncrement((unsigned long *)&k));
+
 		memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
 		memcpy(ioInfo->buffer, buff, len);
 		ioInfo->wsaBuf.len = len;
@@ -347,13 +365,10 @@ void send_message(msg message, vector<SOCKET> &send_list) {
 
 		int ret = WSASend(sock, &(ioInfo->wsaBuf), 1, NULL, 0, &(ioInfo->overlapped), NULL);
 //		send(sock, buff, len, 0);
-/*		if (ret == SOCKET_ERROR)
+		if (ret == SOCKET_ERROR)
 		{
-			printf("%d\n", GetLastError());
-			CMap->lock();
-			CMap->erase(sock);
-			CMap->unlock();
-		}*/
+			
+		}
 		/*
 		char* pBuf = buf;
 		int tlen = 0;

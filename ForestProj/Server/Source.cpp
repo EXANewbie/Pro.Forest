@@ -25,6 +25,7 @@ using std::cout;
 using std::endl;
 
 void main() {
+	
 	WSADATA wasData;
 	SYSTEM_INFO sysInfo;
 	LPPER_IO_DATA ioInfo;
