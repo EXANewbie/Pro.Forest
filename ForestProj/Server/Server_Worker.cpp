@@ -38,8 +38,6 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 
 	while (true)
 	{
-		Sleep(5000);
-
 		GetQueuedCompletionStatus(hComPort, &bytesTrans, (LPDWORD)&handleInfo, (LPOVERLAPPED *)&ioInfo, INFINITE);
 		sock = handleInfo->hClntSock;
 
@@ -48,11 +46,11 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 			puts("MESSAGE RECEIVED!");
 			if (bytesTrans == 0) // 올바르지 않은 종류의 경우
 			{
-				printf("나옴ㅋ\n");
+				printf("@Abnomal turn off ");
 				CMap->lock();
 				int char_id = CMap->find_sock_to_id(sock);
 				CMap->unlock();
-				printf("sock : %d char_id : ", sock, char_id);
+				printf("sock : %d char_id : %d", sock, char_id);
 
 				closeClient(sock);
 				free(handleInfo); free(ioInfo);
@@ -77,6 +75,12 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				{
 					//가짜 클라이언트
 				}
+
+				printf("Nomal turn off ");
+				CMap->lock();
+				int char_id = CMap->find_sock_to_id(sock);
+				CMap->unlock();
+				printf("sock : %d char_id : %d", sock, char_id);
 
 				closeClient(sock);
 				free(handleInfo); free(ioInfo);
@@ -295,7 +299,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 		{
 			if (bytesTrans == 0) // 올바르지 않은 종류의 경우
 			{
-				printf("나감ㅋ\n");
+				printf("나 출력되는거 맞음?ㅋ\n");
 				closeClient(sock);
 				free(handleInfo); free(ioInfo);
 				continue;
@@ -362,8 +366,6 @@ void send_message(msg message, vector<SOCKET> &send_list) {
 		SOCKET sock = send_list[i];
 		PER_IO_DATA *ioInfo = new PER_IO_DATA;
 
-		printf("malloc %d\n", InterlockedIncrement((unsigned long *)&k));
-
 		memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
 		memcpy(ioInfo->buffer, buff, len);
 		ioInfo->wsaBuf.len = len;
@@ -377,7 +379,6 @@ void send_message(msg message, vector<SOCKET> &send_list) {
 			if (WSAGetLastError() == ERROR_IO_PENDING)
 			{
 				printf("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
-
 				// 큐에 들어감 ^.^
 			}
 			else
