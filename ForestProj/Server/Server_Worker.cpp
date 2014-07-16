@@ -268,7 +268,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 		else // WRITE
 		{
 			puts("MESSAGE RECEIVED!");
-
+			free(ioInfo);
 		}
 		/*SEND啊 贸府秦具瞪 何盒
 		memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
