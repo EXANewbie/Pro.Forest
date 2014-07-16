@@ -49,6 +49,11 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 			if (bytesTrans == 0) // 올바르지 않은 종류의 경우
 			{
 				printf("나옴ㅋ\n");
+				CMap->lock();
+				int char_id = CMap->find_sock_to_id(sock);
+				CMap->unlock();
+				printf("sock : %d char_id : ", sock, char_id);
+
 				closeClient(sock);
 				free(handleInfo); free(ioInfo);
 				continue;
@@ -271,6 +276,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 			ioInfo->wsaBuf.len = BUFFER_SIZE;
 			ioInfo->wsaBuf.buf = ioInfo->buffer;
 			ioInfo->RWmode = READ;
+
 			int ret = WSARecv(sock, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
 
 			if (ret == SOCKET_ERROR)
@@ -287,17 +293,18 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 		}
 		else // WRITE
 		{
+			if (bytesTrans == 0) // 올바르지 않은 종류의 경우
+			{
+				printf("나감ㅋ\n");
+				closeClient(sock);
+				free(handleInfo); free(ioInfo);
+				continue;
+			}
+
 			puts("MESSAGE SEND!");
 			free(ioInfo);
 			printf("k Decrement %d\n", InterlockedDecrement((unsigned int *)&k));
 		}
-		/*SEND가 처리해야될 부분
-		memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
-		ioInfo->wsaBuf.len = bytesTrans;
-		WSASend(sock, &(ioInfo->wsaBuf), 1, NULL, 0, NULL, NULL);
-		*/ 
-
-		// 다시 받을 준비를 하는 부분
 	}
 
 	return 0;
@@ -353,8 +360,10 @@ void send_message(msg message, vector<SOCKET> &send_list) {
 	for (int i = 0; i < send_list.size(); i++)
 	{
 		SOCKET sock = send_list[i];
+		PER_IO_DATA *ioInfo = new PER_IO_DATA;
 
-		PER_IO_DATA *ioInfo = (LPPER_IO_DATA)malloc(sizeof(PER_IO_DATA));
+		printf("malloc %d\n", InterlockedIncrement((unsigned long *)&k));
+
 		memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
 		memcpy(ioInfo->buffer, buff, len);
 		ioInfo->wsaBuf.len = len;
