@@ -47,14 +47,14 @@ void sender()
 			switch (tmp_msg.type)
 			{
 			case CONNECT:
-
+			
 				//정보 받고
 
 				if (strcmp("HELLO SERVER!", tmp_msg.buff + sizeof(int))){
 					printf("Invalid Client.");
 				}
 
-				{
+				{	
 					SOCKET sock;
 					memcpy(&sock, tmp_msg.buff, sizeof(int));
 

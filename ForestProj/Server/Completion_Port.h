@@ -15,6 +15,7 @@ typedef struct
 	OVERLAPPED overlapped;
 	WSABUF wsaBuf;
 	char buffer[BUFFER_SIZE];
+	int RWmode;
 }PER_IO_DATA, *LPPER_IO_DATA;
 
 #endif
