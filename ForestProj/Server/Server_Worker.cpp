@@ -19,6 +19,7 @@ void unpack(msg, char *, int *);
 void closeClient(SOCKET sock);
 
 extern CRITICAL_SECTION cs;
+int k;
 
 unsigned WINAPI Server_Worker(LPVOID pComPort)
 {
@@ -37,6 +38,8 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 
 	while (true)
 	{
+		Sleep(5000);
+
 		GetQueuedCompletionStatus(hComPort, &bytesTrans, (LPDWORD)&handleInfo, (LPOVERLAPPED *)&ioInfo, INFINITE);
 		sock = handleInfo->hClntSock;
 
@@ -264,11 +267,29 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					printf("id : %d, x_off : %d, y_off : %d\n", cur_id, x_off, y_off);
 				}
 			}
+			memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
+			ioInfo->wsaBuf.len = BUFFER_SIZE;
+			ioInfo->wsaBuf.buf = ioInfo->buffer;
+			ioInfo->RWmode = READ;
+			int ret = WSARecv(sock, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
+
+			if (ret == SOCKET_ERROR)
+			{
+				if (WSAGetLastError() == WSA_IO_PENDING )
+				{
+
+				}
+				else
+				{
+					// 소켓 에러 발생
+				}
+			}
 		}
 		else // WRITE
 		{
-			puts("MESSAGE RECEIVED!");
+			puts("MESSAGE SEND!");
 			free(ioInfo);
+			printf("k Decrement %d\n", InterlockedDecrement((unsigned int *)&k));
 		}
 		/*SEND가 처리해야될 부분
 		memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
@@ -277,11 +298,6 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 		*/ 
 
 		// 다시 받을 준비를 하는 부분
-		memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
-		ioInfo->wsaBuf.len = BUFFER_SIZE;
-		ioInfo->wsaBuf.buf = ioInfo->buffer;
-		ioInfo->RWmode = READ;
-		WSARecv(sock, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
 	}
 
 	return 0;
@@ -346,61 +362,27 @@ void send_message(msg message, vector<SOCKET> &send_list) {
 		ioInfo->RWmode = WRITE;
 
 		int ret = WSASend(sock, &(ioInfo->wsaBuf), 1, NULL, 0, &(ioInfo->overlapped), NULL);
-//		send(sock, buff, len, 0);
-/*		if (ret == SOCKET_ERROR)
-		{
-			printf("%d\n", GetLastError());
-			CMap->lock();
-			CMap->erase(sock);
-			CMap->unlock();
-		}*/
-		/*
-		char* pBuf = buf;
-		int tlen = 0;
-		memcpy(pBuf, &message.type, sizeof(int));
-		pBuf += sizeof(int);
-		tlen += sizeof(int);
-		memcpy(pBuf, &message.len, sizeof(int));
-		pBuf += sizeof(int);
-		tlen += sizeof(int);
-		memcpy(pBuf, message.buff, message.len);
-		tlen += message.len;
-		*/
 
-		//		for (int inc = 0; inc < tlen;)
-		//		{
-		//		int ret = send(sock, buf/*+inc*/, tlen/*-inc*/, 0);
-		//			if (ret != SOCKET_ERROR)
-		//			{
-		//				inc += ret;
-		//			}
-		//		}
+		if (ret == SOCKET_ERROR)
+		{
+			if (WSAGetLastError() == ERROR_IO_PENDING)
+			{
+				printf("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
 
-		/*int ret = send(sock, (char *)&message.type, sizeof(int), 0);
-		if (ret != sizeof(int))
-		{
-		auto it = Disc_User->find(sock);
-		if (it == Disc_User->end())
-		{
-		CMap->lock();
-		int erase_id = CMap->find_sock_to_id(sock);
-		CMap->unlock();
-		Disc_User->insert(pair<SOCKET, int>(sock, erase_id));
-		que->push(msg(DISCONN, sizeof(SOCKET), (char *)&sock));
-		//(*Disc_User)[sock] = erase_id;
+				// 큐에 들어감 ^.^
+			}
+			else
+			{
+				// 너에겐 수많은 이유가 있겠지... 하지만 아마도 그 수많은 이유들의 공통점은 소켓에 전송할 수 없는 것이 아닐까?
+				free(ioInfo);
+			}
+			printf("Send Error (%d)\n", WSAGetLastError());
 		}
-		continue;
+		else
+		{
+			printf("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
 		}
-		send(sock, (char *)&message.len, sizeof(int), 0);
-		send(sock, (char *)&message.buff, message.len, 0);*/
 	}
-
-	// 전송 실패한 유저들을 모아서 전송
-
-	//if (!errors.empty())
-	//{
-	//send_erase_user_message(CMap, errors);
-	//}
 }
 
 void unpack(msg message, char *buf, int *size)
@@ -449,7 +431,8 @@ void closeClient(SOCKET sock)
 		send_message(msg(ERASE_USER, sizeof(int), (char*)&char_id), send_list);		
 	}
 	else
-	{//이미 삭제된 소켓.
+	{
+		//이미 삭제된 소켓.
 	}
 	
 }
