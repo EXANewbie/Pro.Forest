@@ -56,7 +56,7 @@ void main() {
 	GetSystemInfo(&sysInfo);
 
 	// 시스템의 수만큼 스레드를 생성하여 CP에 등록
-	for (int i = 0; i < /*2*sysInfo.dwNumberOfProcessors*/1; ++i)
+	for (int i = 0; i <2*sysInfo.dwNumberOfProcessors/*1*/; ++i)
 	{
 		_beginthreadex(NULL, 0, Server_Worker, (LPVOID)hComPort, 0, 0);
 	}
