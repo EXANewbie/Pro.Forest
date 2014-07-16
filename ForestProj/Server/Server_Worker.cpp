@@ -13,10 +13,10 @@
 using std::vector;
 
 void set_single_cast(int , vector<SOCKET>& );
-void set_multicast_in_room_except_me(int, vector<SOCKET>&);
+void set_multicast_in_room_except_me(int, vector<SOCKET>&,bool);
 void send_message(msg , vector<SOCKET> &);
 void unpack(msg, char *, int *);
-void closeClient(SOCKET sock);
+void closeClient(int);
 
 extern CRITICAL_SECTION cs;
 int k;
@@ -38,8 +38,6 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 
 	while (true)
 	{
-		Sleep(5000);
-
 		GetQueuedCompletionStatus(hComPort, &bytesTrans, (LPDWORD)&handleInfo, (LPOVERLAPPED *)&ioInfo, INFINITE);
 		sock = handleInfo->hClntSock;
 
@@ -51,11 +49,18 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				printf("나옴ㅋ\n");
 				CMap->lock();
 				int char_id = CMap->find_sock_to_id(sock);
+				// 아이디가 비어있는 경우
+				if (char_id == -1)
+				{
+					// 이미 삭제 처리 된 경우를 여기에 명시한다.
+				}
+				else
+				{
+					printf("sock : %d char_id : %d\n", sock, char_id);
+					closeClient(sock);
+					free(handleInfo); free(ioInfo);
+				}
 				CMap->unlock();
-				printf("sock : %d char_id : ", sock, char_id);
-
-				closeClient(sock);
-				free(handleInfo); free(ioInfo);
 				continue;
 			}
 
@@ -78,8 +83,19 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					//가짜 클라이언트
 				}
 
-				closeClient(sock);
-				free(handleInfo); free(ioInfo);
+				CMap->lock();
+				int char_id = CMap->find_sock_to_id(sock);
+				// 아이디가 비어있는 경우
+				if (char_id == -1)
+				{
+					// 이미 삭제 처리 된 경우를 여기에 명시한다.
+				}
+				else
+				{
+					closeClient(sock);
+					free(handleInfo); free(ioInfo);
+				}
+				CMap->unlock();
 				continue;
 			}
 			else if (type == CONNECT) // 새로 들어온 경우
@@ -129,7 +145,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 
 				type = SET_USER;
 
-				set_multicast_in_room_except_me(char_id, receiver);
+				set_multicast_in_room_except_me(char_id, receiver, true/*autolock*/ );
 				send_message(msg(type, len, buf), receiver);
 				receiver.clear();
 
@@ -222,7 +238,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					receiver.clear();
 
 					// 기존 방의 유저들에게 내가 사라짐을 알림
-					set_multicast_in_room_except_me(now->getID(), receiver);
+					set_multicast_in_room_except_me(now->getID(), receiver, true/*autolock*/ );
 					send_message(msg(ntype, sizeof(int), (char *)&cur_id), receiver);
 					receiver.clear();
 
@@ -240,7 +256,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 						pBuf += sizeof(int);
 					}
 
-					set_multicast_in_room_except_me(now->getID(), receiver);
+					set_multicast_in_room_except_me(now->getID(), receiver, true/*autolock*/ );
 					send_message(msg(SET_USER, 3 * sizeof(int), nbuf), receiver);
 					receiver.clear();
 
@@ -319,11 +335,14 @@ void set_single_cast(int id, vector<SOCKET>& send_list)
 	send_list.push_back(sock);
 }
 
-void set_multicast_in_room_except_me(int id, vector<SOCKET>& send_list)
+void set_multicast_in_room_except_me(int id, vector<SOCKET>& send_list, bool autolocked)
 {
 	Client_Map *CMap = Client_Map::getInstance();
 
-	CMap->lock();
+	if (autolocked == true)
+	{
+		CMap->lock();
+	}
 
 	auto now = CMap->find_id_to_char(id);
 
@@ -338,7 +357,11 @@ void set_multicast_in_room_except_me(int id, vector<SOCKET>& send_list)
 			}
 		}
 	}
-	CMap->unlock();
+
+	if (autolocked == true)
+	{
+		CMap->unlock();
+	}
 }
 
 
@@ -361,8 +384,6 @@ void send_message(msg message, vector<SOCKET> &send_list) {
 	{
 		SOCKET sock = send_list[i];
 		PER_IO_DATA *ioInfo = new PER_IO_DATA;
-
-		printf("malloc %d\n", InterlockedIncrement((unsigned long *)&k));
 
 		memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
 		memcpy(ioInfo->buffer, buff, len);
@@ -408,34 +429,28 @@ void unpack(msg message, char *buf, int *size)
 	*size = writebyte;
 }
 
-void closeClient(SOCKET sock)
+void closeClient(int id)
 {
 	Client_Map *CMap = Client_Map::getInstance();
 	vector<SOCKET> send_list;
 
-	EnterCriticalSection(&cs);
+	SOCKET sock = CMap->find_id_to_sock(id);
 	int ret = closesocket(sock);
-	LeaveCriticalSection(&cs);
 
 	if (ret != WSAENOTSOCK)
 	{
 		// 처음으로 소켓을 닫을 때.
-		CMap->lock();
 		int char_id = CMap->find_sock_to_id(sock);
-		CMap->unlock();
 
 		//아이디가 존재하지 않는 경우이므로, 이 경우는 제외한다.
 		if (char_id == -1)
 		{
-			//아이디가 존재하지 않는 경우이므로, 이 경우는 제외한다.
 			return;
 		}
 
-		set_multicast_in_room_except_me(char_id, send_list);
+		set_multicast_in_room_except_me(char_id, send_list, false/*not autolock*/ );
 
-		CMap->lock();
 		CMap->erase(sock);
-		CMap->unlock();
 
 		send_message(msg(ERASE_USER, sizeof(int), (char*)&char_id), send_list);		
 	}
