@@ -53,6 +53,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir)protobuf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -82,6 +83,7 @@
     <ClCompile Include="Client_Map.cpp" />
     <ClInclude Include="Completion_Port.h" />
     <ClInclude Include="Disc_user_map.h" />
+    <ClCompile Include="function.cpp" />
     <ClCompile Include="Server_Worker.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
@@ -93,6 +95,5 @@
     <ClInclude Include="types.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>
