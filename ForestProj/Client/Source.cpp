@@ -8,7 +8,7 @@
 
 #define PORT 78911
 
-#define SERVER_IP_ADDRESS /*"localhost"*/"10.1.7.10"
+#define SERVER_IP_ADDRESS /*"localhost"*/"10.1.7.206"
 
 enum packetType{ CONNECT, INIT, SET_USER, MOVE_USER, DISCONN, ERASE_USER };
 
@@ -176,6 +176,15 @@ void main(void)
 			type = DISCONN;
 			memcpy(buf, "BYE SERVER!", sizeof("BYE SERVER!"));
 			len = strlen(buf);
+
+			char* pBuf = buf;
+			memcpy(pBuf, (char *)&type, sizeof(int));
+			pBuf += sizeof(int);
+			len = sizeof("HELLO SERVER!");
+			memcpy(pBuf, (char *)&len, sizeof(int));
+			pBuf += sizeof(int);
+			memcpy(pBuf, "HELLO SERVER!", sizeof("HELLO SERVER!"));
+
 			send(s, (char*)&type, sizeof(int), 0);
 			send(s, (char*)&len, sizeof(int), 0);
 			send(s, buf, len, 0);

@@ -83,6 +83,7 @@
     <ClCompile Include="Client_Map.cpp" />
     <ClInclude Include="Completion_Port.h" />
     <ClInclude Include="Disc_user_map.h" />
+    <ClCompile Include="function.cpp" />
     <ClCompile Include="Server_Worker.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
