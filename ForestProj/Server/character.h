@@ -7,15 +7,39 @@ private :
 	int ID;
 	int x, y;
 public :
-	Character();
-	Character(int, int=0, int=0);
-	const int getID();
-	const int getX();
-	const int getY();
-	
-	void setID(const int);
-	void setX(const int);
-	void setY(const int);
+	Character()
+	{
+	}
+	Character(int ID=0, int x=0, int y=0)
+	{
+		this->ID = ID;
+		this->x = x;
+		this->y = y;
+	}
+	const int getID()
+	{
+		return ID;
+	}
+	const int getX()
+	{
+		return x;
+	}
+	const int getY()
+	{
+		return y;
+	}
+	void setID(const int ID)
+	{
+		this->ID = ID;
+	}
+	void setX(const int x)
+	{
+		this->x = x;
+	}
+	void setY(const int y)
+	{
+		this->y = y;
+	}
 };
 
 #endif
