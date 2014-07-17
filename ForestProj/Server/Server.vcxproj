@@ -79,7 +79,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="character.cpp" />
     <ClCompile Include="Client_Map.cpp" />
     <ClInclude Include="Completion_Port.h" />
     <ClInclude Include="Disc_user_map.h" />
