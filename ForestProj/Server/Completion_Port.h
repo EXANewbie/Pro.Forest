@@ -17,8 +17,6 @@ typedef struct
 	WSABUF wsaBuf;
 	char buffer[BUFFER_SIZE];
 	int RWmode;
-	int char_id;
-	Character* my_char;
 }PER_IO_DATA, *LPPER_IO_DATA;
 
 #endif

@@ -105,7 +105,7 @@ void Client_Map::erase(SOCKET sock)
 	}
 }
 
-bool Client_Map::insert(int id, SOCKET sock, Character &now)
+bool Client_Map::insert(int id, SOCKET sock, Character now)
 {
 	if (sock_id.find(sock) != sock_id.end())
 	{

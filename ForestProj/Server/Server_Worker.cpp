@@ -114,10 +114,6 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					}
 				}
 
-				//ioInfo 구조체에 char정보를 넣어준다.
-				ioInfo->char_id = char_id;
-				ioInfo->my_char = &c;
-
 				// x와 y의 초기값을 가져온다.	
 				len = 3 * sizeof(int);
 				{
@@ -183,7 +179,6 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					CMap->lock();
 					Character *now = CMap->find_id_to_char(cur_id);
 					CMap->unlock();
-					//Character *now = (ioInfo->my_char);
 
 					char nbuf[BUFFER_SIZE];
 					pBuf = nbuf;
