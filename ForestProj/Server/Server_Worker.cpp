@@ -180,10 +180,10 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					int *param[] = { &cur_id, &x_off, &y_off };
 					copy_to_param(param, 3, buf);
 
-					/*CMap->lock();
+					CMap->lock();
 					Character *now = CMap->find_id_to_char(cur_id);
-					CMap->unlock();*/
-					Character *now = (ioInfo->my_char);
+					CMap->unlock();
+					//Character *now = (ioInfo->my_char);
 
 					char nbuf[BUFFER_SIZE];
 					pBuf = nbuf;
