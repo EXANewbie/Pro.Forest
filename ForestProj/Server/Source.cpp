@@ -106,7 +106,8 @@ void main() {
 		ioInfo->wsaBuf.len = BUFFER_SIZE;
 		ioInfo->wsaBuf.buf = ioInfo->buffer;
 		ioInfo->RWmode = READ;
-		
+		ioInfo->char_id = -1;
+				
 		WSARecv(handleInfo->hClntSock, &(ioInfo->wsaBuf), 1, &recvBytes, &flags, &(ioInfo->overlapped), NULL);
 		sock_set->insert(NewConnection);
 

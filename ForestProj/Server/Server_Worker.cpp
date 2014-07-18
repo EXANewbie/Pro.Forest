@@ -87,47 +87,56 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 
 				int char_id;
 				int x, y;
-				static int id = 1;
+				static int id = 0;
 				int writebyte;
 
 				// 캐릭터 객체를 생성 후
-				Character c(id);
-				char_id = id;
+				int copy_id = InterlockedIncrement((unsigned *)&id);
+				Character c(copy_id);
+				char_id = copy_id;
 				x = c.getX();
 				y = c.getY();
-				id++;
 
-				sock_set->erase(sock);
-				CMap->lock();
-				CMap->insert(char_id, sock, c);
-				CMap->unlock();
+				bool isValid = false;
+				while(true)
+				{
+					CMap->lock();
+					isValid = CMap->insert(char_id, sock, c);
+					CMap->unlock();
+					if (isValid == true)
+					{
+						sock_set->erase(sock);
+						break;
+					}
+					else
+					{
+						SleepEx(100, true);
+					}
+				}
+
+				//ioInfo 구조체에 char정보를 넣어준다.
+				ioInfo->char_id = char_id;
+				ioInfo->my_char = &c;
 
 				// x와 y의 초기값을 가져온다.	
-				type = INIT;
 				len = 3 * sizeof(int);
-
 				{
 					int *param[] = { &char_id, &x, &y };
 					copy_to_buffer(buf, param, 3);
 				}
 				
 				set_single_cast(char_id, receiver);
-				send_message(msg(type, len, buf), receiver);
+				send_message(msg(INIT, len, buf), receiver);
 				receiver.clear();
 
 				// 현재 접속한 캐릭터의 정보를 다른 접속한 유저들에게 전송한다.
 
-				type = SET_USER;
-
 				set_multicast_in_room_except_me(char_id, receiver, true/*autolock*/ );
-				send_message(msg(type, len, buf), receiver);
+				send_message(msg(SET_USER, len, buf), receiver);
 				receiver.clear();
 
 				// CONNECT로 접속한 유저에게 다른 객체들의 정보를 전송한다.
-
-				type = SET_USER;
 				len = 0;
-
 				writebyte = 0;
 
 				CMap->lock();
@@ -152,7 +161,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				CMap->unlock();
 
 				set_single_cast(char_id, receiver);
-				send_message(msg(type, len, buf), receiver);
+				send_message(msg(SET_USER, len, buf), receiver);
 				receiver.clear();
 			}
 			else if (type == MOVE_USER)// 유저가 이동하는 경우
@@ -172,9 +181,10 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					int *param[] = { &cur_id, &x_off, &y_off };
 					copy_to_param(param, 3, buf);
 
-					CMap->lock();
+					/*CMap->lock();
 					Character *now = CMap->find_id_to_char(cur_id);
-					CMap->unlock();
+					CMap->unlock();*/
+					Character *now = (ioInfo->my_char);
 
 					char nbuf[BUFFER_SIZE];
 					pBuf = nbuf;
@@ -197,17 +207,15 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 						}
 					}
 					CMap->unlock();
-
-					ntype = ERASE_USER;
 					nlen = sizeof(int)*cnt;
 
 					set_single_cast(now->getID(), receiver);
-					send_message(msg(ntype, nlen, nbuf), receiver);
+					send_message(msg(ERASE_USER, nlen, nbuf), receiver);
 					receiver.clear();
 
 					// 기존 방의 유저들에게 내가 사라짐을 알림
 					set_multicast_in_room_except_me(now->getID(), receiver, true/*autolock*/ );
-					send_message(msg(ntype, sizeof(int), (char *)&cur_id), receiver);
+					send_message(msg(ERASE_USER, sizeof(int), (char *)&cur_id), receiver);
 					receiver.clear();
 
 					// 캐릭터를 해당 좌표만큼 이동시킴
@@ -252,14 +260,13 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 			ioInfo->wsaBuf.len = BUFFER_SIZE;
 			ioInfo->wsaBuf.buf = ioInfo->buffer;
 			ioInfo->RWmode = READ;
-
+			
 			int ret = WSARecv(sock, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
 
 			if (ret == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() == WSA_IO_PENDING )
 				{
-
 				}
 				else
 				{
