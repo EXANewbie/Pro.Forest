@@ -138,7 +138,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				// CONNECT로 접속한 유저에게 다른 객체들의 정보를 전송한다.
 				len = 0;
 				writebyte = 0;
-
+				char *pBuf = buf;
 				CMap->lock();
 				for (auto itr = CMap->begin(); itr != CMap->end(); itr++)
 				{
@@ -151,7 +151,6 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 
 					if (tx == x && ty == y)
 					{
-						char *pBuf = buf;
 						len += 3 * sizeof(int);
 						int *param[] = { &tID, &tx, &ty };
 						copy_to_buffer(pBuf, param, 3);

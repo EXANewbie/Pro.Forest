@@ -114,6 +114,7 @@ bool Client_Map::insert(int id, SOCKET sock, Character &now)
 	sock_id.insert(pair<SOCKET, int>(sock, id));
 	id_sock.insert(pair<int, SOCKET>(id, sock));
 	id_char.insert(pair<int, Character>(id, now));
+	//id_char[id] = now;
 	return true;
 }
 
