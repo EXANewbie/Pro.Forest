@@ -35,7 +35,7 @@ public :
 
 	void erase(int);
 	void erase(SOCKET);
-	void insert(int, SOCKET, Character&);
+	bool insert(int, SOCKET, Character);
 	
 	map<int, Character>::iterator begin();
 	map<int, Character>::iterator end();

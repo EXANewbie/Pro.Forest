@@ -3,6 +3,7 @@
 
 #include <WinSock2.h>
 #include "types.h"
+#include "character.h"
 
 typedef struct
 {

@@ -105,11 +105,17 @@ void Client_Map::erase(SOCKET sock)
 	}
 }
 
-void Client_Map::insert(int id, SOCKET sock, Character &now)
+bool Client_Map::insert(int id, SOCKET sock, Character now)
 {
-	id_sock.insert(pair<int, SOCKET>(id, sock));
+	if (sock_id.find(sock) != sock_id.end())
+	{
+		return false;
+	}
 	sock_id.insert(pair<SOCKET, int>(sock, id));
+	id_sock.insert(pair<int, SOCKET>(id, sock));
 	id_char.insert(pair<int, Character>(id, now));
+	//id_char[id] = now;
+	return true;
 }
 
 map<int, Character>::iterator Client_Map::begin()
