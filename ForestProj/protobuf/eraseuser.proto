@@ -1,0 +1,11 @@
+package ERASE_USER;
+
+message char_info
+{
+	optional int32 id = 1;
+}
+
+message CONTENTS
+{
+	repeated char_info ch_inf = 1; 
+}
