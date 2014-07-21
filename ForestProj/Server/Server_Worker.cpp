@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <string>
 #include <vector>
 
 #include "../protobuf/connect.pb.h"
@@ -18,6 +19,7 @@
 #include <Windows.h>
 
 using std::vector;
+using std::string;
 
 void set_single_cast(int , vector<SOCKET>& );
 void set_multicast_in_room_except_me(int, vector<SOCKET>&,bool);
@@ -71,23 +73,28 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				copy_to_param(param, 2, ioInfo->buffer + readbyte);
 				readbyte += 2 * sizeof(int);
 			}
-			
+			memcpy(buf, ioInfo->buffer + readbyte, len); // 버퍼 내의 메시지를 일단 받는다!!
+
 			if (type == PDISCONN) // 정상적인 종료의 경우
 			{
-				memcpy(buf, ioInfo->buffer + readbyte, len);
-				if (strcmp("BYE SERVER!", buf))
+				DISCONN::CONTENTS disconn;
+
+				disconn.ParseFromString(buf);
+				if (disconn.data() == "BYE SERVER!")
 				{
 					//가짜 클라이언트
 				}
 
-				printf("Nomal turn off ");
+				printf("Nomal turn off\n");
 				remove_valid_client(sock, handleInfo, ioInfo);
 				continue;
 			}
 			else if (type == PCONNECT) // 새로 들어온 경우
 			{
-				memcpy(buf, ioInfo->buffer + readbyte, len);
-				if (strcmp("HELLO SERVER!", buf))
+				CONNECT::CONTENTS connect;
+
+				connect.ParseFromString(buf);
+				if (connect.data() == "HELLO SERVER!")
 				{
 					//가짜 클라이언트
 				}
@@ -123,6 +130,9 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 
 				// x와 y의 초기값을 가져온다.	
 				len = 3 * sizeof(int);
+
+				INIT::CONTENTS init;
+				auto myData = init.data();
 				{
 					int *param[] = { &char_id, &x, &y };
 					copy_to_buffer(buf, param, 3);
