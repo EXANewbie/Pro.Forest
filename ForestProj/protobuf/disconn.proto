@@ -2,5 +2,5 @@ package DISCONN;
 
 message CONTENTS
 {
-	optional string cont = 1;
+	optional string data = 1;
 }

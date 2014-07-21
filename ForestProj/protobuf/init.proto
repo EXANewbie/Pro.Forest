@@ -1,13 +1,12 @@
 package INIT;
 
-message char_info
-{
-	optional int32 id = 1;
-	optional int32 x = 2;
-	optional int32 y = 3;
-}
-
 message CONTENTS
 {
-	repeated char_info cinf = 1; 
+	message char_info
+	{
+		optional int32 id = 1;
+		optional int32 x = 2;
+		optional int32 y = 3;
+	}
+	repeated char_info data = 1; 
 }

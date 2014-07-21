@@ -1,6 +1,13 @@
 #include <cstdio>
 #include <vector>
 
+#include "../protobuf/connect.pb.h"
+#include "../protobuf/disconn.pb.h"
+#include "../protobuf/moveuser.pb.h"
+#include "../protobuf/setuser.pb.h"
+#include "../protobuf/eraseuser.pb.h"
+#include "../protobuf/init.pb.h"
+
 #include "Completion_Port.h"
 #include "types.h"
 #include "Disc_user_map.h"
@@ -65,7 +72,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				readbyte += 2 * sizeof(int);
 			}
 			
-			if (type == DISCONN) // 정상적인 종료의 경우
+			if (type == PDISCONN) // 정상적인 종료의 경우
 			{
 				memcpy(buf, ioInfo->buffer + readbyte, len);
 				if (strcmp("BYE SERVER!", buf))
@@ -77,7 +84,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				remove_valid_client(sock, handleInfo, ioInfo);
 				continue;
 			}
-			else if (type == CONNECT) // 새로 들어온 경우
+			else if (type == PCONNECT) // 새로 들어온 경우
 			{
 				memcpy(buf, ioInfo->buffer + readbyte, len);
 				if (strcmp("HELLO SERVER!", buf))
@@ -122,16 +129,16 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				}
 				
 				set_single_cast(char_id, receiver);
-				send_message(msg(INIT, len, buf), receiver);
+				send_message(msg(PINIT, len, buf), receiver);
 				receiver.clear();
 
 				// 현재 접속한 캐릭터의 정보를 다른 접속한 유저들에게 전송한다.
 
 				set_multicast_in_room_except_me(char_id, receiver, true/*autolock*/ );
-				send_message(msg(SET_USER, len, buf), receiver);
+				send_message(msg(PSET_USER, len, buf), receiver);
 				receiver.clear();
 
-				// CONNECT로 접속한 유저에게 다른 객체들의 정보를 전송한다.
+				// PCONNECT로 접속한 유저에게 다른 객체들의 정보를 전송한다.
 				len = 0;
 				writebyte = 0;
 				char *pBuf = buf;
@@ -156,10 +163,10 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				CMap->unlock();
 
 				set_single_cast(char_id, receiver);
-				send_message(msg(SET_USER, len, buf), receiver);
+				send_message(msg(PSET_USER, len, buf), receiver);
 				receiver.clear();
 			}
-			else if (type == MOVE_USER)// 유저가 이동하는 경우
+			else if (type == PMOVE_USER)// 유저가 이동하는 경우
 			{
 				memcpy(buf, ioInfo->buffer + readbyte, len);
 
@@ -204,12 +211,12 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					nlen = sizeof(int)*cnt;
 
 					set_single_cast(now->getID(), receiver);
-					send_message(msg(ERASE_USER, nlen, nbuf), receiver);
+					send_message(msg(PERASE_USER, nlen, nbuf), receiver);
 					receiver.clear();
 
 					// 기존 방의 유저들에게 내가 사라짐을 알림
 					set_multicast_in_room_except_me(now->getID(), receiver, true/*autolock*/ );
-					send_message(msg(ERASE_USER, sizeof(int), (char *)&cur_id), receiver);
+					send_message(msg(PERASE_USER, sizeof(int), (char *)&cur_id), receiver);
 					receiver.clear();
 
 					// 캐릭터를 해당 좌표만큼 이동시킴
@@ -222,7 +229,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					copy_to_buffer(nbuf, param2, 3);
 
 					set_multicast_in_room_except_me(now->getID(), receiver, true/*autolock*/ );
-					send_message(msg(SET_USER, 3 * sizeof(int), nbuf), receiver);
+					send_message(msg(PSET_USER, 3 * sizeof(int), nbuf), receiver);
 					receiver.clear();
 
 					// 새로운 방의 유저들의 정보를 불러옴
@@ -244,7 +251,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					}
 					CMap->unlock();
 					set_single_cast(now->getID(), receiver);
-					send_message(msg(SET_USER, 3 * sizeof(int)* cnt, nbuf), receiver);
+					send_message(msg(PSET_USER, 3 * sizeof(int)* cnt, nbuf), receiver);
 					receiver.clear();
 
 					printf("id : %d, x_off : %d, y_off : %d\n", cur_id, x_off, y_off);
@@ -285,3 +292,4 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 
 	return 0;
 }
+

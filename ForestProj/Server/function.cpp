@@ -145,7 +145,7 @@ void closeClient(int id)
 
 		CMap->erase(id);
 
-		send_message(msg(ERASE_USER, sizeof(int), (char*)&char_id), send_list);
+		send_message(msg(PERASE_USER, sizeof(int), (char*)&char_id), send_list);
 	}
 	else
 	{
