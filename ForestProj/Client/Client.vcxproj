@@ -81,12 +81,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="addressbook.pb.cc" />
     <ClCompile Include="character.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="addressbook.pb.h" />
     <ClInclude Include="character.h" />
     <ClInclude Include="cmap.h" />
   </ItemGroup>

@@ -6,11 +6,18 @@
 #include "character.h"
 #include "cmap.h"
 
+#include "../protobuf/connect.pb.h""
+#include "../protobuf/disconn.pb.h"
+#include "../protobuf/eraseuser.pb.h"
+#include "../protobuf/init.pb.h"
+#include "../protobuf/moveuser.pb.h"
+#include "../protobuf/setuser.pb.h"
+
 #define PORT 78911
 
 #define SERVER_IP_ADDRESS /*"localhost"*/"10.1.7.10"
 
-enum packetType{ CONNECT, INIT, SET_USER, MOVE_USER, DISCONN, ERASE_USER };
+enum packetType{ PCONNECT, PINIT, PSET_USER, PMOVE_USER, PDISCONN, PERASE_USER };
 
 void send_move(const SOCKET s,const char& c,const int& myID);
 
@@ -31,7 +38,7 @@ void receiver(const SOCKET s, int* myID, SYNCHED_CHARACTER_MAP* chars)
 		int end = recv(s, buf, len, 0);
 		buf[end] = '\0';
 
-		if (type == SET_USER)
+		if (type == PSET_USER)
 		{
 			char *pBuf = buf;
 			while (len > 0)
@@ -54,7 +61,7 @@ void receiver(const SOCKET s, int* myID, SYNCHED_CHARACTER_MAP* chars)
 				len -= (3 * sizeof(int));
 			}
 		}
-		else if (type == INIT)
+		else if (type == PINIT)
 		{
 			int id, x, y;
 			char *pBuf = buf;
@@ -73,7 +80,7 @@ void receiver(const SOCKET s, int* myID, SYNCHED_CHARACTER_MAP* chars)
 
 			printf("my char id : %d, (%d,%d)\n", id, myCharacter.getX(), myCharacter.getY());
 		}
-		else if (type == MOVE_USER)
+		else if (type == PMOVE_USER)
 		{
 			int id, x_off, y_off;
 			char *pBuf = buf;
@@ -95,7 +102,7 @@ void receiver(const SOCKET s, int* myID, SYNCHED_CHARACTER_MAP* chars)
 				printf("your char id! : %d, (%d,%d) \n", other->getID(), other->getX(), other->getY());
 			}
 		}
-		else if (type == ERASE_USER)
+		else if (type == PERASE_USER)
 		{
 			char *pBuf = buf;
 			while (len > 0)
@@ -144,10 +151,8 @@ void main(void)
 	int len;
 	char buf[1024] ; 
 
-	//CONNECT 전송.
-	type = CONNECT;
-	//strncpy_s(buf, "HELLO SERVER!",13);
-	//printf("%d\n", sizeof("HELLO SERVER!"));
+	//PCONNECT 전송.
+	type = PCONNECT;
 	
 	char* pBuf = buf;
 	memcpy(pBuf, (char *)&type, sizeof(int));
@@ -155,10 +160,11 @@ void main(void)
 	len = sizeof("HELLO SERVER!");
 	memcpy(pBuf, (char *)&len, sizeof(int));
 	pBuf += sizeof(int);
+
+	CONNECT::CONTENTS contents;
 	memcpy(pBuf, "HELLO SERVER!", sizeof("HELLO SERVER!"));
 
 	send(s, buf, len + sizeof(int)* 2, 0);
-//	send(s, buf, len + sizeof(int)* 2, 0);
 	
 	//자신의 캐릭터 생성
 	int myID;
@@ -173,21 +179,19 @@ void main(void)
 		c=_getch();
 		if (c == 'x')
 		{
-			type = DISCONN;
-			memcpy(buf, "BYE SERVER!", sizeof("BYE SERVER!"));
-			len = strlen(buf);
-
 			char* pBuf = buf;
-			memcpy(pBuf, (char *)&type, sizeof(int));
+			type = PDISCONN;
+			memcpy(pBuf,(char*) &type, sizeof(int));
 			pBuf += sizeof(int);
-			len = sizeof("HELLO SERVER!");
-			memcpy(pBuf, (char *)&len, sizeof(int));
-			pBuf += sizeof(int);
-			memcpy(pBuf, "HELLO SERVER!", sizeof("HELLO SERVER!"));
 
-			send(s, (char*)&type, sizeof(int), 0);
-			send(s, (char*)&len, sizeof(int), 0);
-			send(s, buf, len, 0);
+			len = strlen("BYE SERVER!");
+			memcpy(pBuf, (char*)&len, sizeof(int));
+			pBuf += sizeof(int);
+
+			memcpy(pBuf, "BYE SERVER!", sizeof("BYE SERVER!"));
+			pBuf += sizeof("BYE SERVER!");
+			
+			send(s, buf, len+sizeof(int), 0);
 			break;
 		}
 		else if (c == 'w'||c=='a'||c=='s'||c=='d')
@@ -205,7 +209,7 @@ void send_move(const SOCKET s, const char& c, const int& myID)
 	int x_off, y_off;
 	char buf[1024];
 	int len;
-	packetType type = MOVE_USER;
+	packetType type = PMOVE_USER;
 
 	if (c == 'w') {	x_off = 0;y_off = -1;}
 	else if (c == 'a'){	x_off = -1;	y_off = 0;}
