@@ -2,6 +2,7 @@
 #include <WinSock2.h>
 #include <thread>
 #include <conio.h>
+#include <string>
 
 #include "character.h"
 #include "cmap.h"
@@ -13,14 +14,14 @@
 #include "../protobuf/moveuser.pb.h"
 #include "../protobuf/setuser.pb.h"
 
+
 #define PORT 78911
 
-#define SERVER_IP_ADDRESS /*"localhost"*/"10.1.7.206"
+#define SERVER_IP_ADDRESS /*"localhost"*/"10.1.7.10"
 
 enum packetType{ PCONNECT, PINIT, PSET_USER, PMOVE_USER, PDISCONN, PERASE_USER };
 
 void send_move(const SOCKET s,const char& c,const int& myID);
-
 
 void receiver(const SOCKET s, int* myID, SYNCHED_CHARACTER_MAP* chars)
 {
@@ -34,66 +35,53 @@ void receiver(const SOCKET s, int* myID, SYNCHED_CHARACTER_MAP* chars)
 			printf("disconnected\n");
 			break;
 		}
-		int tmp1 = recv(s, (char*)&len, sizeof(int), 0);		
+		recv(s, (char*)&len, sizeof(int), 0);		
 		int end = recv(s, buf, len, 0);
-		buf[end] = '\0';
 
 		if (type == PSET_USER)
 		{
-			char *pBuf = buf;
-			while (len > 0)
-			{
-				int id, x, y;
-				for (int i = 0; i < 3; ++i)
-				{
-					int* param[] = { &id, &x, &y };
-					memcpy(param[i], pBuf, sizeof(int));
-					pBuf += sizeof(int);
-				}
+			SET_USER::CONTENTS contents;
+			contents.ParseFromString(buf);
 
+			for (int i = 0; i<contents.data_size(); ++i)
+			{
+				auto user = contents.data(i);
 				Character other;
+				int id = user.id(), x = user.x(), y = user.y();
 				other.setID(id);
 				other.setX(x);
 				other.setY(y);
 				chars->insert(id, other);
 
 				printf("your char id : %d  (%d,%d)\n", id, x, y);
-				len -= (3 * sizeof(int));
 			}
 		}
 		else if (type == PINIT)
 		{
-			int id, x, y;
-			char *pBuf = buf;
-			for (int i = 0; i < 3; ++i)
-			{
-				int* param[] = { &id, &x, &y };
-				memcpy(param[i], pBuf, sizeof(int));
-				pBuf += sizeof(int);
-			}
+			INIT::CONTENTS contents;
+			contents.ParseFromString(buf);
+
+			auto user = contents.data(0);
+			int id = user.id(), x = user.x(), y = user.y();
+			
 			*myID = id;
 			Character myCharacter;
 			myCharacter.setID(id);
 			myCharacter.setX(x);
 			myCharacter.setY(y);
-			chars->insert(id,myCharacter);
-
+			chars->insert(id, myCharacter);
+			
 			printf("my char id : %d, (%d,%d)\n", id, myCharacter.getX(), myCharacter.getY());
 		}
 		else if (type == PMOVE_USER)
 		{
-			int id, x_off, y_off;
-			char *pBuf = buf;
-			while (len > 0)
-			{
-				for (int i = 0; i < 3; ++i)
-				{
-					int* param[] = { &id, &x_off, &y_off };
-					memcpy(param[i], pBuf, sizeof(int));
-					pBuf += sizeof(int);
-				}
-				len -= (sizeof(int)*3);
+			MOVE_USER::CONTENTS contents;
+			contents.ParseFromString(buf);
 
+			for (int i = 0; i<contents.data_size(); ++i)
+			{
+				auto user = contents.data(i);
+				int id = user.id(), x_off = user.xoff(), y_off = user.yoff();
 				Character* other;
 				other = (chars->find(id));
 				other->setX(other->getX() + x_off);
@@ -101,18 +89,19 @@ void receiver(const SOCKET s, int* myID, SYNCHED_CHARACTER_MAP* chars)
 
 				printf("your char id! : %d, (%d,%d) \n", other->getID(), other->getX(), other->getY());
 			}
+
 		}
 		else if (type == PERASE_USER)
 		{
-			char *pBuf = buf;
-			while (len > 0)
-			{
-				int id;
-				memcpy(&id, pBuf, sizeof(int));
-				pBuf += sizeof(int);
-				len -= sizeof(int);
+			ERASE_USER::CONTENTS contents;
+			contents.ParseFromString(buf);
 
+			for (int i = 0; i<contents.data_size(); ++i)
+			{
+				auto user = contents.data(i);
+				int id = user.id();
 				chars->erase(id);
+
 				printf("your char id erase! : %d \n", id);
 			}
 		}
@@ -157,14 +146,20 @@ void main(void)
 	char* pBuf = buf;
 	memcpy(pBuf, (char *)&type, sizeof(int));
 	pBuf += sizeof(int);
-	len = sizeof("HELLO SERVER!");
+	
+	CONNECT::CONTENTS contents;
+	std::string* buff_msg = contents.mutable_data();
+	*buff_msg = "HELLO SERVER!";
+	std::string bytestring;
+	contents.SerializeToString(&bytestring);
+	
+	len = bytestring.length();
 	memcpy(pBuf, (char *)&len, sizeof(int));
 	pBuf += sizeof(int);
 
-	CONNECT::CONTENTS contents;
-	memcpy(pBuf, "HELLO SERVER!", sizeof("HELLO SERVER!"));
+	memcpy(pBuf, &bytestring, len);
 
-	send(s, buf, len + sizeof(int)* 2, 0);
+	send(s, buf, len + sizeof(int) * 2, 0);
 	
 	//자신의 캐릭터 생성
 	int myID;
@@ -184,13 +179,19 @@ void main(void)
 			memcpy(pBuf,(char*) &type, sizeof(int));
 			pBuf += sizeof(int);
 
-			len = strlen("BYE SERVER!");
-			memcpy(pBuf, (char*)&len, sizeof(int));
+
+			DISCONN::CONTENTS contents;
+			std::string* buff_msg = contents.mutable_data();
+			*buff_msg = "BYE SERVER!";
+			std::string bytestring;
+			contents.SerializeToString(&bytestring);
+
+			len = bytestring.length();
+			memcpy(pBuf, (char *)&len, sizeof(int));
 			pBuf += sizeof(int);
 
-			memcpy(pBuf, "BYE SERVER!", sizeof("BYE SERVER!"));
-			pBuf += sizeof("BYE SERVER!");
-			
+			memcpy(pBuf, &bytestring, len);
+
 			send(s, buf, len+sizeof(int), 0);
 			break;
 		}
@@ -216,6 +217,15 @@ void send_move(const SOCKET s, const char& c, const int& myID)
 	else if (c == 's'){	x_off = 0;	y_off = 1;}
 	else if (c == 'd'){	x_off = 1;	y_off = 0;}
 	
+	MOVE_USER::CONTENTS contents;
+	auto buff_msg = contents.mutable_data();
+
+	// 메시지 포장에서 막힘.*************@@@@@@@@@@@@@@@@@@@@@@@@@@여기까지함
+	
+	//std::string bytestring;
+	//contents.SerializeToString(&bytestring);
+
+
 	len = sizeof(int)* 3;
 
 	char* pBuf = buf;

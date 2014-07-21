@@ -59,7 +59,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalOptions>WS2_32.LIB %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libprotobuf.lib;libprotobuf-lite.lib;libprotoc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -81,6 +81,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\protobuf\connect.pb.cc" />
+    <ClCompile Include="..\protobuf\disconn.pb.cc" />
+    <ClCompile Include="..\protobuf\eraseuser.pb.cc" />
+    <ClCompile Include="..\protobuf\init.pb.cc" />
+    <ClCompile Include="..\protobuf\moveuser.pb.cc" />
+    <ClCompile Include="..\protobuf\setuser.pb.cc" />
     <ClCompile Include="character.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>

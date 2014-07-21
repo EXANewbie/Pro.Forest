@@ -1,13 +1,13 @@
 package MOVE_USER;
 
-message CHAR_XOFF_YOFF
-{
-	optional int32 id = 1;
-	optional int32 xoff = 2;
-	optional int32 yoff = 3;
-}
 
 message CONTENTS
 {
+	message CHAR_XOFF_YOFF
+	{
+		optional int32 id = 1;
+		optional int32 xoff = 2;
+		optional int32 yoff = 3;
+	}
 	repeated CHAR_XOFF_YOFF data = 1;
 }

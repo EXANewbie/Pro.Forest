@@ -47,7 +47,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 	DWORD flags = 0;
 
 	vector<SOCKET> receiver;
-
+	
 	while (true)
 	{
 		GetQueuedCompletionStatus(hComPort, &bytesTrans, (LPDWORD)&handleInfo, (LPOVERLAPPED *)&ioInfo, INFINITE);
