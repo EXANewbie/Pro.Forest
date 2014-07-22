@@ -1,6 +1,8 @@
 #include <WinSock2.h>
 #include <vector>
 
+#include "../protobuf/eraseuser.pb.h"
+
 #include "Client_Map.h"
 #include "Disc_user_map.h"
 #include "types.h"
@@ -92,11 +94,11 @@ void send_message(msg message, vector<SOCKET> &send_list) {
 			if (WSAGetLastError() == ERROR_IO_PENDING)
 			{
 				printf("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
-				// Å¥¿¡ µé¾î°¨ ^.^
+				// íì— ë“¤ì–´ê° ^.^
 			}
 			else
 			{
-				// ³Ê¿¡°Õ ¼ö¸¹Àº ÀÌÀ¯°¡ ÀÖ°ÚÁö... ÇÏÁö¸¸ ¾Æ¸¶µµ ±× ¼ö¸¹Àº ÀÌÀ¯µéÀÇ °øÅëÁ¡Àº ¼ÒÄÏ¿¡ Àü¼ÛÇÒ ¼ö ¾ø´Â °ÍÀÌ ¾Æ´Ò±î?
+				// ë„ˆì—ê² ìˆ˜ë§ì€ ì´ìœ ê°€ ìˆê² ì§€... í•˜ì§€ë§Œ ì•„ë§ˆë„ ê·¸ ìˆ˜ë§ì€ ì´ìœ ë“¤ì˜ ê³µí†µì ì€ ì†Œì¼“ì— ì „ì†¡í•  ìˆ˜ ì—†ëŠ” ê²ƒì´ ì•„ë‹ê¹Œ?
 				free(ioInfo);
 			}
 			printf("Send Error (%d)\n", WSAGetLastError());
@@ -122,52 +124,56 @@ void unpack(msg message, char *buf, int *size)
 	*size = writebyte;
 }
 
-void closeClient(int id)
+void closeClient(SOCKET sock, int id)
 {
 	Client_Map *CMap = Client_Map::getInstance();
 	vector<SOCKET> send_list;
 
-	SOCKET sock = CMap->find_id_to_sock(id);
 	int ret = closesocket(sock);
 
 	if (ret != WSAENOTSOCK)
 	{
-		// Ã³À½À¸·Î ¼ÒÄÏÀ» ´İÀ» ¶§.
-		int char_id = CMap->find_sock_to_id(sock);
-
-		//¾ÆÀÌµğ°¡ Á¸ÀçÇÏÁö ¾Ê´Â °æ¿ìÀÌ¹Ç·Î, ÀÌ °æ¿ì´Â Á¦¿ÜÇÑ´Ù.
-		if (char_id == -1)
-		{
-			return;
-		}
-
-		set_multicast_in_room_except_me(char_id, send_list, false/*not autolock*/);
+		// ì²˜ìŒìœ¼ë¡œ ì†Œì¼“ì„ ë‹«ì„ ë•Œ.
+		set_multicast_in_room_except_me(id, send_list, false/*not autolock*/);
 
 		CMap->erase(id);
 
-		send_message(msg(PERASE_USER, sizeof(int), (char*)&char_id), send_list);
+		ERASE_USER::CONTENTS contents;
+		contents.add_data()->set_id(id);
+		
+		std::string bytestring;
+		contents.SerializeToString(&bytestring);
+		send_message(msg(PERASE_USER, sizeof(int), bytestring.c_str()), send_list);
 	}
 	else
 	{
-		//ÀÌ¹Ì »èÁ¦µÈ ¼ÒÄÏ.
+		//ì´ë¯¸ ì‚­ì œëœ ì†Œì¼“.
 	}
 
 }
 
-void remove_valid_client(SOCKET sock, LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo)
+void remove_valid_client(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo)
 {
 	Client_Map *CMap = Client_Map::getInstance();
-	CMap->lock();
-	int char_id = CMap->find_sock_to_id(sock);
-	// ¾ÆÀÌµğ°¡ ºñ¾îÀÖ´Â °æ¿ì
-	if (char_id == -1)
+
+	if (ioInfo->id == NOT_JOINED) // í˜„ì¬ ìœ ì €ê°€ PCONNECTë¥¼ ë³´ë‚´ì§€ ì•Šì€ ìƒíƒœì¼ ê²½ìš°
 	{
-		// ÀÌ¹Ì »èÁ¦ Ã³¸® µÈ °æ¿ì¸¦ ¿©±â¿¡ ¸í½ÃÇÑ´Ù.
+		closesocket(handleInfo->hClntSock);
+		free(handleInfo); free(ioInfo);
+		return;
+	}
+
+	CMap->lock();
+	int char_id = CMap->find_sock_to_id(handleInfo->hClntSock);
+	// ì•„ì´ë””ê°€ ë¹„ì–´ìˆëŠ” ê²½ìš°
+	if (char_id == -1 || char_id != ioInfo->id)
+	{
+		// ì´ë¯¸ ì‚­ì œ ì²˜ë¦¬ ëœ ê²½ìš°ë¥¼ ì—¬ê¸°ì— ëª…ì‹œí•œë‹¤.
 	}
 	else
 	{
-		printf("sock : %d char_id : %d\n", sock, char_id);
-		closeClient(char_id);
+		printf("sock : %d char_id : %d\n", handleInfo, char_id);
+		closeClient(handleInfo->hClntSock, ioInfo->id);
 		free(handleInfo); free(ioInfo);
 	}
 	CMap->unlock();

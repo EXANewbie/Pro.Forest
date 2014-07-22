@@ -4,6 +4,7 @@
 const int BUFFER_SIZE = 1024;
 const int Port = 78911;
 const int READ = 3, WRITE = 5;
+const int NOT_JOINED = -13;
 //const char* CONMSG = "HELLO SERVER!";
 //const char* DSCMSG = "BYE SERVER!";
 

@@ -25,8 +25,7 @@ void set_single_cast(int , vector<SOCKET>& );
 void set_multicast_in_room_except_me(int, vector<SOCKET>&,bool);
 void send_message(msg , vector<SOCKET> &);
 void unpack(msg, char *, int *);
-void closeClient(int);
-void remove_valid_client(SOCKET, LPPER_HANDLE_DATA, LPPER_IO_DATA);
+void remove_valid_client(LPPER_HANDLE_DATA, LPPER_IO_DATA);
 void copy_to_buffer(char *, int **, int );
 void copy_to_param(int **, int, char *);
 
@@ -56,47 +55,49 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 		if (ioInfo->RWmode == READ)
 		{
 			puts("MESSAGE RECEIVED!");
-			if (bytesTrans == 0) // ¿Ã¹Ù¸£Áö ¾ÊÀº Á¾·ùÀÇ °æ¿ì
+			if (bytesTrans == 0) // ì˜¬ë°”ë¥´ì§€ ì•Šì€ ì¢…ë¥˜ì˜ ê²½ìš°
 			{
 				printf("@Abnomal turn off ");
-				remove_valid_client(sock, handleInfo, ioInfo);
+				remove_valid_client(handleInfo, ioInfo);
 				continue;
 			}
 
-			//¸Ş½ÃÁö¸¦ ¹ŞÀº ÈÄ Ã³¸®ÇØ¾ßÇÒ °è»ê ºÎºĞ
+			//ë©”ì‹œì§€ë¥¼ ë°›ì€ í›„ ì²˜ë¦¬í•´ì•¼í•  ê³„ì‚° ë¶€ë¶„
 
 			int readbyte = 0;
 			int type, len;
-			char buf[BUFFER_SIZE];
+			
 			{
 				int *param[] = { &type, &len };
 				copy_to_param(param, 2, ioInfo->buffer + readbyte);
 				readbyte += 2 * sizeof(int);
 			}
-			memcpy(buf, ioInfo->buffer + readbyte, len); // ¹öÆÛ ³»ÀÇ ¸Ş½ÃÁö¸¦ ÀÏ´Ü ¹Ş´Â´Ù!!
-
-			if (type == PDISCONN) // Á¤»óÀûÀÎ Á¾·áÀÇ °æ¿ì
+			std::string readContents(ioInfo->buffer + readbyte, len);
+			if (type == PDISCONN) // ì •ìƒì ì¸ ì¢…ë£Œì˜ ê²½ìš°
 			{
 				DISCONN::CONTENTS disconn;
 
-				disconn.ParseFromString(buf);
-				if (disconn.data() == "BYE SERVER!")
+				disconn.ParseFromString(readContents);
+				if (disconn.data() != "BYE SERVER!")
 				{
-					//°¡Â¥ Å¬¶óÀÌ¾ğÆ®
+					//ê°€ì§œ í´ë¼ì´ì–¸íŠ¸
 				}
 
 				printf("Nomal turn off\n");
-				remove_valid_client(sock, handleInfo, ioInfo);
+				remove_valid_client(handleInfo, ioInfo);
 				continue;
 			}
-			else if (type == PCONNECT) // »õ·Î µé¾î¿Â °æ¿ì
+			else if (type == PCONNECT) // ìƒˆë¡œ ë“¤ì–´ì˜¨ ê²½ìš°
 			{
 				CONNECT::CONTENTS connect;
+				INIT::CONTENTS initContents;
+				SET_USER::CONTENTS setuserContents;
+				string bytestring;
 
-				connect.ParseFromString(buf);
-				if (connect.data() == "HELLO SERVER!")
+				connect.ParseFromString(readContents);
+				if (connect.data() != "HELLO SERVER!")
 				{
-					//°¡Â¥ Å¬¶óÀÌ¾ğÆ®
+					//ê°€ì§œ í´ë¼ì´ì–¸íŠ¸
 				}
 
 				int char_id;
@@ -104,12 +105,13 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				static int id = 0;
 				int writebyte;
 
-				// Ä³¸¯ÅÍ °´Ã¼¸¦ »ı¼º ÈÄ
+				// ìºë¦­í„° ê°ì²´ë¥¼ ìƒì„± í›„
 				int copy_id = InterlockedIncrement((unsigned *)&id);
 				Character c(copy_id);
 				char_id = copy_id;
 				x = c.getX();
 				y = c.getY();
+				ioInfo->id = copy_id;
 
 				bool isValid = false;
 				while(true)
@@ -128,30 +130,49 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					}
 				}
 
-				// x¿Í yÀÇ ÃÊ±â°ªÀ» °¡Á®¿Â´Ù.	
-				len = 3 * sizeof(int);
-
-				INIT::CONTENTS init;
-				auto myData = init.data();
+				// xì™€ yì˜ ì´ˆê¸°ê°’ì„ ê°€ì ¸ì˜¨ë‹¤.	
+				initContents.clear_data();
 				{
-					int *param[] = { &char_id, &x, &y };
-					copy_to_buffer(buf, param, 3);
+					auto myData = initContents.mutable_data()->Add();
+					myData->set_id(char_id);
+					myData->set_x(x);
+					myData->set_y(y);
 				}
+
+				bytestring.clear();
+				initContents.SerializeToString(&bytestring);
+				len = bytestring.length();
 				
 				set_single_cast(char_id, receiver);
-				send_message(msg(PINIT, len, buf), receiver);
+				send_message(msg(PINIT, len, bytestring.c_str()), receiver);
 				receiver.clear();
 
-				// ÇöÀç Á¢¼ÓÇÑ Ä³¸¯ÅÍÀÇ Á¤º¸¸¦ ´Ù¸¥ Á¢¼ÓÇÑ À¯Àúµé¿¡°Ô Àü¼ÛÇÑ´Ù.
+				// í˜„ì¬ ì ‘ì†í•œ ìºë¦­í„°ì˜ ì •ë³´ë¥¼ ë‹¤ë¥¸ ì ‘ì†í•œ ìœ ì €ë“¤ì—ê²Œ ì „ì†¡í•œë‹¤.
+				setuserContents.clear_data();// .clear_data();
+				{
+					auto myData = setuserContents.mutable_data()->Add();
+					myData->set_id(char_id);
+					myData->set_x(x);
+					myData->set_y(y);
+				}
+
+				bytestring.clear();
+				setuserContents.SerializeToString(&bytestring);
+				len = bytestring.length();
+
+				/*setuserContents.ParseFromString(bytestring);
+				printf("len : %d count : %d\n", len, setuserContents.data_size());
+				for (int i = 0; i < setuserContents.data_size(); i++) {
+					auto p = setuserContents.data(i);
+					printf("id = %d, x = %d, y = %d\n", p.id(), p.x(), p.y());
+				}*/
 
 				set_multicast_in_room_except_me(char_id, receiver, true/*autolock*/ );
-				send_message(msg(PSET_USER, len, buf), receiver);
+				send_message(msg(PSET_USER, len, bytestring.c_str()), receiver);
 				receiver.clear();
 
-				// PCONNECT·Î Á¢¼ÓÇÑ À¯Àú¿¡°Ô ´Ù¸¥ °´Ã¼µéÀÇ Á¤º¸¸¦ Àü¼ÛÇÑ´Ù.
-				len = 0;
-				writebyte = 0;
-				char *pBuf = buf;
+				// PCONNECTë¡œ ì ‘ì†í•œ ìœ ì €ì—ê²Œ ë‹¤ë¥¸ ê°ì²´ë“¤ì˜ ì •ë³´ë¥¼ ì „ì†¡í•œë‹¤.
+				setuserContents.clear_data();
 				CMap->lock();
 				for (auto itr = CMap->begin(); itr != CMap->end(); itr++)
 				{
@@ -159,49 +180,58 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					int tx = itr->second.getX();
 					int ty = itr->second.getY();
 
-					if (tID == char_id) // Ä³¸¯ÅÍ ¸Ê¿¡ ÇöÀç µé¾î°£ ³» °´Ã¼ÀÇ Á¤º¸¸¦ º¸³»·Á ÇÒ ¶§´Â °Ç³Ê¶Ú´Ù.
+					if (tID == char_id) // ìºë¦­í„° ë§µì— í˜„ì¬ ë“¤ì–´ê°„ ë‚´ ê°ì²´ì˜ ì •ë³´ë¥¼ ë³´ë‚´ë ¤ í•  ë•ŒëŠ” ê±´ë„ˆë›´ë‹¤.
 						continue;
 
 					if (tx == x && ty == y)
 					{
-						len += 3 * sizeof(int);
-						int *param[] = { &tID, &tx, &ty };
-						copy_to_buffer(pBuf, param, 3);
-						pBuf += 3 * sizeof(int);
+						auto tempData = setuserContents.mutable_data()->Add();
+						tempData->set_id(tID);
+						tempData->set_x(tx);
+						tempData->set_y(ty);
 					}
 				}
 				CMap->unlock();
 
+				bytestring.clear();
+				setuserContents.SerializeToString(&bytestring);
+				len = bytestring.length();
+
+				/*setuserContents.ParseFromString(bytestring);
+				printf("len : %d count : %d\n", len, setuserContents.data_size());
+				for (int i = 0; i < setuserContents.data_size(); i++) {
+					auto p = setuserContents.data(i);
+					printf("id = %d, x = %d, y = %d\n", p.id(), p.x(), p.y());
+				}*/
+
 				set_single_cast(char_id, receiver);
-				send_message(msg(PSET_USER, len, buf), receiver);
+				send_message(msg(PSET_USER, len, bytestring.c_str()), receiver);
 				receiver.clear();
 			}
-			else if (type == PMOVE_USER)// À¯Àú°¡ ÀÌµ¿ÇÏ´Â °æ¿ì
+			else if (type == PMOVE_USER)// ìœ ì €ê°€ ì´ë™í•˜ëŠ” ê²½ìš°
 			{
-				memcpy(buf, ioInfo->buffer + readbyte, len);
+				MOVE_USER::CONTENTS moveuserContents;
+				ERASE_USER::CONTENTS eraseuserContents;
+				SET_USER::CONTENTS setuserContents;
+				std::string bytestring;
 
-				int ntype, nlen;
+				moveuserContents.ParseFromString(readContents);
+				
 				int cur_id, x_off, y_off;
-				int cnt;
-				char *pBuf;
+				int len;
 
-				int writebyte;
-
-				writebyte = 0;
-				for (int i = 0; i < len; i += sizeof(int)* 3)
+				for (int i = 0; i < moveuserContents.data_size(); ++i)
 				{
-					int *param[] = { &cur_id, &x_off, &y_off };
-					copy_to_param(param, 3, buf);
+					auto user = moveuserContents.data(i);
+					cur_id = user.id();
+					x_off = user.xoff();
+					y_off = user.yoff();
 
 					CMap->lock();
 					Character *now = CMap->find_id_to_char(cur_id);
 					CMap->unlock();
 
-					char nbuf[BUFFER_SIZE];
-					pBuf = nbuf;
-
-					// ±âÁ¸ÀÇ ¹æÀÇ À¯ÀúµéÀÇ Á¤º¸¸¦ »èÁ¦ÇÔ
-					cnt = 0;
+					// ê¸°ì¡´ì˜ ë°©ì˜ ìœ ì €ë“¤ì˜ ì •ë³´ë¥¼ ì‚­ì œí•¨
 					CMap->lock();
 					for (auto iter = CMap->begin(); iter != CMap->end(); iter++)
 					{
@@ -212,39 +242,58 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 							if (nid == now->getID())
 								continue;
 
-							memcpy(pBuf, &nid, sizeof(int));
-							pBuf += sizeof(int);
-							cnt++;
+							auto eraseuser = eraseuserContents.add_data();
+							eraseuser->set_id(nid);
 						}
 					}
 					CMap->unlock();
-					nlen = sizeof(int)*cnt;
+					
+					eraseuserContents.SerializeToString(&bytestring);
+					len = bytestring.length();
 
 					set_single_cast(now->getID(), receiver);
-					send_message(msg(PERASE_USER, nlen, nbuf), receiver);
-					receiver.clear();
+					send_message(msg(PERASE_USER, len, bytestring.c_str()), receiver);
 
-					// ±âÁ¸ ¹æÀÇ À¯Àúµé¿¡°Ô ³»°¡ »ç¶óÁüÀ» ¾Ë¸²
+					receiver.clear();
+					bytestring.clear();
+					eraseuserContents.clear_data();
+
+					// ê¸°ì¡´ ë°©ì˜ ìœ ì €ë“¤ì—ê²Œ ë‚´ê°€ ì‚¬ë¼ì§ì„ ì•Œë¦¼
+					auto eraseuser = eraseuserContents.add_data();
+					eraseuser->set_id(cur_id);
+					eraseuserContents.SerializeToString(&bytestring);
+					len = bytestring.length();
+
 					set_multicast_in_room_except_me(now->getID(), receiver, true/*autolock*/ );
-					send_message(msg(PERASE_USER, sizeof(int), (char *)&cur_id), receiver);
-					receiver.clear();
+					send_message(msg(PERASE_USER, len, bytestring.c_str()), receiver);
 
-					// Ä³¸¯ÅÍ¸¦ ÇØ´ç ÁÂÇ¥¸¸Å­ ÀÌµ¿½ÃÅ´
+					receiver.clear();
+					bytestring.clear();
+					eraseuserContents.clear_data();
+
+					// ìºë¦­í„°ë¥¼ í•´ë‹¹ ì¢Œí‘œë§Œí¼ ì´ë™ì‹œí‚´
 					now->setX(now->getX() + x_off);
 					now->setY(now->getY() + y_off);
 
-					// »õ·Î¿î ¹æÀÇ À¯Àúµé¿¡°Ô ³»°¡ µîÀåÇÔÀ» ¾Ë¸²
+					// ìƒˆë¡œìš´ ë°©ì˜ ìœ ì €ë“¤ì—ê²Œ ë‚´ê°€ ë“±ì¥í•¨ì„ ì•Œë¦¼
 					int id = now->getID(), x = now->getX(), y = now->getY();
-					int *param2[] = { &id, &x, &y };
-					copy_to_buffer(nbuf, param2, 3);
+					auto setuser = setuserContents.add_data();
+					setuser->set_id(id);
+					setuser->set_x(x);
+					setuser->set_y(y);
 
-					set_multicast_in_room_except_me(now->getID(), receiver, true/*autolock*/ );
-					send_message(msg(PSET_USER, 3 * sizeof(int), nbuf), receiver);
+					setuserContents.SerializeToString(&bytestring);
+					len = bytestring.length();
+
+					set_multicast_in_room_except_me(id, receiver, true/*autolock*/ );
+					send_message(msg(PSET_USER, len, bytestring.c_str()), receiver);
+
 					receiver.clear();
+					bytestring.clear();
+					setuserContents.clear_data();
 
-					// »õ·Î¿î ¹æÀÇ À¯ÀúµéÀÇ Á¤º¸¸¦ ºÒ·¯¿È
-					pBuf = nbuf;
-					cnt = 0;
+					// ìƒˆë¡œìš´ ë°©ì˜ ìœ ì €ë“¤ì˜ ì •ë³´ë¥¼ ë¶ˆëŸ¬ì˜´
+
 					CMap->lock();
 					for (auto iter = CMap->begin(); iter != CMap->end(); iter++)
 					{
@@ -253,16 +302,24 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 							int nid = iter->second.getID();
 							int nx = iter->second.getX();
 							int ny = iter->second.getY();
-							int *param3[] = { &nid, &nx, &ny };
-							copy_to_buffer(pBuf, param3, 3);
-							pBuf += 3 * sizeof(int);
-							cnt++;
+
+							auto setuser = setuserContents.add_data();
+							setuser->set_id(nid);
+							setuser->set_x(nx);
+							setuser->set_y(ny);
 						}
 					}
 					CMap->unlock();
+
+					setuserContents.SerializeToString(&bytestring);
+					len = bytestring.length();
+
 					set_single_cast(now->getID(), receiver);
-					send_message(msg(PSET_USER, 3 * sizeof(int)* cnt, nbuf), receiver);
+					send_message(msg(PSET_USER, len, bytestring.c_str()), receiver);
+
 					receiver.clear();
+					bytestring.clear();
+					setuserContents.clear_data();
 
 					printf("id : %d, x_off : %d, y_off : %d\n", cur_id, x_off, y_off);
 				}
@@ -281,16 +338,16 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				}
 				else
 				{
-					// ¼ÒÄÏ ¿¡·¯ ¹ß»ı
+					// ì†Œì¼“ ì—ëŸ¬ ë°œìƒ
 				}
 			}
 		}
 		else // WRITE
 		{
-			if (bytesTrans == 0) // ¿Ã¹Ù¸£Áö ¾ÊÀº Á¾·ùÀÇ °æ¿ì
+			if (bytesTrans == 0) // ì˜¬ë°”ë¥´ì§€ ì•Šì€ ì¢…ë¥˜ì˜ ê²½ìš°
 			{
-				printf("³ª Ãâ·ÂµÇ´Â°Å ¸ÂÀ½?¤»\n");
-				remove_valid_client(sock, handleInfo, ioInfo);
+				printf("ë‚˜ ì¶œë ¥ë˜ëŠ”ê±° ë§ìŒ?ã…‹\n");
+				remove_valid_client(handleInfo, ioInfo);
 				continue;
 			}
 

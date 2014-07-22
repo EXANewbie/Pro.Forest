@@ -6,9 +6,9 @@
 struct msg {
 	int type;
 	int len;
-	char *buff;
+	const char *buff;
 
-	msg(int type, int len, char *buff) {
+	msg(int type, int len, const char *buff) {
 		this->type = type;
 		this->len = len;
 		this->buff = buff;
