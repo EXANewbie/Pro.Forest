@@ -16,6 +16,9 @@
     <Filter Include="Member Funtions">
       <UniqueIdentifier>{e43c5740-3051-4c15-a272-95fb616ed76b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="pb_files">
+      <UniqueIdentifier>{4a070d81-ff89-435a-834e-97f98e2346ef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
@@ -31,22 +34,22 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\protobuf\connect.pb.cc">
-      <Filter>Source Files</Filter>
+      <Filter>pb_files</Filter>
     </ClCompile>
     <ClCompile Include="..\protobuf\disconn.pb.cc">
-      <Filter>Source Files</Filter>
+      <Filter>pb_files</Filter>
     </ClCompile>
     <ClCompile Include="..\protobuf\eraseuser.pb.cc">
-      <Filter>Source Files</Filter>
+      <Filter>pb_files</Filter>
     </ClCompile>
     <ClCompile Include="..\protobuf\init.pb.cc">
-      <Filter>Source Files</Filter>
+      <Filter>pb_files</Filter>
     </ClCompile>
     <ClCompile Include="..\protobuf\moveuser.pb.cc">
-      <Filter>Source Files</Filter>
+      <Filter>pb_files</Filter>
     </ClCompile>
     <ClCompile Include="..\protobuf\setuser.pb.cc">
-      <Filter>Source Files</Filter>
+      <Filter>pb_files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

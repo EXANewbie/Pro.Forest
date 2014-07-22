@@ -56,7 +56,7 @@ void main() {
 	GetSystemInfo(&sysInfo);
 
 	// 시스템의 수만큼 스레드를 생성하여 CP에 등록
-	for (int i = 0; i <2*sysInfo.dwNumberOfProcessors/*1*/; ++i)
+	for (int i = 0; i </*2*sysInfo.dwNumberOfProcessors*/1; ++i)
 	{
 		_beginthreadex(NULL, 0, Server_Worker, (LPVOID)hComPort, 0, 0);
 	}
@@ -103,9 +103,10 @@ void main() {
 
 		ioInfo = (LPPER_IO_DATA)malloc(sizeof(PER_IO_DATA));
 		memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
-		ioInfo->wsaBuf.len = BUFFER_SIZE;
+		ioInfo->wsaBuf.len = BUFFER_SIZE;	/* 이 부분에서 BUFFER_SIZE를 필히 수정해야됨, (엄밀히 말하면 8바이트만 먼저 받도록)*/
 		ioInfo->wsaBuf.buf = ioInfo->buffer;
 		ioInfo->RWmode = READ;
+		ioInfo->id = NOT_JOINED;
 				
 		WSARecv(handleInfo->hClntSock, &(ioInfo->wsaBuf), 1, &recvBytes, &flags, &(ioInfo->overlapped), NULL);
 		sock_set->insert(NewConnection);
