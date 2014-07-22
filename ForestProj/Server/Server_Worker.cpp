@@ -21,12 +21,12 @@
 using std::vector;
 using std::string;
 
-void set_single_cast(int , vector<SOCKET>& );
-void set_multicast_in_room_except_me(int, vector<SOCKET>&,bool);
-void send_message(msg , vector<SOCKET> &);
+void set_single_cast(int, vector<SOCKET>&);
+void set_multicast_in_room_except_me(int, vector<SOCKET>&, bool);
+void send_message(msg, vector<SOCKET> &);
 void unpack(msg, char *, int *);
 void remove_valid_client(LPPER_HANDLE_DATA, LPPER_IO_DATA);
-void copy_to_buffer(char *, int **, int );
+void copy_to_buffer(char *, int **, int);
 void copy_to_param(int **, int, char *);
 
 extern CRITICAL_SECTION cs;
@@ -46,7 +46,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 	DWORD flags = 0;
 
 	vector<SOCKET> receiver;
-	
+
 	while (true)
 	{
 		GetQueuedCompletionStatus(hComPort, &bytesTrans, (LPDWORD)&handleInfo, (LPOVERLAPPED *)&ioInfo, INFINITE);
@@ -66,7 +66,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 
 			int readbyte = 0;
 			int type, len;
-			
+
 			{
 				int *param[] = { &type, &len };
 				copy_to_param(param, 2, ioInfo->buffer + readbyte);
@@ -114,7 +114,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				ioInfo->id = copy_id;
 
 				bool isValid = false;
-				while(true)
+				while (true)
 				{
 					CMap->lock();
 					isValid = CMap->insert(char_id, sock, c);
@@ -130,7 +130,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					}
 				}
 
-				// x와 y의 초기값을 가져온다.	
+				// x와 y의 초기값을 가져온다.   
 				initContents.clear_data();
 				{
 					auto myData = initContents.mutable_data()->Add();
@@ -142,7 +142,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				bytestring.clear();
 				initContents.SerializeToString(&bytestring);
 				len = bytestring.length();
-				
+
 				set_single_cast(char_id, receiver);
 				send_message(msg(PINIT, len, bytestring.c_str()), receiver);
 				receiver.clear();
@@ -163,11 +163,11 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				/*setuserContents.ParseFromString(bytestring);
 				printf("len : %d count : %d\n", len, setuserContents.data_size());
 				for (int i = 0; i < setuserContents.data_size(); i++) {
-					auto p = setuserContents.data(i);
-					printf("id = %d, x = %d, y = %d\n", p.id(), p.x(), p.y());
+				auto p = setuserContents.data(i);
+				printf("id = %d, x = %d, y = %d\n", p.id(), p.x(), p.y());
 				}*/
 
-				set_multicast_in_room_except_me(char_id, receiver, true/*autolock*/ );
+				set_multicast_in_room_except_me(char_id, receiver, true/*autolock*/);
 				send_message(msg(PSET_USER, len, bytestring.c_str()), receiver);
 				receiver.clear();
 
@@ -200,8 +200,8 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				/*setuserContents.ParseFromString(bytestring);
 				printf("len : %d count : %d\n", len, setuserContents.data_size());
 				for (int i = 0; i < setuserContents.data_size(); i++) {
-					auto p = setuserContents.data(i);
-					printf("id = %d, x = %d, y = %d\n", p.id(), p.x(), p.y());
+				auto p = setuserContents.data(i);
+				printf("id = %d, x = %d, y = %d\n", p.id(), p.x(), p.y());
 				}*/
 
 				set_single_cast(char_id, receiver);
@@ -216,7 +216,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				std::string bytestring;
 
 				moveuserContents.ParseFromString(readContents);
-				
+
 				int cur_id, x_off, y_off;
 				int len;
 
@@ -247,7 +247,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 						}
 					}
 					CMap->unlock();
-					
+
 					eraseuserContents.SerializeToString(&bytestring);
 					len = bytestring.length();
 
@@ -264,7 +264,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					eraseuserContents.SerializeToString(&bytestring);
 					len = bytestring.length();
 
-					set_multicast_in_room_except_me(now->getID(), receiver, true/*autolock*/ );
+					set_multicast_in_room_except_me(now->getID(), receiver, true/*autolock*/);
 					send_message(msg(PERASE_USER, len, bytestring.c_str()), receiver);
 
 					receiver.clear();
@@ -285,7 +285,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					setuserContents.SerializeToString(&bytestring);
 					len = bytestring.length();
 
-					set_multicast_in_room_except_me(id, receiver, true/*autolock*/ );
+					set_multicast_in_room_except_me(id, receiver, true/*autolock*/);
 					send_message(msg(PSET_USER, len, bytestring.c_str()), receiver);
 
 					receiver.clear();
@@ -328,12 +328,12 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 			ioInfo->wsaBuf.len = BUFFER_SIZE;
 			ioInfo->wsaBuf.buf = ioInfo->buffer;
 			ioInfo->RWmode = READ;
-			
+
 			int ret = WSARecv(sock, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
 
 			if (ret == SOCKET_ERROR)
 			{
-				if (WSAGetLastError() == WSA_IO_PENDING )
+				if (WSAGetLastError() == WSA_IO_PENDING)
 				{
 				}
 				else
@@ -359,4 +359,3 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 
 	return 0;
 }
-

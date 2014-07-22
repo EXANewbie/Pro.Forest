@@ -94,11 +94,11 @@ void send_message(msg message, vector<SOCKET> &send_list) {
 			if (WSAGetLastError() == ERROR_IO_PENDING)
 			{
 				printf("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
-				// íì— ë“¤ì–´ê° ^.^
+				// Å¥¿¡ µé¾î°¨ ^.^
 			}
 			else
 			{
-				// ë„ˆì—ê² ìˆ˜ë§ì€ ì´ìœ ê°€ ìˆê² ì§€... í•˜ì§€ë§Œ ì•„ë§ˆë„ ê·¸ ìˆ˜ë§ì€ ì´ìœ ë“¤ì˜ ê³µí†µì ì€ ì†Œì¼“ì— ì „ì†¡í•  ìˆ˜ ì—†ëŠ” ê²ƒì´ ì•„ë‹ê¹Œ?
+				// ³Ê¿¡°Õ ¼ö¸¹Àº ÀÌÀ¯°¡ ÀÖ°ÚÁö... ÇÏÁö¸¸ ¾Æ¸¶µµ ±× ¼ö¸¹Àº ÀÌÀ¯µéÀÇ °øÅëÁ¡Àº ¼ÒÄÏ¿¡ Àü¼ÛÇÒ ¼ö ¾ø´Â °ÍÀÌ ¾Æ´Ò±î?
 				free(ioInfo);
 			}
 			printf("Send Error (%d)\n", WSAGetLastError());
@@ -133,21 +133,21 @@ void closeClient(SOCKET sock, int id)
 
 	if (ret != WSAENOTSOCK)
 	{
-		// ì²˜ìŒìœ¼ë¡œ ì†Œì¼“ì„ ë‹«ì„ ë•Œ.
+		// Ã³À½À¸·Î ¼ÒÄÏÀ» ´İÀ» ¶§.
 		set_multicast_in_room_except_me(id, send_list, false/*not autolock*/);
 
 		CMap->erase(id);
 
 		ERASE_USER::CONTENTS contents;
 		contents.add_data()->set_id(id);
-		
+
 		std::string bytestring;
 		contents.SerializeToString(&bytestring);
 		send_message(msg(PERASE_USER, sizeof(int), bytestring.c_str()), send_list);
 	}
 	else
 	{
-		//ì´ë¯¸ ì‚­ì œëœ ì†Œì¼“.
+		//ÀÌ¹Ì »èÁ¦µÈ ¼ÒÄÏ.
 	}
 
 }
@@ -156,7 +156,7 @@ void remove_valid_client(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo)
 {
 	Client_Map *CMap = Client_Map::getInstance();
 
-	if (ioInfo->id == NOT_JOINED) // í˜„ì¬ ìœ ì €ê°€ PCONNECTë¥¼ ë³´ë‚´ì§€ ì•Šì€ ìƒíƒœì¼ ê²½ìš°
+	if (ioInfo->id == NOT_JOINED) // ÇöÀç À¯Àú°¡ PCONNECT¸¦ º¸³»Áö ¾ÊÀº »óÅÂÀÏ °æ¿ì
 	{
 		closesocket(handleInfo->hClntSock);
 		free(handleInfo); free(ioInfo);
@@ -165,10 +165,10 @@ void remove_valid_client(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo)
 
 	CMap->lock();
 	int char_id = CMap->find_sock_to_id(handleInfo->hClntSock);
-	// ì•„ì´ë””ê°€ ë¹„ì–´ìˆëŠ” ê²½ìš°
+	// ¾ÆÀÌµğ°¡ ºñ¾îÀÖ´Â °æ¿ì
 	if (char_id == -1 || char_id != ioInfo->id)
 	{
-		// ì´ë¯¸ ì‚­ì œ ì²˜ë¦¬ ëœ ê²½ìš°ë¥¼ ì—¬ê¸°ì— ëª…ì‹œí•œë‹¤.
+		// ÀÌ¹Ì »èÁ¦ Ã³¸® µÈ °æ¿ì¸¦ ¿©±â¿¡ ¸í½ÃÇÑ´Ù.
 	}
 	else
 	{
