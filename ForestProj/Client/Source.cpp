@@ -112,7 +112,6 @@ void receiver(const SOCKET s, int* myID, SYNCHED_CHARACTER_MAP* chars)
 
 void main(void)
 {
-
 	WSADATA wsaData;
 	SOCKET s;
 	SOCKADDR_IN ServerAddr;
@@ -144,8 +143,6 @@ void main(void)
 	type = PCONNECT;
 	
 	char* pBuf = buf;
-	memcpy(pBuf, (char *)&type, sizeof(int));
-	pBuf += sizeof(int);
 	
 	CONNECT::CONTENTS contents;
 	std::string* buff_msg = contents.mutable_data();
@@ -154,9 +151,11 @@ void main(void)
 	contents.SerializeToString(&bytestring);
 	
 	len = bytestring.length();
+	
+	memcpy(pBuf, (char *)&type, sizeof(int));
+	pBuf += sizeof(int);
 	memcpy(pBuf, (char *)&len, sizeof(int));
 	pBuf += sizeof(int);
-
 	memcpy(pBuf, &bytestring, len);
 
 	send(s, buf, len + sizeof(int) * 2, 0);
@@ -175,11 +174,9 @@ void main(void)
 		if (c == 'x')
 		{
 			char* pBuf = buf;
+			//PDISCONN 전송
 			type = PDISCONN;
-			memcpy(pBuf,(char*) &type, sizeof(int));
-			pBuf += sizeof(int);
-
-
+			
 			DISCONN::CONTENTS contents;
 			std::string* buff_msg = contents.mutable_data();
 			*buff_msg = "BYE SERVER!";
@@ -187,10 +184,12 @@ void main(void)
 			contents.SerializeToString(&bytestring);
 
 			len = bytestring.length();
+			
+			memcpy(pBuf, (char*)&type, sizeof(int));
+			pBuf += sizeof(int);
 			memcpy(pBuf, (char *)&len, sizeof(int));
 			pBuf += sizeof(int);
-
-			memcpy(pBuf, &bytestring, len);
+			memcpy(pBuf, bytestring.c_str(), len);
 
 			send(s, buf, len+sizeof(int), 0);
 			break;
@@ -218,33 +217,21 @@ void send_move(const SOCKET s, const char& c, const int& myID)
 	else if (c == 'd'){	x_off = 1;	y_off = 0;}
 	
 	MOVE_USER::CONTENTS contents;
-	auto buff_msg = contents.mutable_data();
-
-	// 메시지 포장에서 막힘.*************@@@@@@@@@@@@@@@@@@@@@@@@@@여기까지함
-	
-	//std::string bytestring;
-	//contents.SerializeToString(&bytestring);
-
-
-	len = sizeof(int)* 3;
+	auto element = contents.mutable_data()->Add();
+	element->set_id(myID);
+	element->set_xoff(x_off);
+	element->set_yoff(y_off);
+		
+	std::string bytestring;
+	contents.SerializeToString(&bytestring);
+	len = bytestring.length();
 
 	char* pBuf = buf;
-	memcpy(pBuf, (char *)&type, sizeof(int));
+	memcpy(pBuf, &type, sizeof(int));
 	pBuf += sizeof(int);
-
-	memcpy(pBuf, (char *)&len, sizeof(int));
+	memcpy(pBuf, &len, sizeof(int));
 	pBuf += sizeof(int);
+	memcpy(pBuf, bytestring.c_str(), len);
 	
-	memcpy(pBuf, &myID, sizeof(int));
-	pBuf += sizeof(int);
-	memcpy(pBuf, &x_off, sizeof(int));
-	pBuf += sizeof(int);
-	memcpy(pBuf, &y_off, sizeof(int));
-	pBuf += sizeof(int);
-	
-
 	send(s, buf, len+sizeof(int)*2, 0);
-
-
-
 }
