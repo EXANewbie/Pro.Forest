@@ -97,6 +97,7 @@
   <ItemGroup>
     <ClInclude Include="character.h" />
     <ClInclude Include="Client_Map.h" />
+    <ClInclude Include="Memory_Pool.h" />
     <ClInclude Include="msg.h" />
     <ClInclude Include="Sock_set.h" />
     <ClInclude Include="types.h" />

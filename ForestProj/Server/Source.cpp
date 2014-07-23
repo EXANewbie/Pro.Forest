@@ -8,6 +8,7 @@
 #include "Client_Map.h"
 #include "Completion_Port.h"
 #include "Sock_set.h"
+#include "Memory_Pool.h"
 
 unsigned WINAPI Server_Worker(LPVOID);
 CRITICAL_SECTION cs;
