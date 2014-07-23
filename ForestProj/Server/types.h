@@ -8,6 +8,8 @@ const int NOT_JOINED = -13;
 
 const int BLOCK_COUNT = 10000;
 const int BLOCK_SIZE = (1 << 14);
+
+const int HANDLER_SIZE = 100000;
 //const char* CONMSG = "HELLO SERVER!";
 //const char* DSCMSG = "BYE SERVER!";
 

@@ -76,7 +76,7 @@ void send_message(msg message, vector<int> &send_list, bool autolocked) {
 		SOCKET sock = CMap->find_id_to_sock(id);
 		
 		if (sock != SOCKET_ERROR) {
-			PER_IO_DATA *ioInfo = new PER_IO_DATA;
+			LPPER_IO_DATA ioInfo = new PER_IO_DATA;
 
 			memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
 			memcpy(ioInfo->buffer, buff, len);

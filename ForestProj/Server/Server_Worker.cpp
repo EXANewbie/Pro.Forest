@@ -14,6 +14,7 @@
 #include "Client_Map.h"
 #include "msg.h"
 #include "Sock_set.h"
+#include "Memory_Pool.h"
 
 #include <Windows.h>
 
@@ -48,6 +49,9 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 {
 	Client_Map *CMap = Client_Map::getInstance();
 	Sock_set *sock_set = Sock_set::getInstance();
+
+	auto HandlerPool = Handler_Pool::getInstance();
+	auto ioInfoPool = ioInfo_Pool::getInstance();
 
 	HANDLE hComPort = (HANDLE)pComPort;
 	SOCKET sock;
@@ -369,7 +373,8 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 			}
 
 			puts("MESSAGE SEND!");
-			free(ioInfo);
+//			free(ioInfo);
+			ioInfoPool->pushBlock(ioInfo);
 			printf("k Decrement %d\n", InterlockedDecrement((unsigned int *)&k));
 		}
 	}
