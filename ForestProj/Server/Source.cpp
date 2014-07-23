@@ -15,9 +15,13 @@ CRITICAL_SECTION cs;
 
 Client_Map *Client_Map::instance;
 Sock_set *Sock_set::instance;
+ioInfo_Pool *ioInfo_Pool::instance;
+Handler_Pool *Handler_Pool::instance;
 
 std::mutex Client_Map::mtx;
 std::mutex Sock_set::mtx;
+std::mutex ioInfo_Pool::mtx;
+std::mutex Handler_Pool::mtx;
 
 using std::cout;
 using std::endl;
@@ -89,17 +93,24 @@ void main() {
 
 	std::set<SOCKET> *sock_set = new std::set<SOCKET>();
 
+	auto HandlerPool = Handler_Pool::getInstance();
+	auto ioInfoPool = ioInfo_Pool::getInstance();
+
 	while (true) {
 		NewConnection = accept(ListeningSocket, (SOCKADDR *)&ClientAddr, &ClientAddrLen);
 		printf("User (Socket : %d) is connected\n", NewConnection);
 
-		handleInfo = (LPPER_HANDLE_DATA)malloc(sizeof(PER_HANDEL_DATA));
+//		handleInfo = (LPPER_HANDLE_DATA)malloc(sizeof(PER_HANDLE_DATA));
+
+		handleInfo = HandlerPool->popBlock();
 		handleInfo->hClntSock = NewConnection;
+
 		memcpy(&(handleInfo->clntAdr), &ClientAddr, ClientAddrLen);
 
 		CreateIoCompletionPort((HANDLE)NewConnection, hComPort, (DWORD)handleInfo,0);
 
-		ioInfo = (LPPER_IO_DATA)malloc(sizeof(PER_IO_DATA));
+		//ioInfo = (LPPER_IO_DATA)malloc(sizeof(PER_IO_DATA));
+		ioInfo = ioInfoPool->popBlock();
 		memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
 		ioInfo->wsaBuf.len = BUFFER_SIZE;	/* 이 부분에서 BUFFER_SIZE를 필히 수정해야됨, (엄밀히 말하면 8바이트만 먼저 받도록)*/
 		ioInfo->wsaBuf.buf = ioInfo->buffer;

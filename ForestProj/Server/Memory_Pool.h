@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "types.h"
+#include "Completion_Port.h"
 
 using std::mutex;
 using std::stack;
@@ -58,23 +59,23 @@ public :
 		}
 	}
 };
-
+/*
 struct MB_deleter {
 	void operator()(Memory_Block *m) {
 		delete m;
 	}
 };
-
+*/
 class Memory_Pool {
 private :
-	typedef shared_ptr<Memory_Block> ptr;
+	typedef Memory_Block* ptr;//shared_ptr<Memory_Block> ptr;
 	stack<ptr> *poolStack;
 	mutex mtx;
 private :
 	Memory_Pool(int size) {
 		poolStack = new stack<ptr>;
 		for (int i = 0; i < size; i++) {
-			poolStack->push(ptr(new Memory_Block(), MB_deleter()));
+			poolStack->push(new Memory_Block());
 		}
 	}
 public :
@@ -101,4 +102,95 @@ public :
 	}
 };
 
+class Handler_Pool {
+private:
+	typedef LPPER_HANDLE_DATA ptr;
+	stack<ptr> *poolStack;
+
+	static mutex mtx;
+	static Handler_Pool *instance;
+private:
+	Handler_Pool(int size) {
+		poolStack = new stack<ptr>;
+		for (int i = 0; i < size; i++) {
+			poolStack->push(ptr());
+		}
+	}
+	Handler_Pool() : Handler_Pool(HANDLER_SIZE) {}
+	~Handler_Pool() {
+		delete poolStack;
+	}
+public:
+	static Handler_Pool *getInstance() {
+		if (instance != NULL)
+			return instance;
+
+		mtx.lock();
+		if (instance == NULL) {
+			instance = new Handler_Pool;
+		}
+		mtx.unlock();
+
+		return instance;
+	}
+	ptr popBlock() {
+		mtx.lock();
+		ptr p = poolStack->top();
+		poolStack->pop();
+		mtx.unlock();
+
+		return p;
+	}
+	void pushBlock(ptr p) {
+		mtx.lock();
+		poolStack->push(p);
+		mtx.unlock();
+	}
+};
+
+class ioInfo_Pool {
+private:
+	typedef LPPER_IO_DATA ptr;
+	stack<ptr> *poolStack;
+
+	static mutex mtx;
+	static ioInfo_Pool *instance;
+private:
+	ioInfo_Pool(int size) {
+		poolStack = new stack<ptr>;
+		for (int i = 0; i < size; i++) {
+			poolStack->push(ptr());
+		}
+	}
+	ioInfo_Pool() : ioInfo_Pool(HANDLER_SIZE) {}
+	~ioInfo_Pool() {
+		delete poolStack;
+	}
+public:
+	static ioInfo_Pool *getInstance() {
+		if (instance != NULL)
+			return instance;
+
+		mtx.lock();
+		if (instance == NULL) {
+			instance = new ioInfo_Pool;
+		}
+		mtx.unlock();
+
+		return instance;
+	}
+	ptr popBlock() {
+		mtx.lock();
+		ptr p = poolStack->top();
+		poolStack->pop();
+		mtx.unlock();
+
+		return p;
+	}
+	void pushBlock(ptr p) {
+		mtx.lock();
+		poolStack->push(p);
+		mtx.unlock();
+	}
+};
 #endif
