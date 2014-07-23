@@ -14,7 +14,7 @@ class Client_Map
 private :
 	map<int, SOCKET> id_sock;
 	map<SOCKET, int> sock_id;
-	map<int, Character> id_char;
+	map<int, Character*> id_char;
 	
 	static mutex mtx;
 	static Client_Map *instance;
@@ -35,10 +35,10 @@ public :
 
 	void erase(int);
 	void erase(SOCKET);
-	bool insert(int, SOCKET, Character);
+	bool insert(int, SOCKET, Character*);
 	
-	map<int, Character>::iterator begin();
-	map<int, Character>::iterator end();
+	map<int, Character*>::iterator begin();
+	map<int, Character*>::iterator end();
 
 	void lock();
 	void unlock();

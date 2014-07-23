@@ -4,7 +4,6 @@
 #include "../protobuf/eraseuser.pb.h"
 
 #include "Client_Map.h"
-#include "Disc_user_map.h"
 #include "types.h"
 #include "Completion_Port.h"
 #include "msg.h"
@@ -13,25 +12,21 @@ using namespace std;
 
 extern int k;
 
-void set_single_cast(int, vector<SOCKET>&);
-void set_multicast_in_room_except_me(int, vector<SOCKET>&, bool);
-void send_message(msg, vector<SOCKET> &);
+void set_single_cast(int, vector<int>&);
+void set_multicast_in_room_except_me(int, vector<int>&, bool);
+void send_message(msg, vector<int> &);
 void unpack(msg, char *, int *);
 void closeClient(int);
-void remove_valid_client(SOCKET, LPPER_HANDLE_DATA, LPPER_IO_DATA);
+void remove_valid_client(LPPER_HANDLE_DATA, LPPER_IO_DATA);
 void copy_to_buffer(char *, int **, int);
 void copy_to_param(int **, int, char *);
 
-void set_single_cast(int id, vector<SOCKET>& send_list)
+void set_single_cast(int id, vector<int>& send_list)
 {
-	Client_Map *CMap = Client_Map::getInstance();
-	CMap->lock();
-	SOCKET sock = CMap->find_id_to_sock(id);
-	CMap->unlock();
-	send_list.push_back(sock);
+	send_list.push_back(id);
 }
 
-void set_multicast_in_room_except_me(int id, vector<SOCKET>& send_list, bool autolocked)
+void set_multicast_in_room_except_me(int id, vector<int>& send_list, bool autolocked)
 {
 	Client_Map *CMap = Client_Map::getInstance();
 
@@ -48,8 +43,7 @@ void set_multicast_in_room_except_me(int id, vector<SOCKET>& send_list, bool aut
 		{
 			if (now->getID() != itr->second.getID())
 			{
-				auto sock = CMap->find_id_to_sock(itr->first);
-				send_list.push_back(sock);
+				send_list.push_back(itr->second.getID());
 			}
 		}
 	}
@@ -62,9 +56,8 @@ void set_multicast_in_room_except_me(int id, vector<SOCKET>& send_list, bool aut
 
 
 
-void send_message(msg message, vector<SOCKET> &send_list) {
+void send_message(msg message, vector<int> &send_list) {
 	Client_Map *CMap = Client_Map::getInstance();
-	Disc_User_Map *Disc_User = Disc_User_Map::getInstance();
 	//vector< pair<int,SOCKET> > errors;
 
 	int len;
@@ -72,41 +65,43 @@ void send_message(msg message, vector<SOCKET> &send_list) {
 
 	unpack(message, buff, &len);
 
-	WSABUF wsabuf;
-	wsabuf.buf = buff;
-	wsabuf.len = len;
-
 	for (int i = 0; i < send_list.size(); i++)
 	{
-		SOCKET sock = send_list[i];
-		PER_IO_DATA *ioInfo = new PER_IO_DATA;
+		int id = send_list[i];
+		CMap->lock();
+		SOCKET sock = CMap->find_id_to_sock(id);
+		
+		if (sock != SOCKET_ERROR) {
+			PER_IO_DATA *ioInfo = new PER_IO_DATA;
 
-		memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
-		memcpy(ioInfo->buffer, buff, len);
-		ioInfo->wsaBuf.len = len;
-		ioInfo->wsaBuf.buf = ioInfo->buffer;
-		ioInfo->RWmode = WRITE;
+			memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
+			memcpy(ioInfo->buffer, buff, len);
+			ioInfo->wsaBuf.len = len;
+			ioInfo->wsaBuf.buf = ioInfo->buffer;
+			ioInfo->RWmode = WRITE;
 
-		int ret = WSASend(sock, &(ioInfo->wsaBuf), 1, NULL, 0, &(ioInfo->overlapped), NULL);
+			int ret = WSASend(sock, &(ioInfo->wsaBuf), 1, NULL, 0, &(ioInfo->overlapped), NULL);
 
-		if (ret == SOCKET_ERROR)
-		{
-			if (WSAGetLastError() == ERROR_IO_PENDING)
+			if (ret == SOCKET_ERROR)
 			{
-				printf("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
-				// 큐에 들어감 ^.^
+				if (WSAGetLastError() == ERROR_IO_PENDING)
+				{
+					printf("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
+					// 큐에 들어감 ^.^
+				}
+				else
+				{
+					// 너에겐 수많은 이유가 있겠지... 하지만 아마도 그 수많은 이유들의 공통점은 소켓에 전송할 수 없는 것이 아닐까?
+					free(ioInfo);
+				}
+				printf("Send Error (%d)\n", WSAGetLastError());
 			}
 			else
 			{
-				// 너에겐 수많은 이유가 있겠지... 하지만 아마도 그 수많은 이유들의 공통점은 소켓에 전송할 수 없는 것이 아닐까?
-				free(ioInfo);
+				printf("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
 			}
-			printf("Send Error (%d)\n", WSAGetLastError());
 		}
-		else
-		{
-			printf("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
-		}
+		CMap->unlock();
 	}
 }
 
@@ -127,7 +122,7 @@ void unpack(msg message, char *buf, int *size)
 void closeClient(SOCKET sock, int id)
 {
 	Client_Map *CMap = Client_Map::getInstance();
-	vector<SOCKET> send_list;
+	vector<int> send_list;
 
 	int ret = closesocket(sock);
 
@@ -172,7 +167,7 @@ void remove_valid_client(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo)
 	}
 	else
 	{
-		printf("sock : %d char_id : %d\n", handleInfo, char_id);
+		printf("sock : %d char_id : %d\n", handleInfo->hClntSock, char_id);
 		closeClient(handleInfo->hClntSock, ioInfo->id);
 		free(handleInfo); free(ioInfo);
 	}

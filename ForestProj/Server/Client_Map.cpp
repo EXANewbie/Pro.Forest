@@ -40,7 +40,7 @@ Character* Client_Map::find_id_to_char(int id)
 	}
 	else
 	{
-		return &ret->second;
+		return ret->second;
 	}
 }
 Character* Client_Map::find_sock_to_char(SOCKET sock)
@@ -105,7 +105,7 @@ void Client_Map::erase(SOCKET sock)
 	}
 }
 
-bool Client_Map::insert(int id, SOCKET sock, Character now)
+bool Client_Map::insert(int id, SOCKET sock, Character* now)
 {
 	if (sock_id.find(sock) != sock_id.end())
 	{
@@ -113,17 +113,17 @@ bool Client_Map::insert(int id, SOCKET sock, Character now)
 	}
 	sock_id.insert(pair<SOCKET, int>(sock, id));
 	id_sock.insert(pair<int, SOCKET>(id, sock));
-	id_char.insert(pair<int, Character>(id, now));
+	id_char.insert(pair<int, Character*>(id, now));
 	//id_char[id] = now;
 	return true;
 }
 
-map<int, Character>::iterator Client_Map::begin()
+map<int, Character*>::iterator Client_Map::begin()
 {
 	return id_char.begin();
 }
 
-map<int, Character>::iterator Client_Map::end()
+map<int, Character*>::iterator Client_Map::end()
 {
 	return id_char.end();
 }

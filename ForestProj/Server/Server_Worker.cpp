@@ -11,7 +11,6 @@
 
 #include "Completion_Port.h"
 #include "types.h"
-#include "Disc_user_map.h"
 #include "Client_Map.h"
 #include "msg.h"
 #include "Sock_set.h"
@@ -21,9 +20,9 @@
 using std::vector;
 using std::string;
 
-void set_single_cast(int, vector<SOCKET>&);
-void set_multicast_in_room_except_me(int, vector<SOCKET>&, bool);
-void send_message(msg, vector<SOCKET> &);
+void set_single_cast(int, vector<int>&);
+void set_multicast_in_room_except_me(int, vector<int>&, bool);
+void send_message(msg, vector<int> &);
 void unpack(msg, char *, int *);
 void remove_valid_client(LPPER_HANDLE_DATA, LPPER_IO_DATA);
 void copy_to_buffer(char *, int **, int);
@@ -32,10 +31,19 @@ void copy_to_param(int **, int, char *);
 extern CRITICAL_SECTION cs;
 int k;
 
+void Handler_PCONNECT(Character *pCharacter, Buffer* pBuf)
+{
+
+}
+
+void Handler_MOVE_USER(Character *pCharacter, Buffer* pBuf)
+{
+
+}
+
 unsigned WINAPI Server_Worker(LPVOID pComPort)
 {
 	Client_Map *CMap = Client_Map::getInstance();
-	Disc_User_Map *Disc_User = Disc_User_Map::getInstance();
 	Sock_set *sock_set = Sock_set::getInstance();
 
 	HANDLE hComPort = (HANDLE)pComPort;
@@ -45,7 +53,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 	LPPER_IO_DATA ioInfo;
 	DWORD flags = 0;
 
-	vector<SOCKET> receiver;
+	vector<int> receiver;
 
 	while (true)
 	{

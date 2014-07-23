@@ -6,7 +6,6 @@
 #include <Windows.h>
 
 #include "Client_Map.h"
-#include "Disc_user_map.h"
 #include "Completion_Port.h"
 #include "Sock_set.h"
 
@@ -14,11 +13,9 @@ unsigned WINAPI Server_Worker(LPVOID);
 CRITICAL_SECTION cs;
 
 Client_Map *Client_Map::instance;
-Disc_User_Map *Disc_User_Map::instance;
 Sock_set *Sock_set::instance;
 
 std::mutex Client_Map::mtx;
-std::mutex Disc_User_Map::mtx;
 std::mutex Sock_set::mtx;
 
 using std::cout;
