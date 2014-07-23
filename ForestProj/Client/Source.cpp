@@ -18,7 +18,7 @@
 
 #define PORT 78911
 
-#define SERVER_IP_ADDRESS /*"localhost"*/"10.1.7.206"
+#define SERVER_IP_ADDRESS /*"localhost"*/"10.1.7.10"
 
 enum packetType{ PCONNECT, PINIT, PSET_USER, PMOVE_USER, PDISCONN, PERASE_USER };
 

@@ -18,6 +18,7 @@ typedef struct
 	char buffer[BUFFER_SIZE];
 	int RWmode;
 	int id;
+	Character* myCharacter;
 }PER_IO_DATA, *LPPER_IO_DATA;
 
 #endif

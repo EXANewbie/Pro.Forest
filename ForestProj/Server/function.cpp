@@ -7,14 +7,15 @@
 #include "types.h"
 #include "Completion_Port.h"
 #include "msg.h"
+#include "character.h"
 
 using namespace std;
 
 extern int k;
 
 void set_single_cast(int, vector<int>&);
-void set_multicast_in_room_except_me(int, vector<int>&, bool);
-void send_message(msg, vector<int> &);
+void set_multicast_in_room_except_me(Character* , vector<int>&, bool);
+void send_message(msg, vector<int> &,bool);
 void unpack(msg, char *, int *);
 void closeClient(int);
 void remove_valid_client(LPPER_HANDLE_DATA, LPPER_IO_DATA);
@@ -26,7 +27,7 @@ void set_single_cast(int id, vector<int>& send_list)
 	send_list.push_back(id);
 }
 
-void set_multicast_in_room_except_me(int id, vector<int>& send_list, bool autolocked)
+void set_multicast_in_room_except_me(Character* myChar, vector<int>& send_list, bool autolocked)
 {
 	Client_Map *CMap = Client_Map::getInstance();
 
@@ -35,15 +36,15 @@ void set_multicast_in_room_except_me(int id, vector<int>& send_list, bool autolo
 		CMap->lock();
 	}
 
-	auto now = CMap->find_id_to_char(id);
+	//Character* now = CMap->find_id_to_char(id);
 
 	for (auto itr = CMap->begin(); itr != CMap->end(); itr++)
 	{
-		if (now->getX() == itr->second.getX() && now->getY() == itr->second.getY())
+		if (myChar->getX() == itr->second->getX() && myChar->getY() == itr->second->getY())
 		{
-			if (now->getID() != itr->second.getID())
+			if (myChar->getID() != itr->second->getID())
 			{
-				send_list.push_back(itr->second.getID());
+				send_list.push_back(itr->second->getID());
 			}
 		}
 	}
@@ -56,7 +57,7 @@ void set_multicast_in_room_except_me(int id, vector<int>& send_list, bool autolo
 
 
 
-void send_message(msg message, vector<int> &send_list) {
+void send_message(msg message, vector<int> &send_list, bool autolocked) {
 	Client_Map *CMap = Client_Map::getInstance();
 	//vector< pair<int,SOCKET> > errors;
 
@@ -68,7 +69,10 @@ void send_message(msg message, vector<int> &send_list) {
 	for (int i = 0; i < send_list.size(); i++)
 	{
 		int id = send_list[i];
-		CMap->lock();
+		if (autolocked == true)
+		{
+			CMap->lock();
+		}
 		SOCKET sock = CMap->find_id_to_sock(id);
 		
 		if (sock != SOCKET_ERROR) {
@@ -101,7 +105,10 @@ void send_message(msg message, vector<int> &send_list) {
 				printf("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
 			}
 		}
-		CMap->unlock();
+		if (autolocked == true)
+		{
+			CMap->unlock();
+		}
 	}
 }
 
@@ -119,7 +126,7 @@ void unpack(msg message, char *buf, int *size)
 	*size = writebyte;
 }
 
-void closeClient(SOCKET sock, int id)
+void closeClient(SOCKET sock, int id, Character* myChar)
 {
 	Client_Map *CMap = Client_Map::getInstance();
 	vector<int> send_list;
@@ -129,7 +136,7 @@ void closeClient(SOCKET sock, int id)
 	if (ret != WSAENOTSOCK)
 	{
 		// 처음으로 소켓을 닫을 때.
-		set_multicast_in_room_except_me(id, send_list, false/*not autolock*/);
+		set_multicast_in_room_except_me(myChar, send_list, false/*not autolock*/);
 
 		CMap->erase(id);
 
@@ -138,7 +145,7 @@ void closeClient(SOCKET sock, int id)
 
 		std::string bytestring;
 		contents.SerializeToString(&bytestring);
-		send_message(msg(PERASE_USER, sizeof(int), bytestring.c_str()), send_list);
+		send_message(msg(PERASE_USER, sizeof(int), bytestring.c_str()), send_list,false);
 	}
 	else
 	{
@@ -168,7 +175,7 @@ void remove_valid_client(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo)
 	else
 	{
 		printf("sock : %d char_id : %d\n", handleInfo->hClntSock, char_id);
-		closeClient(handleInfo->hClntSock, ioInfo->id);
+		closeClient(handleInfo->hClntSock, ioInfo->id,ioInfo->myCharacter);
 		free(handleInfo); free(ioInfo);
 	}
 	CMap->unlock();
