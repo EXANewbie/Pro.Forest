@@ -15,7 +15,7 @@ using namespace std;
 extern int k;
 
 void set_single_cast(int, vector<int>&);
-void set_multicast_in_room_except_me(Character* , vector<int>&, bool);
+void make_vector_id_in_room_except_me(Character*, vector<int>&, bool);
 void send_message(msg, vector<int> &,bool);
 void unpack(msg, char *, int *);
 void closeClient(int);
@@ -28,7 +28,7 @@ void set_single_cast(int id, vector<int>& send_list)
 	send_list.push_back(id);
 }
 
-void set_multicast_in_room_except_me(Character* myChar, vector<int>& send_list, bool autolocked)
+void make_vector_id_in_room_except_me(Character* myChar, vector<int>& send_list, bool autolocked)
 {
 	Client_Map *CMap = Client_Map::getInstance();
 
@@ -137,7 +137,7 @@ void closeClient(SOCKET sock, int id, Character* myChar)
 	if (ret != WSAENOTSOCK)
 	{
 		// 처음으로 소켓을 닫을 때.
-		set_multicast_in_room_except_me(myChar, send_list, false/*not autolock*/);
+		make_vector_id_in_room_except_me(myChar, send_list, false/*not autolock*/);
 
 		CMap->erase(id);
 

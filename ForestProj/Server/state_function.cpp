@@ -20,7 +20,7 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::s
 void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents);
 void Handler_PDISCONN(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::string* readContents);
 void set_single_cast(int, vector<int>&);
-void set_multicast_in_room_except_me(Character*, vector<int>&, bool);
+void make_vector_id_in_room_except_me(Character*, vector<int>&, bool);
 void send_message(msg, vector<int> &, bool);
 void unpack(msg, char *, int *);
 void closeClient(int);
@@ -105,7 +105,7 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::s
 	setuserContents.SerializeToString(&bytestring);
 	len = bytestring.length();
 
-	set_multicast_in_room_except_me(c, receiver, true/*autolock*/);
+	make_vector_id_in_room_except_me(c, receiver, true/*autolock*/);
 	send_message(msg(PSET_USER, len, bytestring.c_str()), receiver, true);
 	receiver.clear();
 
@@ -152,7 +152,10 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 	ERASE_USER::CONTENTS eraseuserContents;
 	SET_USER::CONTENTS setuserContents;
 	std::string bytestring;
-	vector<int> receiver;
+
+	vector<int> charId_in_room_except_me;
+	vector<int> me;
+	me.push_back(pCharacter->getID());
 
 	moveuserContents.ParseFromString(*readContents);
 
@@ -167,32 +170,21 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 		y_off = user.yoff();
 
 		// 기존의 방의 유저들의 정보를 삭제함
+
 		// 나와 같은방에 있는 친구들은 누구?
-
-		set_multicast_in_room_except_me(pCharacter, receiver, true/*autolock*/);
-		CMap->lock();
-		for (auto iter = CMap->begin(); iter != CMap->end(); iter++)
+		make_vector_id_in_room_except_me(pCharacter, charId_in_room_except_me, true/*autolock*/);
+		
+		for (int i = 0; i < charId_in_room_except_me.size(); ++i)
 		{
-			if (iter->second->getX() == pCharacter->getX() && iter->second->getY() == pCharacter->getY())
-			{
-				int nid = iter->second->getID();
-
-				if (nid == pCharacter->getID())
-					continue;
-
-				auto eraseuser = eraseuserContents.add_data();
-				eraseuser->set_id(nid);
-			}
+			auto eraseuser = eraseuserContents.add_data();
+			eraseuser->set_id(charId_in_room_except_me[i]);
 		}
-		CMap->unlock();
 
 		eraseuserContents.SerializeToString(&bytestring);
 		len = bytestring.length();
 
-		set_single_cast(pCharacter->getID(), receiver);
-		send_message(msg(PERASE_USER, len, bytestring.c_str()), receiver, true);
+		send_message(msg(PERASE_USER, len, bytestring.c_str()), me, true);
 
-		receiver.clear();
 		bytestring.clear();
 		eraseuserContents.clear_data();
 
@@ -202,62 +194,62 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 		eraseuserContents.SerializeToString(&bytestring);
 		len = bytestring.length();
 
-		set_multicast_in_room_except_me(pCharacter, receiver, true/*autolock*/);
-		send_message(msg(PERASE_USER, len, bytestring.c_str()), receiver, true);
+		send_message(msg(PERASE_USER, len, bytestring.c_str()), charId_in_room_except_me, true);
 
-		receiver.clear();
 		bytestring.clear();
 		eraseuserContents.clear_data();
+
+		charId_in_room_except_me.clear();
 
 		// 캐릭터를 해당 좌표만큼 이동시킴
 		pCharacter->setX(pCharacter->getX() + x_off);
 		pCharacter->setY(pCharacter->getY() + y_off);
 
+		// 나와 같은방에 있는 친구들은 누구?
+		make_vector_id_in_room_except_me(pCharacter, charId_in_room_except_me, true/*autolock*/);
+
 		// 새로운 방의 유저들에게 내가 등장함을 알림
-		int id = pCharacter->getID(), x = pCharacter->getX(), y = pCharacter->getY();
+		int x = pCharacter->getX(), y = pCharacter->getY();
 		auto setuser = setuserContents.add_data();
-		setuser->set_id(id);
+		setuser->set_id(cur_id);
 		setuser->set_x(x);
 		setuser->set_y(y);
 
 		setuserContents.SerializeToString(&bytestring);
 		len = bytestring.length();
 
-		set_multicast_in_room_except_me(pCharacter, receiver, true/*autolock*/);
-		send_message(msg(PSET_USER, len, bytestring.c_str()), receiver, true);
+		send_message(msg(PSET_USER, len, bytestring.c_str()), charId_in_room_except_me, true);
 
-		receiver.clear();
 		bytestring.clear();
 		setuserContents.clear_data();
+		
 
-		// 새로운 방의 유저들의 정보를 불러옴
-
-		CMap->lock();
-		for (auto iter = CMap->begin(); iter != CMap->end(); iter++)
+		//setuser에 나를 추가함.
 		{
-			if (iter->second->getX() == x && iter->second->getY() == y)
-			{
-				int nid = iter->second->getID();
-				int nx = iter->second->getX();
-				int ny = iter->second->getY();
-
-				auto setuser = setuserContents.add_data();
-				setuser->set_id(nid);
-				setuser->set_x(nx);
-				setuser->set_y(ny);
-			}
+			auto setuser = setuserContents.add_data();
+			setuser->set_id(cur_id);
+			setuser->set_x(x);
+			setuser->set_y(y);
 		}
-		CMap->unlock();
+		
+		for (int i = 0; i < charId_in_room_except_me.size(); ++i)
+		{
+			int charid = charId_in_room_except_me[i];
+			auto setuser = setuserContents.add_data();
+			setuser->set_id(charid);
+			setuser->set_x(CMap->find_id_to_char(charid)->getX());
+			setuser->set_y(CMap->find_id_to_char(charid)->getY());
+		}
 
 		setuserContents.SerializeToString(&bytestring);
 		len = bytestring.length();
 
-		set_single_cast(pCharacter->getID(), receiver);
-		send_message(msg(PSET_USER, len, bytestring.c_str()), receiver, true);
+		send_message(msg(PSET_USER, len, bytestring.c_str()), me, true);
 
-		receiver.clear();
 		bytestring.clear();
 		setuserContents.clear_data();
+
+		charId_in_room_except_me.clear();
 
 		printf("id : %d, x_off : %d, y_off : %d\n", cur_id, x_off, y_off);
 	}
