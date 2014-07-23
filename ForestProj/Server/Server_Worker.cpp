@@ -21,8 +21,8 @@ using std::vector;
 using std::string;
 
 void set_single_cast(int, vector<int>&);
-void set_multicast_in_room_except_me(int, vector<int>&, bool);
-void send_message(msg, vector<int> &);
+void set_multicast_in_room_except_me(Character*, vector<int>&, bool);
+void send_message(msg, vector<int> &,bool);
 void unpack(msg, char *, int *);
 void remove_valid_client(LPPER_HANDLE_DATA, LPPER_IO_DATA);
 void copy_to_buffer(char *, int **, int);
@@ -31,15 +31,18 @@ void copy_to_param(int **, int, char *);
 extern CRITICAL_SECTION cs;
 int k;
 
-void Handler_PCONNECT(Character *pCharacter, Buffer* pBuf)
-{
+//void Handler_PCONNECT(Character *pCharacter, Buffer* pBuf)
+//{
+//	CONNECT::CONTENTS connect;
+//	INIT::CONTENTS initContents;
+//	SET_USER::CONTENTS setuserContents;
+//
+//}
 
-}
-
-void Handler_MOVE_USER(Character *pCharacter, Buffer* pBuf)
-{
-
-}
+//void Handler_MOVE_USER(Character *pCharacter, Buffer* pBuf)
+//{
+//
+//}
 
 unsigned WINAPI Server_Worker(LPVOID pComPort)
 {
@@ -81,6 +84,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				readbyte += 2 * sizeof(int);
 			}
 			std::string readContents(ioInfo->buffer + readbyte, len);
+
 			if (type == PDISCONN) // 정상적인 종료의 경우
 			{
 				DISCONN::CONTENTS disconn;
@@ -115,11 +119,12 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 
 				// 캐릭터 객체를 생성 후
 				int copy_id = InterlockedIncrement((unsigned *)&id);
-				Character c(copy_id);
+				Character* c = new Character(copy_id);
 				char_id = copy_id;
-				x = c.getX();
-				y = c.getY();
+				x = c->getX();
+				y = c->getY();
 				ioInfo->id = copy_id;
+				ioInfo->myCharacter = c;
 
 				bool isValid = false;
 				while (true)
@@ -152,7 +157,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				len = bytestring.length();
 
 				set_single_cast(char_id, receiver);
-				send_message(msg(PINIT, len, bytestring.c_str()), receiver);
+				send_message(msg(PINIT, len, bytestring.c_str()), receiver,true);
 				receiver.clear();
 
 				// 현재 접속한 캐릭터의 정보를 다른 접속한 유저들에게 전송한다.
@@ -175,8 +180,8 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				printf("id = %d, x = %d, y = %d\n", p.id(), p.x(), p.y());
 				}*/
 
-				set_multicast_in_room_except_me(char_id, receiver, true/*autolock*/);
-				send_message(msg(PSET_USER, len, bytestring.c_str()), receiver);
+				set_multicast_in_room_except_me(c, receiver, true/*autolock*/);
+				send_message(msg(PSET_USER, len, bytestring.c_str()), receiver, true);
 				receiver.clear();
 
 				// PCONNECT로 접속한 유저에게 다른 객체들의 정보를 전송한다.
@@ -184,12 +189,15 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				CMap->lock();
 				for (auto itr = CMap->begin(); itr != CMap->end(); itr++)
 				{
-					int tID = itr->second.getID();
-					int tx = itr->second.getX();
-					int ty = itr->second.getY();
-
-					if (tID == char_id) // 캐릭터 맵에 현재 들어간 내 객체의 정보를 보내려 할 때는 건너뛴다.
+					if (itr->second == c) // 캐릭터 맵에 현재 들어간 내 객체의 정보를 보내려 할 때는 건너뛴다.
 						continue;
+
+					int tID = itr->second->getID();
+					int tx = itr->second->getX();
+					int ty = itr->second->getY();
+
+					//if (tID == char_id) // 캐릭터 맵에 현재 들어간 내 객체의 정보를 보내려 할 때는 건너뛴다.
+					//	continue;
 
 					if (tx == x && ty == y)
 					{
@@ -213,7 +221,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				}*/
 
 				set_single_cast(char_id, receiver);
-				send_message(msg(PSET_USER, len, bytestring.c_str()), receiver);
+				send_message(msg(PSET_USER, len, bytestring.c_str()), receiver, true);
 				receiver.clear();
 			}
 			else if (type == PMOVE_USER)// 유저가 이동하는 경우
@@ -235,17 +243,18 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					x_off = user.xoff();
 					y_off = user.yoff();
 
-					CMap->lock();
+					/*CMap->lock();
 					Character *now = CMap->find_id_to_char(cur_id);
-					CMap->unlock();
+					CMap->unlock();*/
+					Character* now = ioInfo->myCharacter;
 
 					// 기존의 방의 유저들의 정보를 삭제함
 					CMap->lock();
 					for (auto iter = CMap->begin(); iter != CMap->end(); iter++)
 					{
-						if (iter->second.getX() == now->getX() && iter->second.getY() == now->getY())
+						if (iter->second->getX() == now->getX() && iter->second->getY() == now->getY())
 						{
-							int nid = iter->second.getID();
+							int nid = iter->second->getID();
 
 							if (nid == now->getID())
 								continue;
@@ -260,7 +269,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					len = bytestring.length();
 
 					set_single_cast(now->getID(), receiver);
-					send_message(msg(PERASE_USER, len, bytestring.c_str()), receiver);
+					send_message(msg(PERASE_USER, len, bytestring.c_str()), receiver, true);
 
 					receiver.clear();
 					bytestring.clear();
@@ -272,8 +281,8 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					eraseuserContents.SerializeToString(&bytestring);
 					len = bytestring.length();
 
-					set_multicast_in_room_except_me(now->getID(), receiver, true/*autolock*/);
-					send_message(msg(PERASE_USER, len, bytestring.c_str()), receiver);
+					set_multicast_in_room_except_me(now, receiver, true/*autolock*/);
+					send_message(msg(PERASE_USER, len, bytestring.c_str()), receiver, true);
 
 					receiver.clear();
 					bytestring.clear();
@@ -293,8 +302,8 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					setuserContents.SerializeToString(&bytestring);
 					len = bytestring.length();
 
-					set_multicast_in_room_except_me(id, receiver, true/*autolock*/);
-					send_message(msg(PSET_USER, len, bytestring.c_str()), receiver);
+					set_multicast_in_room_except_me(now, receiver, true/*autolock*/);
+					send_message(msg(PSET_USER, len, bytestring.c_str()), receiver, true);
 
 					receiver.clear();
 					bytestring.clear();
@@ -305,11 +314,11 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					CMap->lock();
 					for (auto iter = CMap->begin(); iter != CMap->end(); iter++)
 					{
-						if (iter->second.getX() == x && iter->second.getY() == y)
+						if (iter->second->getX() == x && iter->second->getY() == y)
 						{
-							int nid = iter->second.getID();
-							int nx = iter->second.getX();
-							int ny = iter->second.getY();
+							int nid = iter->second->getID();
+							int nx = iter->second->getX();
+							int ny = iter->second->getY();
 
 							auto setuser = setuserContents.add_data();
 							setuser->set_id(nid);
@@ -323,7 +332,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					len = bytestring.length();
 
 					set_single_cast(now->getID(), receiver);
-					send_message(msg(PSET_USER, len, bytestring.c_str()), receiver);
+					send_message(msg(PSET_USER, len, bytestring.c_str()), receiver, true);
 
 					receiver.clear();
 					bytestring.clear();

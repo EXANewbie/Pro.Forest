@@ -83,6 +83,7 @@ void Client_Map::erase(int id)
 
 	if (cha != NULL)
 	{
+		delete cha;
 		id_char.erase(id);
 	}
 }
