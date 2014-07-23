@@ -5,6 +5,8 @@
 #include "types.h"
 #include "character.h"
 
+#include "Memory_Block.h"
+
 typedef struct
 {
 	SOCKET hClntSock;
@@ -15,8 +17,10 @@ typedef struct
 {
 	OVERLAPPED overlapped;
 	WSABUF wsaBuf;
-	char buffer[BUFFER_SIZE];
+	char buffer[8];
+	Memory_Block *block;
 	int RWmode;
+	int type, len, offset;
 	int id;
 	Character* myCharacter;
 }PER_IO_DATA, *LPPER_IO_DATA;

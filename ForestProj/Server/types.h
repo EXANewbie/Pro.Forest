@@ -1,10 +1,13 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-const int BUFFER_SIZE = 1024;
+//const int BUFFER_SIZE = 1024;
 const int Port = 78911;
 const int READ = 3, WRITE = 5;
 const int NOT_JOINED = -13;
+const int UNDEFINED = -71;
+
+const int HEADER_SIZE = 2 * sizeof(int);
 
 const int BLOCK_COUNT = 10000;
 const int BLOCK_SIZE = (1 << 14);

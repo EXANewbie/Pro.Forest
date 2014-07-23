@@ -42,6 +42,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 
 	auto HandlerPool = Handler_Pool::getInstance();
 	auto ioInfoPool = ioInfo_Pool::getInstance();
+	auto MemoryPool = Memory_Pool::getInstance();
 
 	HANDLE hComPort = (HANDLE)pComPort;
 	SOCKET sock;
@@ -67,45 +68,100 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				continue;
 			}
 
-			//메시지를 받은 후 처리해야할 계산 부분
-			int readbyte = 0;
-			int type, len;
+			// 헤더가 들어온 경우
+			if (ioInfo->type == UNDEFINED)
 			{
-				int *param[] = { &type, &len };
-				copy_to_param(param, 2, ioInfo->buffer + readbyte);
-				readbyte += 2 * sizeof(int);
-			}
-			std::string readContents(ioInfo->buffer + readbyte, len);
+				int *param[] = { &(ioInfo->type), &(ioInfo->len) };
+				copy_to_param(param, 2, ioInfo->buffer);
 
-			if (type == PDISCONN) // 정상적인 종료의 경우
-			{
-				Handler_PDISCONN(handleInfo, ioInfo, &readContents);
-				continue;
-			}
-			else if (type == PCONNECT) // 새로 들어온 경우
-			{
-				Handler_PCONNECT(handleInfo, ioInfo, &readContents);
-			}
-			else if (type == PMOVE_USER)// 유저가 이동하는 경우
-			{
-				Handler_PMOVE_USER(ioInfo->myCharacter, &readContents);
-			}
+				ioInfo->offset = 0;
+				ioInfo->block = MemoryPool->popBlock();
+				ioInfo->wsaBuf.buf = ioInfo->block->getBuffer();
+				ioInfo->wsaBuf.len = ioInfo->len;
+				memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
+				flags = 0;
 
-			memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
-			ioInfo->wsaBuf.len = BUFFER_SIZE;
-			ioInfo->wsaBuf.buf = ioInfo->buffer;
-			ioInfo->RWmode = READ;
+				int ret = WSARecv(sock, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
 
-			int ret = WSARecv(sock, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
-
-			if (ret == SOCKET_ERROR)
-			{
-				if (WSAGetLastError() == WSA_IO_PENDING)
+				if (ret == SOCKET_ERROR)
 				{
+					if (WSAGetLastError() == WSA_IO_PENDING)
+					{
+					}
+					else
+					{
+						// 소켓 에러 발생
+					}
 				}
-				else
+			}
+			// 바디 부분이 들어온 경우
+			else {
+				// 아직 메시지가 완전히 들어오지 않은 경우
+				if (ioInfo->offset + bytesTrans < ioInfo->len)
 				{
-					// 소켓 에러 발생
+					ioInfo->offset += bytesTrans;
+					ioInfo->wsaBuf.buf = ioInfo->block->getBuffer();
+					ioInfo->wsaBuf.len = ioInfo->len - ioInfo->offset;
+					memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
+					flags = 0;
+
+					int ret = WSARecv(sock, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
+
+					if (ret == SOCKET_ERROR)
+					{
+						if (WSAGetLastError() == WSA_IO_PENDING)
+						{
+						}
+						else
+						{
+							// 소켓 에러 발생
+						}
+					}
+				}
+				// 완전히 메시지가 다 들어온 경우
+				else {
+					int type, len;
+					type = ioInfo->type;
+					len = ioInfo->len;
+
+					std::string readContents(ioInfo->wsaBuf.buf, len);
+
+					if (type == PDISCONN) // 정상적인 종료의 경우
+					{
+						Handler_PDISCONN(handleInfo, ioInfo, &readContents);
+						continue;
+					}
+					else if (type == PCONNECT) // 새로 들어온 경우
+					{
+						Handler_PCONNECT(handleInfo, ioInfo, &readContents);
+					}
+					else if (type == PMOVE_USER)// 유저가 이동하는 경우
+					{
+						Handler_PMOVE_USER(ioInfo->myCharacter, &readContents);
+					}
+
+					memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
+					ioInfo->wsaBuf.len = HEADER_SIZE;
+					ioInfo->wsaBuf.buf = ioInfo->buffer;
+					ioInfo->RWmode = READ;
+					if (ioInfo->block != nullptr) {
+						MemoryPool->pushBlock(ioInfo->block);
+					}
+					ioInfo->block = nullptr;
+					flags = 0;
+
+					int ret = WSARecv(sock, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
+
+					if (ret == SOCKET_ERROR)
+					{
+						if (WSAGetLastError() == WSA_IO_PENDING)
+						{
+						}
+						else
+						{
+							// 소켓 에러 발생
+						}
+					}
 				}
 			}
 		}
@@ -120,6 +176,9 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 
 			puts("MESSAGE SEND!");
 //			free(ioInfo);
+			if (ioInfo->block != nullptr) {
+				MemoryPool->pushBlock(ioInfo->block);
+			}
 			ioInfoPool->pushBlock(ioInfo);
 			printf("k Decrement %d\n", InterlockedDecrement((unsigned int *)&k));
 		}

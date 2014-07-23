@@ -8,57 +8,12 @@
 
 #include "types.h"
 #include "Completion_Port.h"
+#include "Memory_Block.h"
 
 using std::mutex;
 using std::stack;
 using std::shared_ptr;
-using std::make_shared;
 
-class Memory_Block {
-private :
-	bool is_used;
-	int size, MAXSIZE;
-	char *memory;
-	friend class Memory_Pool;
-private :
-	Memory_Block(int size) {
-		is_used = false;
-		this->size = 0;
-		MAXSIZE = size;
-		memory = new char[size];
-	}
-private :
-	void setStateUSE() {
-		is_used = true;
-		size = 0;
-	}
-	void setStateNOTUSE() {
-		is_used = false;
-	}
-public :
-	Memory_Block() : Memory_Block(BLOCK_SIZE) {}
-	~Memory_Block() {
-		delete[] memory;
-	}
-	
-	int getSize() { return size; }
-	char *getBuffer() { return memory; }
-
-	void copy(int offset, char *buffer, int len) {
-		assert(is_used); // 만약 지금 사용할 수 없는데 접근한 경우, Access Denied!
-
-		assert(offset >= 0);
-		assert(offset + len <= MAXSIZE); // 만약 지금 복사하려는 영역이 할당 영역 밖이라면, Access Denied!
-
-		assert(len >= 0); // 음수값 대입 방지
-
-		memcpy(memory + offset, buffer, len);
-
-		if (size < offset + len) {
-			size = offset + len;
-		}
-	}
-};
 /*
 struct MB_deleter {
 	void operator()(Memory_Block *m) {
@@ -66,29 +21,45 @@ struct MB_deleter {
 	}
 };
 */
+
 class Memory_Pool {
 private :
-	typedef Memory_Block* ptr;//shared_ptr<Memory_Block> ptr;
+	typedef Memory_Block data;
+	typedef data* ptr;//shared_ptr<Memory_Block> ptr;
 	stack<ptr> *poolStack;
-	mutex mtx;
+
+	static mutex mtx;
+	static Memory_Pool *instance;
 private :
 	Memory_Pool(int size) {
 		poolStack = new stack<ptr>;
 		for (int i = 0; i < size; i++) {
-			poolStack->push(new Memory_Block());
+			poolStack->push(new data());
 		}
 	}
-public :
 	Memory_Pool() : Memory_Pool(BLOCK_COUNT) {}
 	~Memory_Pool() {
 		delete poolStack;
+	}
+public :
+	static Memory_Pool *getInstance() {
+		if (instance != NULL)
+			return instance;
+
+		mtx.lock();
+		if (instance == NULL) {
+			instance = new Memory_Pool;
+		}
+		mtx.unlock();
+
+		return instance;
 	}
 	ptr popBlock() {
 		mtx.lock();
 		ptr p = poolStack->top();
 		poolStack->pop();
+		printf("MemoryBlock Allocated(%d)\n", poolStack->size());
 		mtx.unlock();
-
 		p->setStateUSE();
 
 		return p;
@@ -98,13 +69,15 @@ public :
 
 		mtx.lock();
 		poolStack->push(p);
+		printf("MemoryBlock released(%d)\n", poolStack->size());
 		mtx.unlock();
 	}
 };
 
 class Handler_Pool {
 private:
-	typedef LPPER_HANDLE_DATA ptr;
+	typedef PER_HANDLE_DATA data;
+	typedef data* ptr;
 	stack<ptr> *poolStack;
 
 	static mutex mtx;
@@ -113,7 +86,7 @@ private:
 	Handler_Pool(int size) {
 		poolStack = new stack<ptr>;
 		for (int i = 0; i < size; i++) {
-			poolStack->push(ptr());
+			poolStack->push(new data());
 		}
 	}
 	Handler_Pool() : Handler_Pool(HANDLER_SIZE) {}
@@ -150,7 +123,8 @@ public:
 
 class ioInfo_Pool {
 private:
-	typedef LPPER_IO_DATA ptr;
+	typedef PER_IO_DATA data;
+	typedef data* ptr;
 	stack<ptr> *poolStack;
 
 	static mutex mtx;
@@ -159,7 +133,7 @@ private:
 	ioInfo_Pool(int size) {
 		poolStack = new stack<ptr>;
 		for (int i = 0; i < size; i++) {
-			poolStack->push(ptr());
+			poolStack->push(new data());
 		}
 	}
 	ioInfo_Pool() : ioInfo_Pool(HANDLER_SIZE) {}

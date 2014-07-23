@@ -14,6 +14,7 @@
 #include "msg.h"
 #include "character.h"
 #include "Sock_set.h"
+#include "Memory_Pool.h"
 
 using namespace std;
 
@@ -315,13 +316,12 @@ void set_multicast_in_room_except_me(Character* myChar, vector<int>& send_list, 
 
 
 void send_message(msg message, vector<int> &send_list, bool autolocked) {
+	auto ioInfoPool = ioInfo_Pool::getInstance();
+	auto MemoryPool = Memory_Pool::getInstance();
 	Client_Map *CMap = Client_Map::getInstance();
 	//vector< pair<int,SOCKET> > errors;
 
 	int len;
-	char buff[BUFFER_SIZE];
-
-	unpack(message, buff, &len);
 
 	for (int i = 0; i < send_list.size(); i++)
 	{
@@ -333,12 +333,13 @@ void send_message(msg message, vector<int> &send_list, bool autolocked) {
 		SOCKET sock = CMap->find_id_to_sock(id);
 		
 		if (sock != SOCKET_ERROR) {
-			LPPER_IO_DATA ioInfo = new PER_IO_DATA;
+			LPPER_IO_DATA ioInfo = ioInfoPool->popBlock();
+			ioInfo->block = MemoryPool->popBlock();
 
+			unpack(message, ioInfo->block->getBuffer(), &len);
 			memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
-			memcpy(ioInfo->buffer, buff, len);
 			ioInfo->wsaBuf.len = len;
-			ioInfo->wsaBuf.buf = ioInfo->buffer;
+			ioInfo->wsaBuf.buf = ioInfo->block->getBuffer();
 			ioInfo->RWmode = WRITE;
 
 			int ret = WSASend(sock, &(ioInfo->wsaBuf), 1, NULL, 0, &(ioInfo->overlapped), NULL);
@@ -353,7 +354,11 @@ void send_message(msg message, vector<int> &send_list, bool autolocked) {
 				else
 				{
 					// 너에겐 수많은 이유가 있겠지... 하지만 아마도 그 수많은 이유들의 공통점은 소켓에 전송할 수 없는 것이 아닐까?
-					free(ioInfo);
+					if (ioInfo->block != nullptr) {
+						MemoryPool->pushBlock(ioInfo->block);
+					}
+					ioInfoPool->pushBlock(ioInfo);
+					//free(ioInfo);
 				}
 				printf("Send Error (%d)\n", WSAGetLastError());
 			}
@@ -413,12 +418,21 @@ void closeClient(SOCKET sock, int id, Character* myChar)
 
 void remove_valid_client(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo)
 {
+	auto ioInfoPool = ioInfo_Pool::getInstance();
+	auto HandlerPool = Handler_Pool::getInstance();
+	auto MemoryPool = Memory_Pool::getInstance();
 	Client_Map *CMap = Client_Map::getInstance();
 
 	if (ioInfo->id == NOT_JOINED) // 현재 유저가 PCONNECT를 보내지 않은 상태일 경우
 	{
 		closesocket(handleInfo->hClntSock);
-		free(handleInfo); free(ioInfo);
+
+		HandlerPool->pushBlock(handleInfo);
+		if (ioInfo->block != nullptr) {
+			MemoryPool->pushBlock(ioInfo->block);
+		}
+		ioInfoPool->pushBlock(ioInfo);
+//		free(handleInfo); free(ioInfo);
 		return;
 	}
 
@@ -433,7 +447,10 @@ void remove_valid_client(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo)
 	{
 		printf("sock : %d char_id : %d\n", handleInfo->hClntSock, char_id);
 		closeClient(handleInfo->hClntSock, ioInfo->id,ioInfo->myCharacter);
-		free(handleInfo); free(ioInfo);
+
+		HandlerPool->pushBlock(handleInfo);
+		ioInfoPool->pushBlock(ioInfo);
+		//		free(handleInfo); free(ioInfo);
 	}
 	CMap->unlock();
 }
