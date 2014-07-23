@@ -51,6 +51,9 @@
     <ClCompile Include="..\protobuf\setuser.pb.cc">
       <Filter>pb_files</Filter>
     </ClCompile>
+    <ClCompile Include="state_function.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="msg.h">
