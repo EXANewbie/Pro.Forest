@@ -171,10 +171,11 @@ void remove_valid_client(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo)
 	{
 		closesocket(handleInfo->hClntSock);
 
-		HandlerPool->pushBlock(handleInfo);
 		if (ioInfo->block != nullptr) {
 			MemoryPool->pushBlock(ioInfo->block);
+			ioInfo->block = nullptr;
 		}
+		HandlerPool->pushBlock(handleInfo);
 		ioInfoPool->pushBlock(ioInfo);
 //		free(handleInfo); free(ioInfo);
 		return;
@@ -192,6 +193,10 @@ void remove_valid_client(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo)
 		printf("sock : %d char_id : %d\n", handleInfo->hClntSock, char_id);
 		closeClient(handleInfo->hClntSock, ioInfo->id,ioInfo->myCharacter);
 
+		if (ioInfo->block != nullptr) {
+			MemoryPool->pushBlock(ioInfo->block);
+			ioInfo->block = nullptr;
+		}
 		HandlerPool->pushBlock(handleInfo);
 		ioInfoPool->pushBlock(ioInfo);
 		//		free(handleInfo); free(ioInfo);

@@ -149,7 +149,7 @@ void main(void)
 	// 데이터 송신 부분
 	int type;
 	int len;
-	char buf[1024] ; 
+	char *buf = new char[1024000] ; 
 
 	//PCONNECT 전송.
 	type = PCONNECT;
@@ -159,6 +159,8 @@ void main(void)
 	CONNECT::CONTENTS contents;
 	std::string* buff_msg = contents.mutable_data();
 	*buff_msg = "HELLO SERVER!";
+/*	for (int i = 0; i < 5000; i++)		//패킷 사이즈를 약 50kb로 쐇을 때 끊겨오는 현상 발견, 테스트용으로 넣음
+		(*buff_msg).append(" Hi Hello!");*/ // 만약 이 테스트를 하고 싶다면 BLOCK_SIZE = 1 << 17;로 수정 권고
 	std::string bytestring;
 	contents.SerializeToString(&bytestring);
 	len = bytestring.length();

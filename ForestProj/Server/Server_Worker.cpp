@@ -71,6 +71,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 			// 헤더가 들어온 경우
 			if (ioInfo->type == UNDEFINED)
 			{
+				printf("Input Header\n");
 				int *param[] = { &(ioInfo->type), &(ioInfo->len) };
 				copy_to_param(param, 2, ioInfo->buffer);
 
@@ -99,6 +100,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				// 아직 메시지가 완전히 들어오지 않은 경우
 				if (ioInfo->offset + bytesTrans < ioInfo->len)
 				{
+					printf("Input Middle(%d)\n",bytesTrans);
 					ioInfo->offset += bytesTrans;
 					ioInfo->wsaBuf.buf = ioInfo->block->getBuffer();
 					ioInfo->wsaBuf.len = ioInfo->len - ioInfo->offset;
@@ -120,6 +122,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				}
 				// 완전히 메시지가 다 들어온 경우
 				else {
+					printf("Input End Of Body(%d->%d)\n",ioInfo->offset,bytesTrans);
 					int type, len;
 					type = ioInfo->type;
 					len = ioInfo->len;
@@ -144,10 +147,14 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					ioInfo->wsaBuf.len = HEADER_SIZE;
 					ioInfo->wsaBuf.buf = ioInfo->buffer;
 					ioInfo->RWmode = READ;
+					ioInfo->type = UNDEFINED;
+					ioInfo->len = UNDEFINED;
+					ioInfo->offset = UNDEFINED;
+
 					if (ioInfo->block != nullptr) {
 						MemoryPool->pushBlock(ioInfo->block);
+						ioInfo->block = nullptr;
 					}
-					ioInfo->block = nullptr;
 					flags = 0;
 
 					int ret = WSARecv(sock, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
@@ -178,6 +185,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 //			free(ioInfo);
 			if (ioInfo->block != nullptr) {
 				MemoryPool->pushBlock(ioInfo->block);
+				ioInfo->block = nullptr;
 			}
 			ioInfoPool->pushBlock(ioInfo);
 			printf("k Decrement %d\n", InterlockedDecrement((unsigned int *)&k));
