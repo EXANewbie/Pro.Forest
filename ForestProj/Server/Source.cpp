@@ -29,7 +29,7 @@ using std::endl;
 
 void main() {
 
-	WSADATA wasData;
+	WSADATA wsaData;
 	SYSTEM_INFO sysInfo;
 	LPPER_IO_DATA ioInfo;
 	LPPER_HANDLE_DATA handleInfo;
@@ -45,7 +45,7 @@ void main() {
 
 	// 윈도우 소켓 2.2로 초기화
 	
-	if (WSAStartup(MAKEWORD(2, 2), &wasData) != NULL ) {
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != NULL ) {
 		printLog("WASStartup failed with error \n");
 		return;
 	}
@@ -99,6 +99,7 @@ void main() {
 
 		handleInfo = HandlerPool->popBlock();
 		handleInfo->hClntSock = NewConnection;
+		
 
 		memcpy(&(handleInfo->clntAdr), &ClientAddr, ClientAddrLen);
 

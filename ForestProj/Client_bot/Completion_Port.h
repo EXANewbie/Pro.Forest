@@ -2,7 +2,6 @@
 #define COMPLETION_PORT_H
 
 #include <WinSock2.h>
-//#include "types.h"
 #include "character.h"
 
 #include "Memory_Block.h"
@@ -11,6 +10,7 @@ typedef struct
 {
 	SOCKET hClntSock;
 	SOCKADDR_IN clntAdr;
+	int char_id;
 } PER_HANDLE_DATA, *LPPER_HANDLE_DATA;
 
 typedef struct

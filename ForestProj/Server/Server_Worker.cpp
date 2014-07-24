@@ -41,7 +41,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 	Client_Map *CMap = Client_Map::getInstance();
 	Sock_set *sock_set = Sock_set::getInstance();
 
-	auto HandlerPool = Handler_Pool::getInstance();
+	//auto HandlerPool = Handler_Pool::getInstance();
 	auto ioInfoPool = ioInfo_Pool::getInstance();
 	auto MemoryPool = Memory_Pool::getInstance();
 
@@ -62,7 +62,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 			printLog("MESSAGE RECEIVED!");
 			if (bytesTrans == 0) // 올바르지 않은 종류의 경우
 			{
-				printLog("@Abnomal turn off ");
+				printLog("@Abnormal turn off ");
 				remove_valid_client(handleInfo, ioInfo);
 				continue;
 			}
@@ -125,7 +125,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					int type, len;
 					type = ioInfo->type;
 					len = ioInfo->len;
-
+					
 					std::string readContents(ioInfo->wsaBuf.buf, len);
 
 					if (type == PDISCONN) // 정상적인 종료의 경우
