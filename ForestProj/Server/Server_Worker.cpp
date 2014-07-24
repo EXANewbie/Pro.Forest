@@ -187,7 +187,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				ioInfo->block = nullptr;
 			}
 			ioInfoPool->pushBlock(ioInfo);
-			printLog("k Decrement %d\n", InterlockedDecrement((unsigned int *)&k));
+//			printLog("k Decrement %d\n", InterlockedDecrement((unsigned int *)&k));
 		}
 	}
 

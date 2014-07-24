@@ -29,6 +29,8 @@ void remove_valid_client(LPPER_HANDLE_DATA, LPPER_IO_DATA);
 void copy_to_buffer(char *, int **, int);
 void copy_to_param(int **, int, char *);
 
+bool Boundary_Check(int, const int,const int, int, int);
+
 
 void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::string* readContents)
 {
@@ -155,9 +157,7 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 	std::string bytestring;
 
 	vector<int> charId_in_room_except_me;
-	vector<int> me;
-	me.push_back(pCharacter->getID());
-
+	
 	moveuserContents.ParseFromString(*readContents);
 
 	int cur_id, x_off, y_off;
@@ -165,15 +165,30 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 
 	for (int i = 0; i < moveuserContents.data_size(); ++i)
 	{
+		vector<int> me;
+		
 		auto user = moveuserContents.data(i);
 		cur_id = user.id();
 		x_off = user.xoff();
 		y_off = user.yoff();
 
+		me.clear();
+		me.push_back(cur_id);
+
+		CMap->lock();
+		Character *cCharacter = CMap->find_id_to_char(cur_id);
+		int cX = cCharacter->getX(), cY = cCharacter->getY();
+		CMap->unlock();
+
+		/* 경계값 체크 로직 */
+		if (Boundary_Check(cur_id, cX, cY, x_off, y_off) == false) {
+			continue;
+		}
+
 		// 기존의 방의 유저들의 정보를 삭제함
 
 		// 나와 같은방에 있는 친구들은 누구?
-		make_vector_id_in_room_except_me(pCharacter, charId_in_room_except_me, true/*autolock*/);
+		make_vector_id_in_room_except_me(cCharacter, charId_in_room_except_me, true/*autolock*/);
 		
 		for (int i = 0; i < charId_in_room_except_me.size(); ++i)
 		{
@@ -203,14 +218,14 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 		charId_in_room_except_me.clear();
 
 		// 캐릭터를 해당 좌표만큼 이동시킴
-		pCharacter->setX(pCharacter->getX() + x_off);
-		pCharacter->setY(pCharacter->getY() + y_off);
+		cCharacter->setX(cCharacter->getX() + x_off);
+		cCharacter->setY(cCharacter->getY() + y_off);
 
 		// 나와 같은방에 있는 친구들은 누구?
-		make_vector_id_in_room_except_me(pCharacter, charId_in_room_except_me, true/*autolock*/);
+		make_vector_id_in_room_except_me(cCharacter, charId_in_room_except_me, true/*autolock*/);
 
 		// 새로운 방의 유저들에게 내가 등장함을 알림
-		int x = pCharacter->getX(), y = pCharacter->getY();
+		int x = cCharacter->getX(), y = cCharacter->getY();
 		auto setuser = setuserContents.add_data();
 		setuser->set_id(cur_id);
 		setuser->set_x(x);

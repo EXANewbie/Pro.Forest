@@ -14,7 +14,7 @@
 
 using namespace std;
 
-extern int k;
+//extern int k;
 
 void printLog(const char *msg, ...);
 void set_single_cast(int, vector<int>&);
@@ -25,6 +25,8 @@ void closeClient(int);
 void remove_valid_client(LPPER_HANDLE_DATA, LPPER_IO_DATA);
 void copy_to_buffer(char *, int **, int);
 void copy_to_param(int **, int, char *);
+
+bool Boundary_Check(const int, const int, int, int);
 
 void set_single_cast(int id, vector<int>& send_list)
 {
@@ -94,7 +96,7 @@ void send_message(msg message, vector<int> &send_list, bool autolocked) {
 			{
 				if (WSAGetLastError() == ERROR_IO_PENDING)
 				{
-					printLog("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
+//					printLog("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
 					// 큐에 들어감 ^.^
 				}
 				else
@@ -110,7 +112,7 @@ void send_message(msg message, vector<int> &send_list, bool autolocked) {
 			}
 			else
 			{
-				printLog("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
+//				printLog("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
 			}
 		}
 		if (autolocked == true)
@@ -240,4 +242,31 @@ void printLog(const char *msg, ...)
 
 	puts(buf);
 #endif;
+}
+
+bool Boundary_Check(int id, const int cX, const int cY, int x_off, int y_off)
+{
+	bool checker = true;
+	if (cX + x_off < 0)
+	{
+		printLog("User(%d) try to move left at left boundary.", id);
+		checker = false;
+	}
+	if (cX + x_off > WIDTH)
+	{
+		printLog("User(%d) try to move right at right boundary.", id);
+		checker = false;
+	}
+	if (cY + y_off < 0)
+	{
+		printLog("User(%d) try to move up at top boundary.", id);
+		checker = false;
+	}
+	if (cY + y_off > HEIGHT)
+	{
+		printLog("User(%d) try to move down at bottom boundary.", id);
+		checker = false;
+	}
+
+	return checker;
 }
