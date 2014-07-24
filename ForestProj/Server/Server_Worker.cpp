@@ -99,7 +99,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				{
 					printf("Input Middle(%d)\n",bytesTrans);
 					ioInfo->offset += bytesTrans;
-					ioInfo->wsaBuf.buf = ioInfo->block->getBuffer();
+					ioInfo->wsaBuf.buf = ioInfo->block->getBuffer()+ioInfo->offset;
 					ioInfo->wsaBuf.len = ioInfo->len - ioInfo->offset;
 					memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
 					flags = 0;
