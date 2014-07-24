@@ -229,12 +229,13 @@ void copy_to_param(int *param[], int count, char *buf)
 void printLog(const char *msg, ...)
 {
 #ifdef PRINT_LOG
-	char buf[512] = { 0, };
+	const int BUF_SIZE = 512;
+	char buf[BUF_SIZE] = { 0, };
 	va_list ap;
 
 	strcpy_s(buf, "Error : ");
 	va_start(ap, msg);
-	vsprintf_s(buf + strlen(buf),512, msg, ap);
+	vsprintf_s(buf + strlen(buf),BUF_SIZE-strlen(buf), msg, ap);
 	va_end(ap);
 
 	puts(buf);
