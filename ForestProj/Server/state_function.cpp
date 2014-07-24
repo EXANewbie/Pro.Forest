@@ -134,6 +134,19 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::s
 			tempData->set_id(tID);
 			tempData->set_x(tx);
 			tempData->set_y(ty);
+
+			if (setuserContents.data_size() == SET_USER_MAXIMUM) // SET_USER_MAXIMUM이 한계치로 접근하려고 할 때
+			{
+				bytestring.clear();
+				setuserContents.SerializeToString(&bytestring);
+				len = bytestring.length();
+
+				set_single_cast(char_id, receiver);
+				send_message(msg(PSET_USER, len, bytestring.c_str()), receiver, false);
+				receiver.clear();
+
+				setuserContents.clear_data();
+			}
 		}
 	}
 	CMap->unlock();
@@ -194,6 +207,17 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 		{
 			auto eraseuser = eraseuserContents.add_data();
 			eraseuser->set_id(charId_in_room_except_me[i]);
+
+			if (eraseuserContents.data_size() == ERASE_USER_MAXIMUM) // ERASE_USER_MAXIMUM이 한계치로 접근하려고 할 때
+			{
+				eraseuserContents.SerializeToString(&bytestring);
+				len = bytestring.length();
+
+				send_message(msg(PERASE_USER, len, bytestring.c_str()), me, true);
+
+				eraseuserContents.clear_data();
+				bytestring.clear();
+			}
 		}
 
 		eraseuserContents.SerializeToString(&bytestring);
@@ -255,6 +279,16 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 			setuser->set_id(charid);
 			setuser->set_x(CMap->find_id_to_char(charid)->getX());
 			setuser->set_y(CMap->find_id_to_char(charid)->getY());
+
+			if (setuserContents.data_size() == SET_USER_MAXIMUM) {
+				setuserContents.SerializeToString(&bytestring);
+				len = bytestring.length();
+
+				send_message(msg(PSET_USER, len, bytestring.c_str()), charId_in_room_except_me, true);
+
+				setuserContents.clear_data();
+				bytestring.clear();
+			}
 		}
 
 		setuserContents.SerializeToString(&bytestring);
