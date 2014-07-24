@@ -29,6 +29,8 @@ void remove_valid_client(LPPER_HANDLE_DATA, LPPER_IO_DATA);
 void copy_to_buffer(char *, int **, int);
 void copy_to_param(int **, int, char *);
 
+bool Boundary_Check(int, const int,const int, int, int);
+
 
 void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::string* readContents)
 {
@@ -132,6 +134,19 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::s
 			tempData->set_id(tID);
 			tempData->set_x(tx);
 			tempData->set_y(ty);
+
+			if (setuserContents.data_size() == SET_USER_MAXIMUM) // SET_USER_MAXIMUM이 한계치로 접근하려고 할 때
+			{
+				bytestring.clear();
+				setuserContents.SerializeToString(&bytestring);
+				len = bytestring.length();
+
+				set_single_cast(char_id, receiver);
+				send_message(msg(PSET_USER, len, bytestring.c_str()), receiver, false);
+				receiver.clear();
+
+				setuserContents.clear_data();
+			}
 		}
 	}
 	CMap->unlock();
@@ -155,9 +170,7 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 	std::string bytestring;
 
 	vector<int> charId_in_room_except_me;
-	vector<int> me;
-	me.push_back(pCharacter->getID());
-
+	
 	moveuserContents.ParseFromString(*readContents);
 
 	int cur_id, x_off, y_off;
@@ -165,20 +178,46 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 
 	for (int i = 0; i < moveuserContents.data_size(); ++i)
 	{
+		vector<int> me;
+		
 		auto user = moveuserContents.data(i);
 		cur_id = user.id();
 		x_off = user.xoff();
 		y_off = user.yoff();
 
+		me.clear();
+		me.push_back(cur_id);
+
+		CMap->lock();
+		Character *cCharacter = CMap->find_id_to_char(cur_id);
+		int cX = cCharacter->getX(), cY = cCharacter->getY();
+		CMap->unlock();
+
+		/* 경계값 체크 로직 */
+		if (Boundary_Check(cur_id, cX, cY, x_off, y_off) == false) {
+			continue;
+		}
+
 		// 기존의 방의 유저들의 정보를 삭제함
 
 		// 나와 같은방에 있는 친구들은 누구?
-		make_vector_id_in_room_except_me(pCharacter, charId_in_room_except_me, true/*autolock*/);
+		make_vector_id_in_room_except_me(cCharacter, charId_in_room_except_me, true/*autolock*/);
 		
 		for (int i = 0; i < charId_in_room_except_me.size(); ++i)
 		{
 			auto eraseuser = eraseuserContents.add_data();
 			eraseuser->set_id(charId_in_room_except_me[i]);
+
+			if (eraseuserContents.data_size() == ERASE_USER_MAXIMUM) // ERASE_USER_MAXIMUM이 한계치로 접근하려고 할 때
+			{
+				eraseuserContents.SerializeToString(&bytestring);
+				len = bytestring.length();
+
+				send_message(msg(PERASE_USER, len, bytestring.c_str()), me, true);
+
+				eraseuserContents.clear_data();
+				bytestring.clear();
+			}
 		}
 
 		eraseuserContents.SerializeToString(&bytestring);
@@ -203,14 +242,14 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 		charId_in_room_except_me.clear();
 
 		// 캐릭터를 해당 좌표만큼 이동시킴
-		pCharacter->setX(pCharacter->getX() + x_off);
-		pCharacter->setY(pCharacter->getY() + y_off);
+		cCharacter->setX(cCharacter->getX() + x_off);
+		cCharacter->setY(cCharacter->getY() + y_off);
 
 		// 나와 같은방에 있는 친구들은 누구?
-		make_vector_id_in_room_except_me(pCharacter, charId_in_room_except_me, true/*autolock*/);
+		make_vector_id_in_room_except_me(cCharacter, charId_in_room_except_me, true/*autolock*/);
 
 		// 새로운 방의 유저들에게 내가 등장함을 알림
-		int x = pCharacter->getX(), y = pCharacter->getY();
+		int x = cCharacter->getX(), y = cCharacter->getY();
 		auto setuser = setuserContents.add_data();
 		setuser->set_id(cur_id);
 		setuser->set_x(x);
@@ -240,6 +279,16 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 			setuser->set_id(charid);
 			setuser->set_x(CMap->find_id_to_char(charid)->getX());
 			setuser->set_y(CMap->find_id_to_char(charid)->getY());
+
+			if (setuserContents.data_size() == SET_USER_MAXIMUM) {
+				setuserContents.SerializeToString(&bytestring);
+				len = bytestring.length();
+
+				send_message(msg(PSET_USER, len, bytestring.c_str()), charId_in_room_except_me, true);
+
+				setuserContents.clear_data();
+				bytestring.clear();
+			}
 		}
 
 		setuserContents.SerializeToString(&bytestring);

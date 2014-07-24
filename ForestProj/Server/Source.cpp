@@ -27,7 +27,16 @@ std::mutex Memory_Pool::mtx;
 using std::cout;
 using std::endl;
 
+//#define PACKET_SIZE_TEST
+
+#ifdef PACKET_SIZE_TEST
+void test(int);
+#endif
+
 void main() {
+#ifdef PACKET_SIZE_TEST
+	test(30000);
+#endif
 
 	WSADATA wsaData;
 	SYSTEM_INFO sysInfo;
@@ -132,3 +141,41 @@ void main() {
 	 
 	closesocket(ListeningSocket); // 리스닝 소켓을 닫는다.
 }
+
+#ifdef PACKET_SIZE_TEST
+
+#include "../protobuf/eraseuser.pb.h"
+#include "../protobuf/init.pb.h"
+#include "../protobuf/moveuser.pb.h"
+#include "../protobuf/setuser.pb.h"
+
+void test(int n) {
+
+	ERASE_USER::CONTENTS eraseuserContent;
+
+	for (int i = 0; i < n; i++) {
+		auto data = eraseuserContent.add_data();
+		data->set_id(i);
+	}
+	{
+		std::string byteString;
+		eraseuserContent.SerializeToString(&byteString);
+		printLog("eraseuser's size in %d users is %d byte", n, byteString.length());
+	}
+
+	INIT::CONTENTS initContent;
+
+	for(int i = 0; i < n; i++) {
+		auto data = initContent.add_data();
+		data->set_id(i);
+		data->set_x(i);
+		data->set_y(0x7fffffff);
+	}
+	{
+		std::string byteString;
+		initContent.SerializeToString(&byteString);
+		printLog("init's size in %d users is %d byte", n, byteString.length());
+	}
+}
+
+#endif

@@ -3,20 +3,7 @@
 
 #define PRINT_LOG
 
-//const int BUFFER_SIZE = 1024;
-const int Port = 78911;
-const int READ = 3, WRITE = 5;
-const int NOT_JOINED = -13;
-const int UNDEFINED = -71;
-
-const int HEADER_SIZE = 2 * sizeof(int);
-
-const int BLOCK_COUNT = 10000;
-const int BLOCK_SIZE = (1 << 14);
-
-const int HANDLER_SIZE = 100000;
-//const char* CONMSG = "HELLO SERVER!";
-//const char* DSCMSG = "BYE SERVER!";
+#include "Constant.h"
 
 enum TYPE {
 	PCONNECT, PINIT, PSET_USER, PMOVE_USER, PDISCONN, PERASE_USER

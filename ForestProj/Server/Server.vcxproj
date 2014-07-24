@@ -90,6 +90,7 @@
     <ClCompile Include="Client_Map.cpp" />
     <ClCompile Include="state_function.cpp" />
     <ClInclude Include="Completion_Port.h" />
+    <ClInclude Include="Constant.h" />
     <ClInclude Include="Disc_user_map.h" />
     <ClCompile Include="function.cpp" />
     <ClCompile Include="Server_Worker.cpp" />
