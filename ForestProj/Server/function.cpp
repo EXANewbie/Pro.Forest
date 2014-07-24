@@ -1,4 +1,5 @@
 #include <WinSock2.h>
+#include <cstdarg>
 #include <vector>
 
 #include "../protobuf/eraseuser.pb.h"
@@ -23,6 +24,7 @@ void closeClient(int);
 void remove_valid_client(LPPER_HANDLE_DATA, LPPER_IO_DATA);
 void copy_to_buffer(char *, int **, int);
 void copy_to_param(int **, int, char *);
+void printLog(const char *msg, ...);
 
 void set_single_cast(int id, vector<int>& send_list)
 {
@@ -222,4 +224,19 @@ void copy_to_param(int *param[], int count, char *buf)
 		memcpy(param[i], buf + readbyte, sizeof(int));
 		readbyte += sizeof(int);
 	}
+}
+
+void printLog(const char *msg, ...)
+{
+#ifdef PRINT_LOG
+	char buf[512] = { 0, };
+	va_list ap;
+
+	strcpy_s(buf, "Error : ");
+	va_start(ap, msg);
+	vsprintf_s(buf + strlen(buf),512, msg, ap);
+	va_end(ap);
+
+	puts(buf);
+#endif;
 }

@@ -1,6 +1,8 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#define PRINT_LOG
+
 //const int BUFFER_SIZE = 1024;
 const int Port = 78911;
 const int READ = 3, WRITE = 5;
