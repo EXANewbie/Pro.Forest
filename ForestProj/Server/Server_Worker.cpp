@@ -32,7 +32,6 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA, LPPER_IO_DATA, std::string*);
 void Handler_PMOVE_USER(Character *, std::string*);
 void Handler_PDISCONN(LPPER_HANDLE_DATA, LPPER_IO_DATA, std::string*);
 
-extern CRITICAL_SECTION cs;
 int k;
 
 unsigned WINAPI Server_Worker(LPVOID pComPort)
@@ -50,8 +49,6 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 	LPPER_HANDLE_DATA handleInfo;
 	LPPER_IO_DATA ioInfo;
 	DWORD flags = 0;
-
-	vector<int> receiver;
 
 	while (true)
 	{

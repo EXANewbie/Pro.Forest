@@ -11,7 +11,6 @@
 #include "Memory_Pool.h"
 
 unsigned WINAPI Server_Worker(LPVOID);
-CRITICAL_SECTION cs;
 
 Client_Map *Client_Map::instance;
 Sock_set *Sock_set::instance;
@@ -29,7 +28,7 @@ using std::cout;
 using std::endl;
 
 void main() {
-	
+
 	WSADATA wasData;
 	SYSTEM_INFO sysInfo;
 	LPPER_IO_DATA ioInfo;
@@ -41,8 +40,6 @@ void main() {
 	SOCKADDR_IN ServerAddr;
 	SOCKADDR_IN ClientAddr;
 	DWORD recvBytes, flags = 0;
-
-	InitializeCriticalSection(&cs);
 
 	int ClientAddrLen = sizeof(ClientAddr); // 클라이언트 어드레스의 길이를 저장
 
@@ -92,17 +89,13 @@ void main() {
 
 	
 	//새로운 연결을 하나 수락
-
-	std::set<SOCKET> *sock_set = new std::set<SOCKET>();
-
+	Sock_set *sock_set = Sock_set::getInstance();
 	auto HandlerPool = Handler_Pool::getInstance();
 	auto ioInfoPool = ioInfo_Pool::getInstance();
 
 	while (true) {
 		NewConnection = accept(ListeningSocket, (SOCKADDR *)&ClientAddr, &ClientAddrLen);
 		printf("User (Socket : %d) is connected\n", NewConnection);
-
-//		handleInfo = (LPPER_HANDLE_DATA)malloc(sizeof(PER_HANDLE_DATA));
 
 		handleInfo = HandlerPool->popBlock();
 		handleInfo->hClntSock = NewConnection;
@@ -122,6 +115,7 @@ void main() {
 		ioInfo->type = UNDEFINED;
 		ioInfo->len = UNDEFINED;
 		ioInfo->offset = UNDEFINED;
+		ioInfo->block = nullptr;
 				
 		WSARecv(handleInfo->hClntSock, &(ioInfo->wsaBuf), 1, &recvBytes, &flags, &(ioInfo->overlapped), NULL);
 		sock_set->insert(NewConnection);
@@ -134,6 +128,5 @@ void main() {
 
 	}
 	 
-	DeleteCriticalSection(&cs);
 	closesocket(ListeningSocket); // 리스닝 소켓을 닫는다.
 }
