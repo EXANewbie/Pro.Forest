@@ -16,6 +16,7 @@
 
 using namespace std;
 
+void printLog(const char *msg, ...);
 void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::string* readContents);
 void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents);
 void Handler_PDISCONN(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::string* readContents);
@@ -251,7 +252,8 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 
 		charId_in_room_except_me.clear();
 
-		printf("id : %d, x_off : %d, y_off : %d\n", cur_id, x_off, y_off);
+		//printf("id : %d, x_off : %d, y_off : %d\n", cur_id, x_off, y_off);
+		printLog("id : %d, x_off : %d, y_off : %d\n", cur_id, x_off, y_off);
 	}
 }
 
@@ -265,6 +267,6 @@ void Handler_PDISCONN(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::s
 		//가짜 클라이언트
 	}
 
-	printf("Nomal turn off\n");
+	printLog("Nomal turn off\n");
 	remove_valid_client(handleInfo, ioInfo);
 }

@@ -16,6 +16,7 @@ using namespace std;
 
 extern int k;
 
+void printLog(const char *msg, ...);
 void set_single_cast(int, vector<int>&);
 void make_vector_id_in_room_except_me(Character*, vector<int>&, bool);
 void send_message(msg, vector<int> &,bool);
@@ -24,7 +25,6 @@ void closeClient(int);
 void remove_valid_client(LPPER_HANDLE_DATA, LPPER_IO_DATA);
 void copy_to_buffer(char *, int **, int);
 void copy_to_param(int **, int, char *);
-void printLog(const char *msg, ...);
 
 void set_single_cast(int id, vector<int>& send_list)
 {
@@ -94,7 +94,7 @@ void send_message(msg message, vector<int> &send_list, bool autolocked) {
 			{
 				if (WSAGetLastError() == ERROR_IO_PENDING)
 				{
-					printf("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
+					printLog("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
 					// 큐에 들어감 ^.^
 				}
 				else
@@ -106,11 +106,11 @@ void send_message(msg message, vector<int> &send_list, bool autolocked) {
 					ioInfoPool->pushBlock(ioInfo);
 					//free(ioInfo);
 				}
-				printf("Send Error (%d)\n", WSAGetLastError());
+				printLog("Send Error (%d)\n", WSAGetLastError());
 			}
 			else
 			{
-				printf("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
+				printLog("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
 			}
 		}
 		if (autolocked == true)
@@ -192,7 +192,7 @@ void remove_valid_client(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo)
 	}
 	else
 	{
-		printf("sock : %d char_id : %d\n", handleInfo->hClntSock, char_id);
+		printLog("sock : %d char_id : %d\n", handleInfo->hClntSock, char_id);
 		closeClient(handleInfo->hClntSock, ioInfo->id,ioInfo->myCharacter);
 
 		if (ioInfo->block != nullptr) {
@@ -233,7 +233,7 @@ void printLog(const char *msg, ...)
 	char buf[BUF_SIZE] = { 0, };
 	va_list ap;
 
-	strcpy_s(buf, "Error : ");
+	strcpy_s(buf, "Log : ");
 	va_start(ap, msg);
 	vsprintf_s(buf + strlen(buf),BUF_SIZE-strlen(buf), msg, ap);
 	va_end(ap);

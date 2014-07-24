@@ -46,7 +46,7 @@ void main() {
 	// 윈도우 소켓 2.2로 초기화
 	
 	if (WSAStartup(MAKEWORD(2, 2), &wasData) != NULL ) {
-		printf("WASStartup failed with error \n");
+		printLog("WASStartup failed with error \n");
 		return;
 	}
 
@@ -65,7 +65,7 @@ void main() {
 	// 연결을 기다리기 위한 소켓 생성
 	if ((ListeningSocket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED)) == INVALID_SOCKET)
 	{
-		printf("WSASocket failed with error \n");
+		printLog("WSASocket failed with error \n");
 		return;
 	}
 
@@ -79,7 +79,7 @@ void main() {
 	// bind를 이용하여 사용한 주소 지정
 	if (bind(ListeningSocket, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr)) == SOCKET_ERROR)
 	{
-		printf("Bind failed with error \n");
+		printLog("Bind failed with error \n");
 		return;
 	}
 
@@ -95,7 +95,7 @@ void main() {
 
 	while (true) {
 		NewConnection = accept(ListeningSocket, (SOCKADDR *)&ClientAddr, &ClientAddrLen);
-		printf("User (Socket : %d) is connected\n", NewConnection);
+		printLog("User (Socket : %d) is connected\n", NewConnection);
 
 		handleInfo = HandlerPool->popBlock();
 		handleInfo->hClntSock = NewConnection;
@@ -124,7 +124,8 @@ void main() {
 		SOCKADDR_IN temp_sock;
 		int temp_sock_size = sizeof(temp_sock);
 		getpeername(NewConnection, (SOCKADDR *)&temp_sock, &temp_sock_size);
-		cout << "Connect IP : " << inet_ntoa(temp_sock.sin_addr) << endl;
+		//cout << "Connect IP : " << inet_ntoa(temp_sock.sin_addr) << endl;
+		printLog("Connect IP : %s\n", inet_ntoa(temp_sock.sin_addr));
 
 	}
 	 

@@ -14,6 +14,7 @@ using std::mutex;
 using std::stack;
 using std::shared_ptr;
 
+void printLog(const char *msg, ...);
 /*
 struct MB_deleter {
 	void operator()(Memory_Block *m) {
@@ -58,7 +59,7 @@ public :
 		mtx.lock();
 		ptr p = poolStack->top();
 		poolStack->pop();
-		printf("MemoryBlock Allocated(%d)\n", poolStack->size());
+		printLog("MemoryBlock Allocated(%d)\n", poolStack->size());
 		mtx.unlock();
 		p->setStateUSE();
 
@@ -69,7 +70,7 @@ public :
 
 		mtx.lock();
 		poolStack->push(p);
-		printf("MemoryBlock released(%d)\n", poolStack->size());
+		printLog("MemoryBlock released(%d)\n", poolStack->size());
 		mtx.unlock();
 	}
 };
