@@ -89,12 +89,12 @@ void main() {
 	if (bind(ListeningSocket, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr)) == SOCKET_ERROR)
 	{
 		printLog("Bind failed with error \n");
-		return;
+		 return;
 	}
 
 	// 클라이언트의 연결을 기다림
 	// backlog는 일반적으로 5
-	listen(ListeningSocket, 5);
+	listen(ListeningSocket, 200);
 
 	
 	//새로운 연결을 하나 수락

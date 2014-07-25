@@ -43,7 +43,7 @@ unsigned WINAPI Client_Bot_Worker(LPVOID pComPort)
 				printLog("%d : @Abnormal diconnected",sock);
 				continue;
 			}
-			int type, len, id;
+			int type, len;
 			int readByte = 0;
 			memcpy(&type, ioInfo->wsaBuf.buf, sizeof(int));
 
@@ -53,20 +53,31 @@ unsigned WINAPI Client_Bot_Worker(LPVOID pComPort)
 				readByte += sizeof(int);
 				memcpy(&len, ioInfo->wsaBuf.buf + readByte, sizeof(int));
 				readByte += sizeof(int);
-				memcpy(&id, ioInfo->wsaBuf.buf + readByte, sizeof(int));
-				/*chars->lock();
-				chars->insert(handleInfo->hClntSock, id);
-				chars->unlock();*/
+				
+				int id, x, y;
+				std::string readContents(ioInfo->wsaBuf.buf + readByte, len);
+				INIT::CONTENTS contents;
+				contents.ParseFromString(readContents);
+				
+				auto user = contents.data(0);
+				id = user.id();
+				x = user.x();
+				y = user.y();
+
 				handleInfo->char_id = id;
 			}
 
+			memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
+			
+			ioInfo->wsaBuf.buf = ioInfo->block->getBuffer();
+			ioInfo->wsaBuf.len = BLOCK_SIZE;
+			ioInfo->RWmode = READ;
+			WSARecv(handleInfo->hClntSock, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
 
-			if (ioInfo->block != nullptr) {
-				MemoryPool->pushBlock(ioInfo->block);
-				ioInfo->block = nullptr;
-			}
-			ioInfoPool->pushBlock(ioInfo);
+
+
 		}
+
 		else
 		{
 			if (bytesTrans == 0) // 올바르지 않은 종류의 경우
@@ -82,7 +93,6 @@ unsigned WINAPI Client_Bot_Worker(LPVOID pComPort)
 				ioInfo->block = nullptr;
 			}
 			ioInfoPool->pushBlock(ioInfo);			
-
 		}
 	}
 }

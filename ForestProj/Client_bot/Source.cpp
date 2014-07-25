@@ -66,7 +66,7 @@ struct handleioInfo
 	handleioInfo(LPPER_HANDLE_DATA handleInfo)
 	{
 		this->handleInfo = handleInfo;
-		tic = (rand()%500)+1;
+		tic = (rand()%9901)+100;
 		state = PCONNECT;
 	}
 };
@@ -104,7 +104,7 @@ void main(void)
 	GetSystemInfo(&sysInfo);
 
 	// 시스템의 수만큼 스레드를 생성하여 CP에 등록
-	for (int i = 0; i < /*2 * sysInfo.dwNumberOfProcessors*/1; ++i)
+	for (int i = 0; i < 2 * sysInfo.dwNumberOfProcessors/*1*/; ++i)
 	{
 		_beginthreadex(NULL, 0, Client_Bot_Worker, (LPVOID)hComPort, 0, 0);
 	}
@@ -150,6 +150,15 @@ void main(void)
 
 		vh.push_back(handleioInfo(handleInfo));
 
+		ioInfo = ioInfoPool->popBlock();
+		memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
+		ioInfo->block = MemoryPool->popBlock();
+		ioInfo->wsaBuf.buf = ioInfo->block->getBuffer();
+		ioInfo->wsaBuf.len = BLOCK_SIZE;
+		ioInfo->RWmode = READ;
+		flags = 0;
+		WSARecv(handleInfo->hClntSock, &(ioInfo->wsaBuf), 1, &recvBytes, &flags, &(ioInfo->overlapped), NULL);
+
 	}
 
 	//만약 작동을 하라고 명령을 내리면
@@ -170,7 +179,7 @@ void main(void)
 			vh[i].tic -= 1;
 			if (vh[i].tic == 0)
 			{
-				int randInt = (rand() % 500) + 1;
+				int randInt = (rand() %1801) + 200;
 				vh[i].tic = randInt;
 
 				if (vh[i].state == PCONNECT)
@@ -193,24 +202,48 @@ void main(void)
 					ioInfo->wsaBuf.buf = ioInfo->block->getBuffer();
 
 					copy_to_buffer(ioInfo->wsaBuf.buf, &type, &len, &bytestring);
-					ioInfo->wsaBuf.len = len;
+					ioInfo->wsaBuf.len = len + sizeof(int) * 2;
 					ioInfo->RWmode = WRITE;
-					WSASend(vh[i].handleInfo->hClntSock, &(ioInfo->wsaBuf), 1, NULL, 0, &(ioInfo->overlapped), NULL);
+					int ret = WSASend(vh[i].handleInfo->hClntSock, &(ioInfo->wsaBuf), 1, NULL, 0, &(ioInfo->overlapped), NULL);
+
+					if (ret == SOCKET_ERROR)
+					{
+						if (WSAGetLastError() == ERROR_IO_PENDING)
+						{
+							//					printLog("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
+							// 큐에 들어감 ^.^
+						}
+						else
+						{
+							// 너에겐 수많은 이유가 있겠지... 하지만 아마도 그 수많은 이유들의 공통점은 소켓에 전송할 수 없는 것이 아닐까?
+							if (ioInfo->block != nullptr) {
+								MemoryPool->pushBlock(ioInfo->block);
+							}
+							ioInfoPool->pushBlock(ioInfo);
+							//free(ioInfo);
+						}
+						printLog("Send Error (%d)\n", WSAGetLastError());
+					}
+					else
+					{
+						//				printLog("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
+					}
 					contents.Clear();
 
 					flags = 0;
 					
-					ioInfo = ioInfoPool->popBlock();
-					memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
-					ioInfo->block = MemoryPool->popBlock();
-					ioInfo->wsaBuf.buf = ioInfo->block->getBuffer();
-					ioInfo->wsaBuf.len = BLOCK_SIZE;
-					ioInfo->RWmode = READ;
-					WSARecv(vh[i].handleInfo->hClntSock, &(ioInfo->wsaBuf), 1, &recvBytes, &flags, &(ioInfo->overlapped), NULL);
+					//ioInfo = ioInfoPool->popBlock();
+					//memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
+					//ioInfo->block = MemoryPool->popBlock();
+					//ioInfo->wsaBuf.buf = ioInfo->block->getBuffer();
+					//ioInfo->wsaBuf.len = BLOCK_SIZE;
+					//ioInfo->RWmode = READ;
+//					WSARecv(vh[i].handleInfo->hClntSock, &(ioInfo->wsaBuf), 1, &recvBytes, &flags, &(ioInfo->overlapped), NULL);
 					
 				}
 				else
 				{
+
 					int type = PMOVE_USER;
 					std::string bytestring;
 					MOVE_USER::CONTENTS contents;
@@ -231,26 +264,24 @@ void main(void)
 					ioInfo->wsaBuf.buf = ioInfo->block->getBuffer();
 
 					copy_to_buffer(ioInfo->wsaBuf.buf, &type, &len, &bytestring);
-					ioInfo->wsaBuf.len = len;
+					ioInfo->wsaBuf.len = len + sizeof(int)*2;
 					ioInfo->RWmode = WRITE;
 					WSASend(vh[i].handleInfo->hClntSock, &(ioInfo->wsaBuf), 1, NULL, 0, &(ioInfo->overlapped), NULL);
 					contents.Clear();
 
 					flags = 0;
 
-					ioInfo = ioInfoPool->popBlock();
-					memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
-					ioInfo->block = MemoryPool->popBlock();
-					ioInfo->wsaBuf.buf = ioInfo->block->getBuffer();
-					ioInfo->wsaBuf.len = BLOCK_SIZE;
-					ioInfo->RWmode = READ;
-					WSARecv(vh[i].handleInfo->hClntSock, &(ioInfo->wsaBuf), 1, &recvBytes, &flags, &(ioInfo->overlapped), NULL);
+					//ioInfo = ioInfoPool->popBlock();
+					//memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
+					//ioInfo->block = MemoryPool->popBlock();
+					//ioInfo->wsaBuf.buf = ioInfo->block->getBuffer();
+					//ioInfo->wsaBuf.len = BLOCK_SIZE;
+					//ioInfo->RWmode = READ;
+					//WSARecv(vh[i].handleInfo->hClntSock, &(ioInfo->wsaBuf), 1, &recvBytes, &flags, &(ioInfo->overlapped), NULL);
 				}
 			}
-
-			Sleep(1);
 		}
-
+		Sleep(1);
 	}
 
 }

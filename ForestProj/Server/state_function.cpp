@@ -190,6 +190,11 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 
 		CMap->lock();
 		Character *cCharacter = CMap->find_id_to_char(cur_id);
+
+		if (cCharacter == nullptr) {
+			printLog("character(%d) is not exist\n", cur_id);
+			continue;
+		}
 		int cX = cCharacter->getX(), cY = cCharacter->getY();
 		CMap->unlock();
 

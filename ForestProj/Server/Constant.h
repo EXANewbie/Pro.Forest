@@ -5,7 +5,7 @@ const int UNDEFINED = -71;
 
 const int HEADER_SIZE = 2 * sizeof(int);
 
-const int BLOCK_COUNT = 10000;
+const int BLOCK_COUNT = 100000;
 const int BLOCK_SIZE = (1 << 14);
 
 const int HANDLER_SIZE = 100000;

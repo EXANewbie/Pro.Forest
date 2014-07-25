@@ -99,7 +99,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				// 아직 메시지가 완전히 들어오지 않은 경우
 				if (ioInfo->offset + bytesTrans < ioInfo->len)
 				{
-					printLog("Input Middle(%d)\n", bytesTrans);
+					printLog("Input Middle(%d + %d) , goal(%d) \n",ioInfo->offset, bytesTrans,ioInfo->len);
 					ioInfo->offset += bytesTrans;
 					ioInfo->wsaBuf.buf = ioInfo->block->getBuffer()+ioInfo->offset;
 					ioInfo->wsaBuf.len = ioInfo->len - ioInfo->offset;
