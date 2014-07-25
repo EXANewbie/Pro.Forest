@@ -175,6 +175,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 		{
 			if (bytesTrans == 0) // 올바르지 않은 종류의 경우
 			{
+				Sleep(10000);
 				printLog("나 출력되는거 맞음?ㅋ\n");
 				remove_valid_client(handleInfo, ioInfo);
 				continue;
@@ -187,7 +188,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				ioInfo->block = nullptr;
 			}
 			ioInfoPool->pushBlock(ioInfo);
-//			printLog("k Decrement %d\n", InterlockedDecrement((unsigned int *)&k));
+			printLog("k Decrement %d\n", InterlockedDecrement((unsigned int *)&k));
 		}
 	}
 

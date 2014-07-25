@@ -14,7 +14,7 @@
 
 using namespace std;
 
-//extern int k;
+extern int k;
 
 void printLog(const char *msg, ...);
 void set_single_cast(int, vector<int>&);
@@ -98,7 +98,7 @@ void send_message(msg message, vector<int> &send_list, bool autolocked) {
 			{
 				if (WSAGetLastError() == ERROR_IO_PENDING)
 				{
-//					printLog("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
+					printLog("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
 					// 큐에 들어감 ^.^
 				}
 				else
@@ -106,6 +106,7 @@ void send_message(msg message, vector<int> &send_list, bool autolocked) {
 					// 너에겐 수많은 이유가 있겠지... 하지만 아마도 그 수많은 이유들의 공통점은 소켓에 전송할 수 없는 것이 아닐까?
 					if (ioInfo->block != nullptr) {
 						MemoryPool->pushBlock(ioInfo->block);
+						ioInfo->block = nullptr;
 					}
 					ioInfoPool->pushBlock(ioInfo);
 					//free(ioInfo);
@@ -114,7 +115,7 @@ void send_message(msg message, vector<int> &send_list, bool autolocked) {
 			}
 			else
 			{
-//				printLog("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
+				printLog("k Increment %d\n", InterlockedIncrement((unsigned int *)&k));
 			}
 		}
 		if (autolocked == true)
@@ -193,6 +194,12 @@ void remove_valid_client(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo)
 	if (char_id == -1 || char_id != ioInfo->id)
 	{
 		// 이미 삭제 처리 된 경우를 여기에 명시한다.
+		if (ioInfo->block != nullptr) {
+			MemoryPool->pushBlock(ioInfo->block);
+			ioInfo->block = nullptr;
+		}
+		HandlerPool->pushBlock(handleInfo);
+		ioInfoPool->pushBlock(ioInfo);
 	}
 	else
 	{
