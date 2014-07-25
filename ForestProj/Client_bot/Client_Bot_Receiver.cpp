@@ -2,11 +2,7 @@
 #include <string>
 #include <vector>
 
-#include "../protobuf/connect.pb.h"
-#include "../protobuf/disconn.pb.h"
 #include "../protobuf/moveuser.pb.h"
-#include "../protobuf/setuser.pb.h"
-#include "../protobuf/eraseuser.pb.h"
 #include "../protobuf/init.pb.h"
 
 #include "Completion_Port.h"
@@ -16,6 +12,9 @@
 #include <Windows.h>
 
 void printLog(const char *msg, ...);
+void copy_to_buffer(char* pBuf, int* type, int* len, std::string* content);
+
+int k;
 
 unsigned WINAPI Client_Bot_Worker(LPVOID pComPort)
 {
@@ -35,7 +34,7 @@ unsigned WINAPI Client_Bot_Worker(LPVOID pComPort)
 		GetQueuedCompletionStatus(hComPort, &bytesTrans, (LPDWORD)&handleInfo, (LPOVERLAPPED *)&ioInfo, INFINITE);
 		sock = handleInfo->hClntSock;
 
-		if (ioInfo->RWmode = READ)
+		if (ioInfo->RWmode == READ)
 		{
 			printLog("MESSAGE RECEIVED!");
 			if (bytesTrans == 0) // 올바르지 않은 종류의 경우
@@ -43,17 +42,17 @@ unsigned WINAPI Client_Bot_Worker(LPVOID pComPort)
 				printLog("%d : @Abnormal diconnected",sock);
 				continue;
 			}
+
 			int type, len;
 			int readByte = 0;
 			memcpy(&type, ioInfo->wsaBuf.buf, sizeof(int));
+			readByte += sizeof(int);
+			memcpy(&len, ioInfo->wsaBuf.buf + readByte, sizeof(int));
+			readByte += sizeof(int);
 
-			//init에 대해서만 처리. 캐릭터소켓맵에더 넣어줌.
+			//init에 대해서만 처리.
 			if (type == PINIT)
 			{
-				readByte += sizeof(int);
-				memcpy(&len, ioInfo->wsaBuf.buf + readByte, sizeof(int));
-				readByte += sizeof(int);
-				
 				int id, x, y;
 				std::string readContents(ioInfo->wsaBuf.buf + readByte, len);
 				INIT::CONTENTS contents;
@@ -73,11 +72,7 @@ unsigned WINAPI Client_Bot_Worker(LPVOID pComPort)
 			ioInfo->wsaBuf.len = BLOCK_SIZE;
 			ioInfo->RWmode = READ;
 			WSARecv(handleInfo->hClntSock, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
-
-
-
 		}
-
 		else
 		{
 			if (bytesTrans == 0) // 올바르지 않은 종류의 경우
@@ -93,6 +88,7 @@ unsigned WINAPI Client_Bot_Worker(LPVOID pComPort)
 				ioInfo->block = nullptr;
 			}
 			ioInfoPool->pushBlock(ioInfo);			
+			printLog("Released!");
 		}
 	}
 }

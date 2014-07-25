@@ -1,7 +1,10 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-//#define PRINT_LOG
+#define PRINT_LOG
+
+#define connectRand (rand()%1000)+1
+#define moveRand (rand()%200)+101
 
 //const int BUFFER_SIZE = 1024;
 const int Port = 78911;
@@ -25,5 +28,7 @@ enum TYPE {
 enum CAST {
 	NOT_CAST, SINGLE_CAST, MULTI_CAST, BROAD_CAST
 };
+
+const int dxy[4][2]{{ -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 }};
 
 #endif

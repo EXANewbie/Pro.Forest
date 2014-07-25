@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Member Funtions">
-      <UniqueIdentifier>{65d627d6-7649-4163-93fa-0d0c7bea62ec}</UniqueIdentifier>
-    </Filter>
     <Filter Include="pb_files">
       <UniqueIdentifier>{53ec4eaa-3e39-4a7f-b85e-cc52cba86103}</UniqueIdentifier>
     </Filter>
@@ -23,9 +20,6 @@
   <ItemGroup>
     <ClCompile Include="Source.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="character.cpp">
-      <Filter>Member Funtions</Filter>
     </ClCompile>
     <ClCompile Include="..\protobuf\connect.pb.cc">
       <Filter>pb_files</Filter>
@@ -45,14 +39,17 @@
     <ClCompile Include="..\protobuf\setuser.pb.cc">
       <Filter>pb_files</Filter>
     </ClCompile>
-    <ClCompile Include="Client_Bot_Worker.cpp">
+    <ClCompile Include="funtion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Client_Bot_Sender.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Client_Bot_Receiver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="character.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Completion_Port.h">
       <Filter>Header Files</Filter>
     </ClInclude>

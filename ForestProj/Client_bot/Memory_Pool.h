@@ -158,6 +158,7 @@ public:
 		mtx.lock();
 		ptr p = poolStack->top();
 		poolStack->pop();
+		printLog("MemoryBlock Allocated(%d)\n", poolStack->size());
 		mtx.unlock();
 
 		return p;
@@ -165,6 +166,7 @@ public:
 	void pushBlock(ptr p) {
 		mtx.lock();
 		poolStack->push(p);
+		printLog("MemoryBlock Released(%d)\n", poolStack->size());
 		mtx.unlock();
 	}
 };

@@ -92,8 +92,6 @@ void send_message(msg message, vector<int> &send_list, bool autolocked) {
 
 			int ret = WSASend(sock, &(ioInfo->wsaBuf), 1, NULL, 0, &(ioInfo->overlapped), NULL);
 
-
-
 			if (ret == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() == ERROR_IO_PENDING)
