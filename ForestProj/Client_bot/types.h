@@ -3,8 +3,8 @@
 
 #define PRINT_LOG
 
-#define connectRand (rand()%1000)+1
-#define moveRand (rand()%200)+101
+#define connectRand (bigRand()%1000)+1
+#define moveRand (bigRand()%2000)+1001
 
 //const int BUFFER_SIZE = 1024;
 const int Port = 78911;
