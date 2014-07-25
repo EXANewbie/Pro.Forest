@@ -111,6 +111,7 @@ public:
 		mtx.lock();
 		ptr p = poolStack->top();
 		poolStack->pop();
+		printLog("HandlerBlock Allocated(%d)\n", poolStack->size());
 		mtx.unlock();
 
 		return p;
@@ -118,6 +119,7 @@ public:
 	void pushBlock(ptr p) {
 		mtx.lock();
 		poolStack->push(p);
+		printLog("HandlerBlock released(%d)\n", poolStack->size());
 		mtx.unlock();
 	}
 };
@@ -158,6 +160,7 @@ public:
 		mtx.lock();
 		ptr p = poolStack->top();
 		poolStack->pop();
+		printLog("ioInfoBlock Allocated(%d)\n", poolStack->size());
 		mtx.unlock();
 
 		return p;
@@ -165,6 +168,7 @@ public:
 	void pushBlock(ptr p) {
 		mtx.lock();
 		poolStack->push(p);
+		printLog("ioInfoBlock released(%d)\n", poolStack->size());
 		mtx.unlock();
 	}
 };

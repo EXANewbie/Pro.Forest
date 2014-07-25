@@ -66,7 +66,7 @@ void main() {
 	GetSystemInfo(&sysInfo);
 
 	// 시스템의 수만큼 스레드를 생성하여 CP에 등록
-	for (int i = 0; i <2*sysInfo.dwNumberOfProcessors/*1*/; ++i)
+	for (int i = 0; i </*2*sysInfo.dwNumberOfProcessors*/1; ++i)
 	{
 		_beginthreadex(NULL, 0, Server_Worker, (LPVOID)hComPort, 0, 0);
 	}
@@ -94,7 +94,7 @@ void main() {
 
 	// 클라이언트의 연결을 기다림
 	// backlog는 일반적으로 5
-	listen(ListeningSocket, 200);
+	listen(ListeningSocket, 500);
 
 	
 	//새로운 연결을 하나 수락

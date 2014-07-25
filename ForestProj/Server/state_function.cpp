@@ -306,7 +306,6 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 
 		charId_in_room_except_me.clear();
 
-		//printf("id : %d, x_off : %d, y_off : %d\n", cur_id, x_off, y_off);
 		printLog("id : %d, x_off : %d, y_off : %d\n", cur_id, x_off, y_off);
 	}
 }
