@@ -5,6 +5,8 @@
 
 #include "Memory_Block.h"
 
+int bigRand();
+
 typedef struct
 {
 	SOCKET hClntSock;

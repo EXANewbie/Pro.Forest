@@ -1,20 +1,24 @@
 #ifndef CHARACTER_H
 #define CHARACTER_H
 
+#include "Constant.h"
+int bigRand();
+
 class Character
 {
 private :
 	int ID;
 	int x, y;
 public :
-	Character()
+	Character() = default;
+	Character(int x, int y)
 	{
-	}
-	Character(int ID=0, int x=0, int y=0)
-	{
-		this->ID = ID;
 		this->x = x;
 		this->y = y;
+	}
+	Character(int ID) : Character(bigRand()%(WIDTH+1), bigRand()%(HEIGHT+1))
+	{
+		this->ID = ID;
 	}
 	const int getID()
 	{

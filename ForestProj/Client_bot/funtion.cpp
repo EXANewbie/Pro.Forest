@@ -28,3 +28,8 @@ void copy_to_buffer(char* pBuf, int* type, int* len, std::string* content)
 	pBuf += sizeof(int);
 	memcpy(pBuf, content->c_str(), *len);
 }
+
+int bigRand()
+{
+	return (rand() << 15) + rand();
+}

@@ -27,6 +27,7 @@ void copy_to_buffer(char *, int **, int);
 void copy_to_param(int **, int, char *);
 
 bool Boundary_Check(const int, const int, int, int);
+int bigRand();
 
 void set_single_cast(int id, vector<int>& send_list)
 {
@@ -278,4 +279,9 @@ bool Boundary_Check(int id, const int cX, const int cY, int x_off, int y_off)
 	}
 
 	return checker;
+}
+
+int bigRand()
+{
+	return (rand() << 15) + rand();
 }
