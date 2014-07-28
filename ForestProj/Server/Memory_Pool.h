@@ -29,12 +29,15 @@ private :
 	typedef data* ptr;//shared_ptr<Memory_Block> ptr;
 	stack<ptr> *poolStack;
 
-	static mutex mtx;
+	//static mutex mtx;
+	static SRWLOCK srw;
 	static Memory_Pool *instance;
 private :
 	Memory_Pool(int size) {
 		poolStack = new stack<ptr>;
-		for (int i = 0; i < size; i++) {
+		InitializeSRWLock(&srw);
+		for (int i = 0; i < size; i++)
+		{
 			poolStack->push(new data());
 		}
 	}
@@ -47,20 +50,22 @@ public :
 		if (instance != NULL)
 			return instance;
 
-		mtx.lock();
+		//mtx.lock();
 		if (instance == NULL) {
 			instance = new Memory_Pool;
 		}
-		mtx.unlock();
+		//mtx.unlock();
 
 		return instance;
 	}
 	ptr popBlock() {
-		mtx.lock();
+		//mtx.lock();
+		AcquireSRWLockExclusive(&srw);
 		ptr p = poolStack->top();
 		poolStack->pop();
 		printLog("MemoryBlock Allocated(%d)\n", poolStack->size());
-		mtx.unlock();
+		//mtx.unlock();
+		ReleaseSRWLockExclusive(&srw);
 		p->setStateUSE();
 
 		return p;
@@ -68,10 +73,12 @@ public :
 	void pushBlock(ptr p) {
 		p->setStateNOTUSE();
 
-		mtx.lock();
+		//mtx.lock();
+		AcquireSRWLockExclusive(&srw);
 		poolStack->push(p);
 		printLog("MemoryBlock released(%d)\n", poolStack->size());
-		mtx.unlock();
+		//mtx.unlock();
+		ReleaseSRWLockExclusive(&srw);
 	}
 };
 
@@ -81,12 +88,15 @@ private:
 	typedef data* ptr;
 	stack<ptr> *poolStack;
 
-	static mutex mtx;
+	//static mutex mtx;
+	static SRWLOCK srw;
 	static Handler_Pool *instance;
 private:
 	Handler_Pool(int size) {
 		poolStack = new stack<ptr>;
-		for (int i = 0; i < size; i++) {
+		InitializeSRWLock(&srw);
+		for (int i = 0; i < size; i++) 
+		{
 			poolStack->push(new data());
 		}
 	}
@@ -99,28 +109,32 @@ public:
 		if (instance != NULL)
 			return instance;
 
-		mtx.lock();
+		//mtx.lock();
 		if (instance == NULL) {
 			instance = new Handler_Pool;
 		}
-		mtx.unlock();
+		//mtx.unlock();
 
 		return instance;
 	}
 	ptr popBlock() {
-		mtx.lock();
+		//mtx.lock();
+		AcquireSRWLockExclusive(&srw);
 		ptr p = poolStack->top();
 		poolStack->pop();
 		printLog("HandlerBlock Allocated(%d)\n", poolStack->size());
-		mtx.unlock();
+		//mtx.unlock();
+		ReleaseSRWLockExclusive(&srw);
 
 		return p;
 	}
 	void pushBlock(ptr p) {
-		mtx.lock();
+		//mtx.lock();
+		AcquireSRWLockExclusive(&srw);
 		poolStack->push(p);
 		printLog("HandlerBlock released(%d)\n", poolStack->size());
-		mtx.unlock();
+		//mtx.unlock();
+		ReleaseSRWLockExclusive(&srw);
 	}
 };
 
@@ -130,11 +144,13 @@ private:
 	typedef data* ptr;
 	stack<ptr> *poolStack;
 
-	static mutex mtx;
+	//static mutex mtx;
+	static SRWLOCK srw;
 	static ioInfo_Pool *instance;
 private:
 	ioInfo_Pool(int size) {
 		poolStack = new stack<ptr>;
+		InitializeSRWLock(&srw);
 		for (int i = 0; i < size; i++) {
 			poolStack->push(new data());
 		}
@@ -148,28 +164,32 @@ public:
 		if (instance != NULL)
 			return instance;
 
-		mtx.lock();
+		//mtx.lock();
 		if (instance == NULL) {
 			instance = new ioInfo_Pool;
 		}
-		mtx.unlock();
+		//mtx.unlock();
 
 		return instance;
 	}
 	ptr popBlock() {
-		mtx.lock();
+		//mtx.lock();
+		AcquireSRWLockExclusive(&srw);
 		ptr p = poolStack->top();
 		poolStack->pop();
 		printLog("ioInfoBlock Allocated(%d)\n", poolStack->size());
-		mtx.unlock();
+		//mtx.unlock();
+		ReleaseSRWLockExclusive(&srw);
 
 		return p;
 	}
 	void pushBlock(ptr p) {
-		mtx.lock();
+		//mtx.lock();
+		AcquireSRWLockExclusive(&srw);
 		poolStack->push(p);
 		printLog("ioInfoBlock released(%d)\n", poolStack->size());
-		mtx.unlock();
+		//mtx.unlock();
+		ReleaseSRWLockExclusive(&srw);
 	}
 };
 #endif

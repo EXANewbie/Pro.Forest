@@ -18,11 +18,18 @@ ioInfo_Pool *ioInfo_Pool::instance;
 Handler_Pool *Handler_Pool::instance;
 Memory_Pool *Memory_Pool::instance;
 
-std::mutex Client_Map::mtx;
-std::mutex Sock_set::mtx;
-std::mutex ioInfo_Pool::mtx;
-std::mutex Handler_Pool::mtx;
-std::mutex Memory_Pool::mtx;
+SRWLOCK Client_Map::srw;
+SRWLOCK Sock_set::srw;
+SRWLOCK ioInfo_Pool::srw;
+SRWLOCK Handler_Pool::srw;
+SRWLOCK Memory_Pool::srw;
+
+//std::mutex Client_Map::mtx;
+//std::mutex Sock_set::mtx;
+//std::mutex ioInfo_Pool::mtx;
+//std::mutex Handler_Pool::mtx;
+//std::mutex Memory_Pool::mtx;
+
 
 using std::cout;
 using std::endl;
@@ -37,6 +44,12 @@ void main() {
 #ifdef PACKET_SIZE_TEST
 	test(30000);
 #endif
+	Client_Map *Client_Map = Client_Map::getInstance();
+	Sock_set *Sock_set = Sock_set::getInstance();
+	ioInfo_Pool *ioInfo_Pool = ioInfo_Pool::getInstance();
+	Handler_Pool *Handler_Pool = Handler_Pool::getInstance();
+	Memory_Pool *Memory_Pool = Memory_Pool::getInstance();
+
 
 	WSADATA wsaData;
 	SYSTEM_INFO sysInfo;
@@ -89,24 +102,24 @@ void main() {
 	if (bind(ListeningSocket, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr)) == SOCKET_ERROR)
 	{
 		printLog("Bind failed with error \n");
-		 return;
+		return;
 	}
 
 	// 클라이언트의 연결을 기다림
 	// backlog는 일반적으로 5
-	listen(ListeningSocket, 500);
+	if (listen(ListeningSocket, 500) == -1)
+	{
+		printLog("Listen failed with error \n");
+		return;
+	}
 
 	
 	//새로운 연결을 하나 수락
-	Sock_set *sock_set = Sock_set::getInstance();
-	auto HandlerPool = Handler_Pool::getInstance();
-	auto ioInfoPool = ioInfo_Pool::getInstance();
-
 	while (true) {
 		NewConnection = accept(ListeningSocket, (SOCKADDR *)&ClientAddr, &ClientAddrLen);
 		printLog("User (Socket : %d) is connected\n", NewConnection);
 
-		handleInfo = HandlerPool->popBlock();
+		handleInfo = Handler_Pool->popBlock();
 		handleInfo->hClntSock = NewConnection;
 		
 
@@ -115,7 +128,7 @@ void main() {
 		CreateIoCompletionPort((HANDLE)NewConnection, hComPort, (DWORD)handleInfo,0);
 
 		//ioInfo = (LPPER_IO_DATA)malloc(sizeof(PER_IO_DATA));
-		ioInfo = ioInfoPool->popBlock();
+		ioInfo = ioInfo_Pool->popBlock();
 		memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
 		ioInfo->wsaBuf.len = HEADER_SIZE;	/* 이 부분에서 BUFFER_SIZE를 필히 수정해야됨, (엄밀히 말하면 8바이트만 먼저 받도록)*/
 		ioInfo->wsaBuf.buf = ioInfo->buffer;
@@ -127,8 +140,8 @@ void main() {
 		ioInfo->offset = UNDEFINED;
 		ioInfo->block = nullptr;
 				
+		Sock_set->insert(NewConnection);
 		WSARecv(handleInfo->hClntSock, &(ioInfo->wsaBuf), 1, &recvBytes, &flags, &(ioInfo->overlapped), NULL);
-		sock_set->insert(NewConnection);
 
 		// GET IP ADDRESS
 		SOCKADDR_IN temp_sock;

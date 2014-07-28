@@ -64,9 +64,9 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::s
 	bool isValid = false;
 	while (true)
 	{
-		CMap->lock();
+		CMap->Wlock();
 		isValid = CMap->insert(char_id, handleInfo->hClntSock, c);
-		CMap->unlock();
+		CMap->Wunlock();
 		if (isValid == true)
 		{
 			sock_set->erase(handleInfo->hClntSock);
@@ -117,7 +117,7 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::s
 	// 나와 같은방에 있는 친구들은 누구?
 	setuserContents.clear_data();
 
-	CMap->lock();
+	CMap->Rlock();
 	for (auto itr = CMap->begin(); itr != CMap->end(); itr++)
 	{
 		if (itr->second == c) // 캐릭터 맵에 현재 들어간 내 객체의 정보를 보내려 할 때는 건너뛴다.
@@ -149,7 +149,7 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::s
 			}
 		}
 	}
-	CMap->unlock();
+	CMap->Runlock();
 
 	bytestring.clear();
 	setuserContents.SerializeToString(&bytestring);
@@ -188,15 +188,16 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 		me.clear();
 		me.push_back(cur_id);
 
-		CMap->lock();
+		CMap->Rlock();
 		Character *cCharacter = CMap->find_id_to_char(cur_id);
 
 		if (cCharacter == nullptr) {
 			printLog("character(%d) is not exist\n", cur_id);
+			CMap->Runlock();
 			continue;
 		}
 		int cX = cCharacter->getX(), cY = cCharacter->getY();
-		CMap->unlock();
+		CMap->Runlock();
 
 		/* 경계값 체크 로직 */
 		if (Boundary_Check(cur_id, cX, cY, x_off, y_off) == false) {

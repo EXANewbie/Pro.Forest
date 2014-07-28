@@ -9,8 +9,8 @@ class Sock_set
 {
 private :
 	std::set<SOCKET> s_set;
-	static std::mutex mtx;
-
+	//static std::mutex mtx;
+	static SRWLOCK srw;
 	static Sock_set *instance;
 	Sock_set() {}
 public :
@@ -19,24 +19,30 @@ public :
 		if (instance != NULL)
 			return instance;
 
-		mtx.lock();
+		//mtx.lock();
 		if (instance == NULL)
+		{
 			instance = new Sock_set();
-		mtx.unlock();
-
+			InitializeSRWLock(&srw);
+		}
+		//mtx.unlock();
 		return instance;
 	}
 	void insert(SOCKET sock)
 	{
-		mtx.lock();
+		//mtx.lock();
+		AcquireSRWLockExclusive(&srw);
 		s_set.insert(sock);
-		mtx.unlock();
+		//mtx.unlock();
+		ReleaseSRWLockExclusive(&srw);
 	}
 	void erase(SOCKET sock)
 	{
-		mtx.lock();
+		//mtx.lock();
+		AcquireSRWLockExclusive(&srw);
 		s_set.erase(sock);
-		mtx.unlock();
+		//mtx.unlock();
+		ReleaseSRWLockExclusive(&srw);
 	}
 };
 

@@ -40,7 +40,7 @@ void make_vector_id_in_room_except_me(Character* myChar, vector<int>& send_list,
 
 	if (autolocked == true)
 	{
-		CMap->lock();
+		CMap->Rlock();
 	}
 
 	//Character* now = CMap->find_id_to_char(id);
@@ -58,7 +58,7 @@ void make_vector_id_in_room_except_me(Character* myChar, vector<int>& send_list,
 
 	if (autolocked == true)
 	{
-		CMap->unlock();
+		CMap->Runlock();
 	}
 }
 
@@ -77,7 +77,7 @@ void send_message(msg message, vector<int> &send_list, bool autolocked) {
 		int id = send_list[i];
 		if (autolocked == true)
 		{
-			CMap->lock();
+			CMap->Rlock();
 		}
 		SOCKET sock = CMap->find_id_to_sock(id);
 		
@@ -92,8 +92,6 @@ void send_message(msg message, vector<int> &send_list, bool autolocked) {
 			ioInfo->RWmode = WRITE;
 
 			int ret = WSASend(sock, &(ioInfo->wsaBuf), 1, NULL, 0, &(ioInfo->overlapped), NULL);
-
-
 
 			if (ret == SOCKET_ERROR)
 			{
@@ -121,7 +119,7 @@ void send_message(msg message, vector<int> &send_list, bool autolocked) {
 		}
 		if (autolocked == true)
 		{
-			CMap->unlock();
+			CMap->Runlock();
 		}
 	}
 }
@@ -165,7 +163,6 @@ void closeClient(SOCKET sock, int id, Character* myChar)
 	{
 		//이미 삭제된 소켓.
 	}
-
 }
 
 void remove_valid_client(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo)
@@ -189,7 +186,7 @@ void remove_valid_client(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo)
 		return;
 	}
 
-	CMap->lock();
+	CMap->Wlock();
 	int char_id = CMap->find_sock_to_id(handleInfo->hClntSock);
 	// 아이디가 비어있는 경우
 	if (char_id == -1 || char_id != ioInfo->id)
@@ -215,7 +212,7 @@ void remove_valid_client(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo)
 		ioInfoPool->pushBlock(ioInfo);
 		//		free(handleInfo); free(ioInfo);
 	}
-	CMap->unlock();
+	CMap->Wunlock();
 }
 
 void copy_to_buffer(char *buf, int *param[], int count)
