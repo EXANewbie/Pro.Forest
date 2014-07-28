@@ -10,6 +10,8 @@
 #include "Sock_set.h"
 #include "Memory_Pool.h"
 
+#include "DMap.h"
+
 unsigned WINAPI Server_Worker(LPVOID);
 
 Client_Map *Client_Map::instance;
