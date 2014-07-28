@@ -4,7 +4,9 @@
 #include <Windows.h>
 
 class Scoped_Rlock {
+private :
 	PSRWLOCK c;
+public :
 	Scoped_Rlock(PSRWLOCK s) {
 		c = s;
 		AcquireSRWLockShared(c);
@@ -15,7 +17,9 @@ class Scoped_Rlock {
 };
 
 class Scoped_Wlock {
+private :
 	PSRWLOCK c;
+public :
 	Scoped_Wlock(PSRWLOCK s) {
 		c = s;
 		AcquireSRWLockExclusive(c);

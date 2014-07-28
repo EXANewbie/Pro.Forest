@@ -86,5 +86,8 @@
     <ClInclude Include="DMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Scoped_Lock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

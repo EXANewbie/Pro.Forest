@@ -19,8 +19,6 @@ private :
 public :
 	SRWLOCK slock;
 private :
-	list<Charptr>::iterator begin()	{ return clist.begin(); }
-	list<Charptr>::iterator end() { return clist.end(); }
 //	void AcquireWrite() { AcquireSRWLockExclusive(&slock); }
 //	void AcquireRead() { AcquireSRWLockShared(&slock); }
 //	void ReleaseWrite() { ReleaseSRWLockExclusive(&slock); }
@@ -82,25 +80,26 @@ public :
 
 		return value;
 	}
+	list<Charptr>::iterator begin()	{ return clist.begin(); }
+	list<Charptr>::iterator end() { return clist.end(); }
 };
 
 class F_Vector
 {
-	typedef E_List Charlist;
-	typedef Charlist* listptr;
+	typedef E_List* listptr;
 private :
-	vector<listptr>* vec;
+	vector<vector<listptr>> vec;
 	
 	static F_Vector* instance;
-
+	
 	F_Vector(int w, int h)
 	{
-		vec = new vector<listptr>[w];
 		for (int i = 0; i <= w; i++)
 		{
+			vec.push_back(vector<listptr>());
 			for (int j = 0; j <= h; j++)
 			{
-				vec[i].push_back(new Charlist());
+				vec[i].push_back(new E_List());
 			}
 		}
 	}
