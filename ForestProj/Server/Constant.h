@@ -1,3 +1,7 @@
+#ifndef CONSTANT_H
+#define CONSTANT_H
+
+
 const int Port = 78911;
 const int READ = 3, WRITE = 5;
 const int NOT_JOINED = -13;
@@ -20,3 +24,5 @@ const int ERASE_USER_MAXIMUM = BLOCK_SIZE / (2 * MINIMUM_ERASE_USER_BLOCK_SIZE);
 
 const int MINIMUM_MOVE_USER_BLOCK_SIZE = 12;
 const int MOVE_USER_MAXIMUM = (2 * BLOCK_SIZE) / (3 * MINIMUM_MOVE_USER_BLOCK_SIZE);
+
+#endif
