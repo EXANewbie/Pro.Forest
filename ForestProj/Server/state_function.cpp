@@ -39,6 +39,7 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::s
 	Client_Map *CMap = Client_Map::getInstance();
 	Sock_set *sock_set = Sock_set::getInstance();
 	auto FVEC = F_Vector::getInstance();
+	auto AMAP = Access_Map::getInstance();
 
 	CONNECT::CONTENTS connect;
 	INIT::CONTENTS initContents;
@@ -69,12 +70,15 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::s
 	E_List* elist = FVEC->get(x, y);
 
 	{
+		Scoped_Wlock(&AMAP->slock);
 		Scoped_Wlock(&elist->slock);
+		AMAP->insert(char_id, c);
 		elist->push_back(c);
 	}
 
 	// x와 y의 초기값을 가져온다.   
 	initContents.clear_data();
+
 	{
 		auto myData = initContents.mutable_data()->Add();
 		myData->set_id(char_id);
@@ -95,6 +99,7 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::s
 
 	// 현재 접속한 캐릭터의 정보를 다른 접속한 유저들에게 전송한다.
 	setuserContents.clear_data();
+
 	{
 		auto myData = setuserContents.mutable_data()->Add();
 		myData->set_id(char_id);

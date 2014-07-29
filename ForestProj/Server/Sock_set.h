@@ -9,39 +9,34 @@ class Sock_set
 {
 private :
 	std::set<SOCKET> s_set;
-	//static std::mutex mtx;
-	static SRWLOCK srw;
+	SRWLOCK srw;
 	static Sock_set *instance;
-	Sock_set() {}
+	Sock_set()
+	{
+		InitializeSRWLock(&srw);
+	}
 public :
 	static Sock_set *getInstance()
 	{
 		if (instance != NULL)
 			return instance;
 
-		//mtx.lock();
 		if (instance == NULL)
 		{
 			instance = new Sock_set();
-			InitializeSRWLock(&srw);
 		}
-		//mtx.unlock();
 		return instance;
 	}
 	void insert(SOCKET sock)
 	{
-		//mtx.lock();
 		AcquireSRWLockExclusive(&srw);
 		s_set.insert(sock);
-		//mtx.unlock();
 		ReleaseSRWLockExclusive(&srw);
 	}
 	void erase(SOCKET sock)
 	{
-		//mtx.lock();
 		AcquireSRWLockExclusive(&srw);
 		s_set.erase(sock);
-		//mtx.unlock();
 		ReleaseSRWLockExclusive(&srw);
 	}
 };

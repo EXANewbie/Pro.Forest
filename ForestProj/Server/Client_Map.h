@@ -17,16 +17,18 @@ private :
 	map<int, Character*> id_char;
 	
 	//static mutex mtx;
-	static SRWLOCK srw;
+	SRWLOCK srw;
 	static Client_Map *instance;
-	Client_Map(){}
+	Client_Map()
+	{
+		InitializeSRWLock(&srw);
+	}
 public :
 	static Client_Map *getInstance()
 	{
 		if (instance == NULL)
 		{
 			instance = new Client_Map();
-			InitializeSRWLock(&srw);
 		}
 		return instance;
 	}

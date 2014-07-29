@@ -112,7 +112,8 @@ public :
 	}
 
 	static void makeThis() {
-		instance = new F_Vector();
+		if ( instance == nullptr )
+			instance = new F_Vector();
 	}
 
 	listptr get(int x, int y) {
@@ -123,6 +124,53 @@ public :
 class Directory_Map
 {
 
+};
+
+class Access_Map
+{
+private:
+	map<int, Character *> charMap;
+
+	static Access_Map* instance;
+public :
+	SRWLOCK slock;
+private:
+	Access_Map()
+	{
+		InitializeSRWLock(&slock);
+	}
+public:
+	static Access_Map* getInstance()
+	{
+		return instance;
+	}
+	static void makeThis()
+	{
+		if (instance == nullptr)
+		{
+			instance = new Access_Map();
+		}
+	}
+	void insert(int id, Character *c)
+	{
+		charMap.insert( pair<int,Character *>(id, c) );
+	}
+	void erase(int id)
+	{
+		charMap.erase(id);
+	}
+	Character *find(int id)
+	{
+		auto itr = charMap.find(id);
+		if (itr == charMap.end())
+		{
+			return nullptr;
+		}
+		else
+		{
+			return itr->second;
+		}
+	}
 };
 
 #endif
