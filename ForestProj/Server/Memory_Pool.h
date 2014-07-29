@@ -30,7 +30,7 @@ private :
 	stack<ptr> *poolStack;
 
 	//static mutex mtx;
-	static SRWLOCK srw;
+	SRWLOCK srw;
 	static Memory_Pool *instance;
 private :
 	Memory_Pool(int size) {
@@ -50,21 +50,17 @@ public :
 		if (instance != NULL)
 			return instance;
 
-		//mtx.lock();
 		if (instance == NULL) {
 			instance = new Memory_Pool;
 		}
-		//mtx.unlock();
 
 		return instance;
 	}
 	ptr popBlock() {
-		//mtx.lock();
 		AcquireSRWLockExclusive(&srw);
 		ptr p = poolStack->top();
 		poolStack->pop();
 		printLog("MemoryBlock Allocated(%d)\n", poolStack->size());
-		//mtx.unlock();
 		ReleaseSRWLockExclusive(&srw);
 		p->setStateUSE();
 
@@ -73,11 +69,9 @@ public :
 	void pushBlock(ptr p) {
 		p->setStateNOTUSE();
 
-		//mtx.lock();
 		AcquireSRWLockExclusive(&srw);
 		poolStack->push(p);
 		printLog("MemoryBlock released(%d)\n", poolStack->size());
-		//mtx.unlock();
 		ReleaseSRWLockExclusive(&srw);
 	}
 };
@@ -88,8 +82,7 @@ private:
 	typedef data* ptr;
 	stack<ptr> *poolStack;
 
-	//static mutex mtx;
-	static SRWLOCK srw;
+	SRWLOCK srw;
 	static Handler_Pool *instance;
 private:
 	Handler_Pool(int size) {
@@ -109,31 +102,25 @@ public:
 		if (instance != NULL)
 			return instance;
 
-		//mtx.lock();
 		if (instance == NULL) {
 			instance = new Handler_Pool;
 		}
-		//mtx.unlock();
 
 		return instance;
 	}
 	ptr popBlock() {
-		//mtx.lock();
 		AcquireSRWLockExclusive(&srw);
 		ptr p = poolStack->top();
 		poolStack->pop();
 		printLog("HandlerBlock Allocated(%d)\n", poolStack->size());
-		//mtx.unlock();
 		ReleaseSRWLockExclusive(&srw);
 
 		return p;
 	}
 	void pushBlock(ptr p) {
-		//mtx.lock();
 		AcquireSRWLockExclusive(&srw);
 		poolStack->push(p);
 		printLog("HandlerBlock released(%d)\n", poolStack->size());
-		//mtx.unlock();
 		ReleaseSRWLockExclusive(&srw);
 	}
 };
@@ -144,8 +131,7 @@ private:
 	typedef data* ptr;
 	stack<ptr> *poolStack;
 
-	//static mutex mtx;
-	static SRWLOCK srw;
+	SRWLOCK srw;
 	static ioInfo_Pool *instance;
 private:
 	ioInfo_Pool(int size) {
@@ -164,31 +150,25 @@ public:
 		if (instance != NULL)
 			return instance;
 
-		//mtx.lock();
 		if (instance == NULL) {
 			instance = new ioInfo_Pool;
 		}
-		//mtx.unlock();
 
 		return instance;
 	}
 	ptr popBlock() {
-		//mtx.lock();
 		AcquireSRWLockExclusive(&srw);
 		ptr p = poolStack->top();
 		poolStack->pop();
 		printLog("ioInfoBlock Allocated(%d)\n", poolStack->size());
-		//mtx.unlock();
 		ReleaseSRWLockExclusive(&srw);
 
 		return p;
 	}
 	void pushBlock(ptr p) {
-		//mtx.lock();
 		AcquireSRWLockExclusive(&srw);
 		poolStack->push(p);
 		printLog("ioInfoBlock released(%d)\n", poolStack->size());
-		//mtx.unlock();
 		ReleaseSRWLockExclusive(&srw);
 	}
 };

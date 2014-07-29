@@ -20,19 +20,7 @@ ioInfo_Pool *ioInfo_Pool::instance;
 Handler_Pool *Handler_Pool::instance;
 Memory_Pool *Memory_Pool::instance;
 F_Vector *F_Vector::instance;
-
-SRWLOCK Client_Map::srw;
-SRWLOCK Sock_set::srw;
-SRWLOCK ioInfo_Pool::srw;
-SRWLOCK Handler_Pool::srw;
-SRWLOCK Memory_Pool::srw;
-
-//std::mutex Client_Map::mtx;
-//std::mutex Sock_set::mtx;
-//std::mutex ioInfo_Pool::mtx;
-//std::mutex Handler_Pool::mtx;
-//std::mutex Memory_Pool::mtx;
-
+Access_Map *Access_Map::instance;
 
 using std::cout;
 using std::endl;
@@ -54,6 +42,7 @@ void main() {
 	Memory_Pool *Memory_Pool = Memory_Pool::getInstance();
 
 	F_Vector::makeThis();
+	Access_Map::makeThis();
 
 	WSADATA wsaData;
 	SYSTEM_INFO sysInfo;
