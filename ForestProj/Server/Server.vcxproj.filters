@@ -89,5 +89,8 @@
     <ClInclude Include="Scoped_Lock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Check_Map.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
