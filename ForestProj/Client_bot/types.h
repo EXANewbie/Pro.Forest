@@ -1,7 +1,7 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-#define PRINT_LOG
+//#define PRINT_LOG
 
 #define connectRand (bigRand()%1000)+1
 #define moveRand (bigRand()%2000)+1001
