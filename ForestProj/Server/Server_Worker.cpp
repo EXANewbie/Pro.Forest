@@ -38,9 +38,8 @@ int k;
 
 unsigned WINAPI Server_Worker(LPVOID pComPort)
 {
-	Client_Map *CMap = Client_Map::getInstance();
 	Sock_set *sock_set = Sock_set::getInstance();
-
+	
 	//auto HandlerPool = Handler_Pool::getInstance();
 	auto ioInfoPool = ioInfo_Pool::getInstance();
 	auto MemoryPool = Memory_Pool::getInstance();
@@ -175,8 +174,8 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 		{
 			if (bytesTrans == 0) // 올바르지 않은 종류의 경우
 			{
-				Sleep(10000);
 				printLog("나 출력되는거 맞음?ㅋ\n");
+				Sleep(10000);
 				remove_valid_client(handleInfo, ioInfo);
 				continue;
 			}

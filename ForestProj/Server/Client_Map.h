@@ -8,7 +8,7 @@
 
 using std::map;
 using std::pair;
-using std::mutex;
+//using std::mutex;
 class Client_Map
 {
 private :
@@ -16,7 +16,8 @@ private :
 	map<SOCKET, int> sock_id;
 	map<int, Character*> id_char;
 	
-	static mutex mtx;
+	//static mutex mtx;
+	static SRWLOCK srw;
 	static Client_Map *instance;
 	Client_Map(){}
 public :
@@ -25,6 +26,7 @@ public :
 		if (instance == NULL)
 		{
 			instance = new Client_Map();
+			InitializeSRWLock(&srw);
 		}
 		return instance;
 	}
@@ -40,8 +42,10 @@ public :
 	map<int, Character*>::iterator begin();
 	map<int, Character*>::iterator end();
 
-	void lock();
-	void unlock();
+	void Rlock();
+	void Runlock();
+	void Wlock();
+	void Wunlock();
 };
 
 #endif

@@ -1,12 +1,14 @@
 #ifndef CHARACTER_H
 #define CHARACTER_H
 
+#include <WinSock2.h>
 #include "Constant.h"
 int bigRand();
 
 class Character
 {
 private :
+	SOCKET sock;
 	int ID;
 	int x, y;
 public :
@@ -20,6 +22,10 @@ public :
 	{
 		this->ID = ID;
 	}
+	const int getSock()
+	{
+		return sock;
+	}
 	const int getID()
 	{
 		return ID;
@@ -31,6 +37,10 @@ public :
 	const int getY()
 	{
 		return y;
+	}
+	void setSock(const SOCKET sock)
+	{
+		this->sock = sock;
 	}
 	void setID(const int ID)
 	{
