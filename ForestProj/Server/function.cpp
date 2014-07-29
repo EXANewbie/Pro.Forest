@@ -4,7 +4,8 @@
 
 #include "../protobuf/eraseuser.pb.h"
 
-#include "Client_Map.h"
+#include "Check_Map.h"
+//#include "Client_Map.h"
 #include "types.h"
 #include "Completion_Port.h"
 #include "msg.h"
@@ -39,7 +40,7 @@ void set_single_cast(Character* c, vector<Character *>& send_list)
 void make_vector_id_in_room_except_me(Character* myChar, vector<Character *>& send_list, bool autolocked)
 {
 	auto FVEC = F_Vector::getInstance();
-	auto elist = FVEC->get(myChar->getX(), myChar->getY());
+	E_List* elist = FVEC->get(myChar->getX(), myChar->getY());
 
 	if (autolocked == true)
 	{
@@ -63,6 +64,7 @@ void make_vector_id_in_room_except_me(Character* myChar, vector<Character *>& se
 
 
 void send_message(msg message, vector<Character *> &send_list, bool autolocked) {
+	auto CMap = Check_Map::getInstance();
 	auto ioInfoPool = ioInfo_Pool::getInstance();
 	auto MemoryPool = Memory_Pool::getInstance();
 //	Client_Map *CMap = Client_Map::getInstance();
@@ -78,6 +80,10 @@ void send_message(msg message, vector<Character *> &send_list, bool autolocked) 
 		/*반드시 여기에 sock의 현재 ID의 owner가 id인지 체크하는 로직을 작성해야 한다.*/
 		/*만약 아닐 경우, 해당 소켓은 다른 클라이언트가 접속한 것이므로 건너뛰도록 한다.*/
 		/* if( Sock_Map.find_id(sock) != id ) continue;*/
+		if (CMap->check(sock, send_list[i]->getID())==false)
+		{
+			continue;
+		}
 
 		LPPER_IO_DATA ioInfo = ioInfoPool->popBlock();
 		ioInfo->block = MemoryPool->popBlock();
@@ -132,24 +138,38 @@ void unpack(msg message, char *buf, int *size)
 
 void closeClient(SOCKET sock, int id, Character* myChar)
 {
-	Client_Map *CMap = Client_Map::getInstance();
+//	Client_Map *CMap = Client_Map::getInstance();
+	auto FVEC = F_Vector::getInstance();
+	auto elist = FVEC->get(myChar->getX(), myChar->getY());
+	auto Amap = Access_Map::getInstance();
+
 	vector<Character *> send_list;
 
 	int ret = closesocket(sock);
 
 	if (ret != WSAENOTSOCK)
 	{
-		// 처음으로 소켓을 닫을 때.
-		make_vector_id_in_room_except_me(myChar, send_list, false/*not autolock*/);
-
-		CMap->erase(id);
-
 		ERASE_USER::CONTENTS contents;
 		contents.add_data()->set_id(id);
 
 		std::string bytestring;
 		contents.SerializeToString(&bytestring);
-		send_message(msg(PERASE_USER, sizeof(int), bytestring.c_str()), send_list, false);
+		{
+			Scoped_Wlock(&Amap->slock);
+			Scoped_Wlock(&elist->slock);
+			// 처음으로 소켓을 닫을 때.
+			make_vector_id_in_room_except_me(myChar, send_list, false/*not autolock*/);
+
+			//나의 캐릭터를 지우라고 같은 방 식구들에게 통보.
+			send_message(msg(PERASE_USER, sizeof(int), bytestring.c_str()), send_list, false);
+
+			//캐릭터관리 맵에서 캐릭터를 빼고 있음.
+			Amap->erase(id);
+			elist->erase(myChar);
+		}
+		
+		//이제 나의 캐릭터를 진짜로 지운다.
+		delete myChar;
 	}
 	else
 	{
@@ -159,52 +179,41 @@ void closeClient(SOCKET sock, int id, Character* myChar)
 
 void remove_valid_client(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo)
 {
-//	auto ioInfoPool = ioInfo_Pool::getInstance();
-//	auto HandlerPool = Handler_Pool::getInstance();
-//	auto MemoryPool = Memory_Pool::getInstance();
-////	Client_Map *CMap = Client_Map::getInstance();
-//
-//	if (ioInfo->id == NOT_JOINED) // 현재 유저가 PCONNECT를 보내지 않은 상태일 경우
-//	{
-//		closesocket(handleInfo->hClntSock);
-//
-//		if (ioInfo->block != nullptr) {
-//			MemoryPool->pushBlock(ioInfo->block);
-//			ioInfo->block = nullptr;
-//		}
-//		HandlerPool->pushBlock(handleInfo);
-//		ioInfoPool->pushBlock(ioInfo);
-//		//		free(handleInfo); free(ioInfo);
-//		return;
-//	}
-//
-//	CMap->Wlock();
-//	int char_id = CMap->find_sock_to_id(handleInfo->hClntSock);
-//	// 아이디가 비어있는 경우
-//	if (char_id == -1 || char_id != ioInfo->id)
-//	{
-//		// 이미 삭제 처리 된 경우를 여기에 명시한다.
-//		if (ioInfo->block != nullptr) {
-//			MemoryPool->pushBlock(ioInfo->block);
-//			ioInfo->block = nullptr;
-//		}
-//		HandlerPool->pushBlock(handleInfo);
-//		ioInfoPool->pushBlock(ioInfo);
-//	}
-//	else
-//	{
-//		printLog("sock : %d char_id : %d\n", handleInfo->hClntSock, char_id);
-//		closeClient(handleInfo->hClntSock, ioInfo->id, ioInfo->myCharacter);
-//
-//		if (ioInfo->block != nullptr) {
-//			MemoryPool->pushBlock(ioInfo->block);
-//			ioInfo->block = nullptr;
-//		}
-//		HandlerPool->pushBlock(handleInfo);
-//		ioInfoPool->pushBlock(ioInfo);
-//		//		free(handleInfo); free(ioInfo);
-//	}
-//	CMap->Wunlock();
+	auto ioInfoPool = ioInfo_Pool::getInstance();
+	auto HandlerPool = Handler_Pool::getInstance();
+	auto MemoryPool = Memory_Pool::getInstance();
+	auto CMap = Check_Map::getInstance();
+
+	if (ioInfo->id == NOT_JOINED) // 현재 유저가 PCONNECT를 보내지 않은 상태일 경우
+	{
+		closesocket(handleInfo->hClntSock);
+		Sock_set::getInstance()->erase(handleInfo->hClntSock);
+
+		if (ioInfo->block != nullptr) {
+			MemoryPool->pushBlock(ioInfo->block);
+			ioInfo->block = nullptr;
+		}
+		HandlerPool->pushBlock(handleInfo);
+		ioInfoPool->pushBlock(ioInfo);
+		return;
+	}
+
+	if (CMap->check(handleInfo->hClntSock,ioInfo->id) == false)
+	{
+		// 이미 삭제 처리 된 경우를 여기에 명시한다.
+	}
+	else
+	{
+		CMap->erase(handleInfo->hClntSock);
+		printLog("sock : %d char_id : %d\n", handleInfo->hClntSock, ioInfo->id);
+		closeClient(handleInfo->hClntSock, ioInfo->id, ioInfo->myCharacter);
+	}
+	if (ioInfo->block != nullptr) {
+		MemoryPool->pushBlock(ioInfo->block);
+		ioInfo->block = nullptr;
+	}
+	HandlerPool->pushBlock(handleInfo);
+	ioInfoPool->pushBlock(ioInfo);
 }
 
 void copy_to_buffer(char *buf, int *param[], int count)

@@ -36,6 +36,7 @@ void Handler_PDISCONN(LPPER_HANDLE_DATA, LPPER_IO_DATA, std::string*);
 
 int k;
 
+
 unsigned WINAPI Server_Worker(LPVOID pComPort)
 {
 	Sock_set *sock_set = Sock_set::getInstance();

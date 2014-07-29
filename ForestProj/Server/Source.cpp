@@ -5,7 +5,8 @@
 #include <WinSock2.h>
 #include <Windows.h>
 
-#include "Client_Map.h"
+//#include "Client_Map.h"
+#include "Check_Map.h"
 #include "Completion_Port.h"
 #include "Sock_set.h"
 #include "Memory_Pool.h"
@@ -14,13 +15,13 @@
 
 unsigned WINAPI Server_Worker(LPVOID);
 
-Client_Map *Client_Map::instance;
 Sock_set *Sock_set::instance;
 ioInfo_Pool *ioInfo_Pool::instance;
 Handler_Pool *Handler_Pool::instance;
 Memory_Pool *Memory_Pool::instance;
 F_Vector *F_Vector::instance;
 Access_Map *Access_Map::instance;
+Check_Map *Check_Map::instance;
 
 using std::cout;
 using std::endl;
@@ -35,7 +36,6 @@ void main() {
 #ifdef PACKET_SIZE_TEST
 	test(30000);
 #endif
-	Client_Map *Client_Map = Client_Map::getInstance();
 	Sock_set *Sock_set = Sock_set::getInstance();
 	ioInfo_Pool *ioInfo_Pool = ioInfo_Pool::getInstance();
 	Handler_Pool *Handler_Pool = Handler_Pool::getInstance();
@@ -100,16 +100,24 @@ void main() {
 
 	// 클라이언트의 연결을 기다림
 	// backlog는 일반적으로 5
-	if (listen(ListeningSocket, 500) == -1)
+	if (listen(ListeningSocket, 5000) == SOCKET_ERROR )
 	{
-		printLog("Listen failed with error \n");
+		//printLog("Listen failed with error \n");
 		return;
 	}
 
 	
 	//새로운 연결을 하나 수락
+	int cnt = 0;
 	while (true) {
-		NewConnection = accept(ListeningSocket, (SOCKADDR *)&ClientAddr, &ClientAddrLen);
+		if (cnt >= 16360) {
+			printf("hello\n");
+		}
+		if( (NewConnection = accept(ListeningSocket, (SOCKADDR *)&ClientAddr, &ClientAddrLen)) == SOCKET_ERROR )
+		{
+			printf("Socket failed with error(%d)\n", WSAGetLastError());
+//			printLog("Socket failed with error(%d)\n", WSAGetLastError());
+		}
 		printLog("User (Socket : %d) is connected\n", NewConnection);
 
 		handleInfo = Handler_Pool->popBlock();
@@ -142,7 +150,7 @@ void main() {
 		getpeername(NewConnection, (SOCKADDR *)&temp_sock, &temp_sock_size);
 		//cout << "Connect IP : " << inet_ntoa(temp_sock.sin_addr) << endl;
 		printLog("Connect IP : %s\n", inet_ntoa(temp_sock.sin_addr));
-
+		cnt++;
 	}
 	 
 	closesocket(ListeningSocket); // 리스닝 소켓을 닫는다.

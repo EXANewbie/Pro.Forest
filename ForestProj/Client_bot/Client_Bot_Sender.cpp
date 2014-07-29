@@ -107,7 +107,7 @@ void sender(std::vector<handledata>* HandleVector)
 
 					WSASend(sock, &(ioInfo->wsaBuf), 1, NULL, 0, &(ioInfo->overlapped), NULL);
 					contents.Clear();
-
+					
 				}
 			}
 		}

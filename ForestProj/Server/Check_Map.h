@@ -17,9 +17,9 @@ private:
 public:
 	static Check_Map* getInstance()
 	{
-		if (instance == NULL)
+		if (instance == nullptr)
 		{
-			instance = new Check_Map;
+			instance = new Check_Map();
 		}
 		return instance;
 	}
@@ -31,7 +31,7 @@ public:
 		ReleaseSRWLockExclusive(&srw);
 	}
 
-	void erase(SOCKET sock, int id)
+	void erase(SOCKET sock)
 	{
 		AcquireSRWLockExclusive(&srw);
 		sock_id.erase(sock);

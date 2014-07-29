@@ -4,41 +4,44 @@
 #include <windows.h>
 #include <vector>
 #include <list>
+#include <map>
 
 #include "character.h"
 #include "Constant.h"
 
 using std::vector;
 using std::list;
+using std::pair;
+using std::map;
 
 class E_List
 {
-private :
+private:
 	typedef Character* Charptr;
 	list<Charptr> clist;
-public :
+public:
 	SRWLOCK slock;
-private :
-//	void AcquireWrite() { AcquireSRWLockExclusive(&slock); }
-//	void AcquireRead() { AcquireSRWLockShared(&slock); }
-//	void ReleaseWrite() { ReleaseSRWLockExclusive(&slock); }
-//	void ReleaseRead() { ReleaseSRWLockShared(&slock); }
-public :
+private:
+	//	void AcquireWrite() { AcquireSRWLockExclusive(&slock); }
+	//	void AcquireRead() { AcquireSRWLockShared(&slock); }
+	//	void ReleaseWrite() { ReleaseSRWLockExclusive(&slock); }
+	//	void ReleaseRead() { ReleaseSRWLockShared(&slock); }
+public:
 	E_List()
 	{
 		InitializeSRWLock(&slock);
 	}
 
 	void push_back(Charptr c)
-	{ 
-//		AcquireWrite();
+	{
+		//		AcquireWrite();
 		clist.push_back(c);
-//		ReleaseWrite();
+		//		ReleaseWrite();
 	}
 
 	void erase(Charptr c)
 	{
-//		AcquireWrite();
+		//		AcquireWrite();
 		for (auto i = begin(); i != end(); i++)
 		{
 			if (*i == c)
@@ -47,12 +50,12 @@ public :
 				break;
 			}
 		}
-//		ReleaseWrite();
+		//		ReleaseWrite();
 	}
 
 	void erase(int id)
 	{
-//		AcquireWrite();
+		//		AcquireWrite();
 		for (auto i = begin(); i != end(); i++)
 		{
 			if ((*i)->getID() == id)
@@ -61,13 +64,13 @@ public :
 				break;
 			}
 		}
-//		ReleaseWrite();
+		//		ReleaseWrite();
 	}
 
 	Charptr find(int id)
 	{
 		Charptr value = nullptr;
-//		AcquireRead();
+		//		AcquireRead();
 		for (auto i = begin(); i != end(); i++)
 		{
 			if ((*i)->getID() == id)
@@ -76,7 +79,7 @@ public :
 				break;
 			}
 		}
-//		ReleaseRead();
+		//		ReleaseRead();
 
 		return value;
 	}
@@ -87,11 +90,11 @@ public :
 class F_Vector
 {
 	typedef E_List* listptr;
-private :
+private:
 	vector<vector<listptr>> vec;
-	
+
 	static F_Vector* instance;
-	
+
 	F_Vector(int w, int h)
 	{
 		for (int i = 0; i <= w; i++)
@@ -105,14 +108,14 @@ private :
 	}
 
 	F_Vector() : F_Vector(WIDTH, HEIGHT) {}
-public :
+public:
 	static F_Vector* getInstance()
 	{
 		return instance;
 	}
 
 	static void makeThis() {
-		if ( instance == nullptr )
+		if (instance == nullptr)
 			instance = new F_Vector();
 	}
 
@@ -132,7 +135,7 @@ private:
 	map<int, Character *> charMap;
 
 	static Access_Map* instance;
-public :
+public:
 	SRWLOCK slock;
 private:
 	Access_Map()
@@ -153,7 +156,7 @@ public:
 	}
 	void insert(int id, Character *c)
 	{
-		charMap.insert( pair<int,Character *>(id, c) );
+		charMap.insert(pair<int, Character *>(id, c));
 	}
 	void erase(int id)
 	{
