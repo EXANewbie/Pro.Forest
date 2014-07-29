@@ -93,7 +93,7 @@ void sender(std::vector<handledata>* HandleVector)
 					element->set_xoff(dxy[randInt % 4][0]);
 					element->set_yoff(dxy[randInt % 4][1]);
 
-					contents.SerializeToString(&bytestring);
+					contents.SerializeToString(&bytestring); 
 					int len = bytestring.length();
 
 					ioInfo = ioInfoPool->popBlock();

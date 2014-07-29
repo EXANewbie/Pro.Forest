@@ -71,6 +71,7 @@ void main(void)
 
 	SOCKET ListeningSocket;
 
+	int succ = 0, fail = 0;
 	while (numSock--)
 	{
 		// 클라이언트용 소켓 생성
@@ -89,8 +90,11 @@ void main(void)
 		if (connect(ListeningSocket, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr)) == SOCKET_ERROR)
 		{
 			printLog("connect failed with error \n");
+			fail++;
+			continue;
 		}
 		printLog("connection success\n");
+		succ++;
 
 
 		// 데이터 송신 부분
@@ -118,6 +122,7 @@ void main(void)
 
 	}
 
+	printf("success : %d, fail : %d\n", succ, fail);
 	sender(&HandleVector);
 
 
