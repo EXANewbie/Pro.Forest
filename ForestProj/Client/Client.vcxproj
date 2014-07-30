@@ -87,12 +87,16 @@
     <ClCompile Include="..\protobuf\init.pb.cc" />
     <ClCompile Include="..\protobuf\moveuser.pb.cc" />
     <ClCompile Include="..\protobuf\setuser.pb.cc" />
-    <ClCompile Include="character.cpp" />
+    <ClCompile Include="Function.cpp" />
+    <ClCompile Include="Receiver.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="character.h" />
     <ClInclude Include="cmap.h" />
+    <ClInclude Include="monster.h" />
+    <ClInclude Include="Scoped_Lock.h" />
+    <ClInclude Include="types.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

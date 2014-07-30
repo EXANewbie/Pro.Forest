@@ -11,6 +11,10 @@ private :
 	SOCKET sock;
 	int ID;
 	int x, y;
+	int lv;
+	int prtHp, maxHp;
+	int power;
+	int exp;
 public :
 	Character() = default;
 	Character(int x, int y)
@@ -38,6 +42,27 @@ public :
 	{
 		return y;
 	}
+	const int getLv()
+	{
+		return lv;
+	}
+	const int getMaxHp()
+	{
+		return maxHp;
+	}
+	const int getPrtHp()
+	{
+		return prtHp;
+	}
+	const int getPower()
+	{
+		return power;
+	}
+	const int getExp()
+	{
+		return exp;
+	}
+
 	void setSock(const SOCKET sock)
 	{
 		this->sock = sock;
@@ -53,6 +78,23 @@ public :
 	void setY(const int y)
 	{
 		this->y = y;
+	}
+	void setLv(const int lv, const int maxHp, const int power)
+	{
+		this->lv = lv;
+		this->maxHp = maxHp;
+		this->prtHp = this->maxHp;
+		this->power = power;
+	}
+	void setExp(const int exp)
+	{
+		this->exp = exp;
+	}
+
+	void attacked(int damage)
+	{
+		prtHp -= damage;
+		if (prtHp <= 0) prtHp = 0;
 	}
 };
 

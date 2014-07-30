@@ -12,7 +12,7 @@
 
 #define PORT 78911
 
-#define SERVER_IP_ADDRESS /*"localhost"*/"10.1.7.206"
+#define SERVER_IP_ADDRESS /*"localhost"*/"10.1.7.10"
 
 ioInfo_Pool *ioInfo_Pool::instance;
 Handler_Pool *Handler_Pool::instance;
@@ -95,7 +95,6 @@ void main(void)
 		}
 		printLog("connection success\n");
 		succ++;
-
 
 		// 데이터 송신 부분
 		handleInfo = HandlerPool->popBlock();

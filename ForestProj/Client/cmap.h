@@ -1,49 +1,53 @@
 #ifndef CMAP_H
 #define CMAP_H
+
 #include <map>
-#include <mutex>
-#include <WinSock2.h>
 
 #include "character.h"
 
-struct SYNCHED_CHARACTER_MAP
+class SYNCHED_CHARACTER_MAP
 {
-	typedef std::map<int, Character> MAP;
-	MAP CM;
-	std::mutex mtx;
-
-	void lock()
+private:
+	typedef std::map<int, Character*> MAP;
+	MAP id_char;
+	static SYNCHED_CHARACTER_MAP* instance;
+	SYNCHED_CHARACTER_MAP(){}
+public:
+	SRWLOCK srw;
+	static SYNCHED_CHARACTER_MAP* getInstance()
 	{
-		mtx.lock();
+		if (instance == NULL)
+		{
+			instance = new SYNCHED_CHARACTER_MAP;
+		}
+		return instance;
 	}
-
-	void unlock()
-	{
-		mtx.unlock();
-	}
-
 	MAP::iterator begin()
 	{
-		return CM.begin();
+		return id_char.begin();
 	}
-
 	MAP::iterator end()
 	{
-		return CM.end();
+		return id_char.end();
 	}
-
+	int size()
+	{
+		return id_char.size();
+	}
+	void insert(int key, Character* Char)
+	{
+		id_char.insert(std::pair<int, Character*>(key, Char));
+	}
 	void erase(int key)
 	{
-		CM.erase(key);
+		delete id_char[key];
+		id_char.erase(key);
 	}
-
-	void insert(int key, Character& value)
+	Character* find(int key)
 	{
-		CM[key] = value;
-	}
-
-	Character* find(int key) {
-		return &CM[key];
+		auto ret = id_char.find(key);
+		if (ret == id_char.end()) return NULL;
+		else return ret->second;
 	}
 };
 
