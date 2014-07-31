@@ -39,6 +39,7 @@ private:
 	int prtHp, maxHp;
 	int power;
 	int exp;
+	int state;
 public:
 	Knight() : Monster() { name = 1; }
 	Knight(int x, int y) : Monster()
@@ -46,10 +47,12 @@ public:
 		name = 1;
 		this->x = x;
 		this->y = y;
+		state = PEACE;
 	}
 	Knight(int ID) : Knight(/*bigRand() % (WIDTH + 1)*/22, /*bigRand() % (HEIGHT + 1)*/22)
 	{
 		this->ID = ID;
+		state = PEACE;
 	}
 	const int getName()
 	{
@@ -87,6 +90,10 @@ public:
 	{
 		return exp;
 	}
+	const int getState()
+	{
+		return state;
+	}
 
 	void setID(const int ID)
 	{
@@ -110,6 +117,9 @@ public:
 	void setExp(const int exp)
 	{
 		this->exp = exp;
+	}
+	void setState()
+	{
 	}
 
 	void attacked(int damage)

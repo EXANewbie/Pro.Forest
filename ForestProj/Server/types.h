@@ -14,7 +14,11 @@ enum CAST {
 };
 
 enum INFOTYPE {
-	READ = 3, WRITE
+	READ = 3, WRITE 
+};
+
+enum STATE_MON {
+	PEACE,BATTLE,DEAD
 };
 
 #endif

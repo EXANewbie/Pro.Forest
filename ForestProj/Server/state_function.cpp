@@ -251,8 +251,6 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 		Scoped_Rlock SR(&elist->slock);
 		make_vector_id_in_room_except_me(pCharacter, charId_in_room_except_me, false/*autolock*/);
 
-
-
 		for (int i = 0; i < charId_in_room_except_me.size(); ++i)
 		{
 			auto eraseuser = eraseuserContents.add_data();
