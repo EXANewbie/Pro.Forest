@@ -9,8 +9,11 @@
 #include "Completion_Port.h"
 #include "Sock_set.h"
 #include "Memory_Pool.h"
+
 #include "Constant.h"
 #include "monster.h"
+
+#include "TimerThread.h"
 
 #include "DMap.h"
 #include "DMap_monster.h"
@@ -26,6 +29,9 @@ Access_Map *Access_Map::instance;
 Check_Map *Check_Map::instance;
 F_Vector_Mon *F_Vector_Mon::instance;
 Access_Map_Mon *Access_Map_Mon::instance;
+
+Timer *Timer::instance;
+
 
 using std::cout;
 using std::endl;
@@ -50,6 +56,8 @@ void main() {
 	F_Vector_Mon *F_vector_M = F_Vector_Mon::getInstance();
 	Access_Map_Mon * A_Map_M = Access_Map_Mon::getInstance();
 	
+	Timer *timer = Timer::getInstance();
+
 	WSADATA wsaData;
 	SYSTEM_INFO sysInfo;
 	LPPER_IO_DATA ioInfo;
@@ -82,6 +90,9 @@ void main() {
 
 	// CP 생성
 	hComPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
+
+	timer->setCompletionPort(hComPort);
+	timer->start();
 
 	// 시스템 정보 불러오기
 	GetSystemInfo(&sysInfo);

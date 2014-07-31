@@ -2,7 +2,6 @@
 #define CONSTANT_H
 
 const int Port = 78911;
-const int READ = 3, WRITE = 5;
 const int NOT_JOINED = -13;
 const int UNDEFINED = -71;
 

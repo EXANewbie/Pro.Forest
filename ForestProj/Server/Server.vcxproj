@@ -107,6 +107,7 @@
     <ClInclude Include="monster.h" />
     <ClInclude Include="Scoped_Lock.h" />
     <ClInclude Include="Sock_set.h" />
+    <ClInclude Include="TimerThread.h" />
     <ClInclude Include="types.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -2,13 +2,6 @@
 #include <string>
 #include <vector>
 
-#include "../protobuf/connect.pb.h"
-#include "../protobuf/disconn.pb.h"
-#include "../protobuf/moveuser.pb.h"
-#include "../protobuf/setuser.pb.h"
-#include "../protobuf/eraseuser.pb.h"
-#include "../protobuf/init.pb.h"
-
 #include "Completion_Port.h"
 #include "types.h"
 #include "Client_Map.h"
