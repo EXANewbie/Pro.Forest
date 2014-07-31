@@ -26,6 +26,8 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA, LPPER_IO_DATA, std::string*);
 void Handler_PMOVE_USER(Character *, std::string*);
 void Handler_PDISCONN(LPPER_HANDLE_DATA, LPPER_IO_DATA, std::string*);
 
+void Handler_HELLOWORLD(LPPER_IO_DATA, std::string*);
+
 
 int k;
 
@@ -48,10 +50,10 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 	while (true)
 	{
 		GetQueuedCompletionStatus(hComPort, &bytesTrans, (LPDWORD)&handleInfo, (LPOVERLAPPED *)&ioInfo, INFINITE);
-		sock = handleInfo->hClntSock;
 
 		if (ioInfo->RWmode == READ)
 		{
+			sock = handleInfo->hClntSock;
 			printLog("MESSAGE RECEIVED!");
 			if (bytesTrans == 0) // 올바르지 않은 종류의 경우
 			{
@@ -164,8 +166,9 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				}
 			}
 		}
-		else // WRITE
+		else if( ioInfo->RWmode == WRITE )// WRITE
 		{
+			sock = handleInfo->hClntSock;
 			if (bytesTrans == 0) // 올바르지 않은 종류의 경우
 			{
 				printLog("나 출력되는거 맞음?ㅋ\n");
@@ -182,6 +185,27 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 			}
 			ioInfoPool->pushBlock(ioInfo);
 			printLog("k Decrement %d\n", InterlockedDecrement((unsigned int *)&k));
+		}
+		else // TIMER
+		{
+			if (bytesTrans == 0) // 올바르지 않은 종류의 경우
+			{
+				printLog("@Abnormal turn off ");
+				ioInfoPool->pushBlock(ioInfo);
+				continue;
+			}
+
+			printLog("AI Timer(%d)\n", ioInfo->type);
+
+			int type, len;
+			type = ioInfo->type;
+			len = ioInfo->len;
+
+			std::string readContents(ioInfo->wsaBuf.buf, len);
+			if (ioInfo->type == PHELLOWORLD)
+			{
+				Handler_HELLOWORLD(ioInfo, &readContents);
+			}
 		}
 	}
 

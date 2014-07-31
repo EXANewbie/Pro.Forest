@@ -16,6 +16,9 @@
     <Filter Include="pb_files">
       <UniqueIdentifier>{53ec4eaa-3e39-4a7f-b85e-cc52cba86103}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Timer">
+      <UniqueIdentifier>{3bfc4e6b-6132-4c27-ad81-1e3e5172b48e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
@@ -48,6 +51,9 @@
     <ClCompile Include="Client_Bot_Receiver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TimerThread.cpp">
+      <Filter>Timer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Completion_Port.h">
@@ -61,6 +67,9 @@
     </ClInclude>
     <ClInclude Include="Memory_Pool.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TimerThread.h">
+      <Filter>Timer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

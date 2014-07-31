@@ -89,6 +89,7 @@
     <ClCompile Include="..\protobuf\setuser.pb.cc" />
     <ClCompile Include="Client_Map.cpp" />
     <ClCompile Include="state_function.cpp" />
+    <ClCompile Include="TimerThread.cpp" />
     <ClInclude Include="Check_Map.h" />
     <ClInclude Include="Completion_Port.h" />
     <ClInclude Include="Constant.h" />

@@ -91,11 +91,13 @@
     <ClCompile Include="Client_Bot_Receiver.cpp" />
     <ClCompile Include="funtion.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="TimerThread.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Completion_Port.h" />
     <ClInclude Include="Memory_Block.h" />
     <ClInclude Include="Memory_Pool.h" />
+    <ClInclude Include="TimerThread.h" />
     <ClInclude Include="types.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
