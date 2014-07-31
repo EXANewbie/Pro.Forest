@@ -1,41 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="Member Funtions">
-      <UniqueIdentifier>{e43c5740-3051-4c15-a272-95fb616ed76b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="pb_files">
-      <UniqueIdentifier>{dccc8e21-c680-4b7a-8c8e-d36da5374391}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Timer">
-      <UniqueIdentifier>{c2295ac9-8e3d-460b-9ab7-b15af44ceb26}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Source.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Client_Map.cpp">
-      <Filter>Member Funtions</Filter>
-    </ClCompile>
-    <ClCompile Include="Server_Worker.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="function.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\protobuf\connect.pb.cc">
       <Filter>pb_files</Filter>
     </ClCompile>
@@ -54,33 +19,30 @@
     <ClCompile Include="..\protobuf\setuser.pb.cc">
       <Filter>pb_files</Filter>
     </ClCompile>
+    <ClCompile Include="Client_Map.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="function.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Server_Worker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="state_function.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="msg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="character.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="types.h">
+    <ClInclude Include="Check_Map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Client_Map.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Completion_Port.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Sock_set.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Memory_Pool.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Memory_Block.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Constant.h">
@@ -89,22 +51,49 @@
     <ClInclude Include="DMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scoped_Lock.h">
+    <ClInclude Include="DMap_monster.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Check_Map.h">
+    <ClInclude Include="Memory_Block.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-<<<<<<< HEAD
+    <ClInclude Include="Memory_Pool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="monster.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DMap_monster.h">
+    <ClInclude Include="msg.h">
       <Filter>Header Files</Filter>
-=======
+    </ClInclude>
+    <ClInclude Include="Scoped_Lock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sock_set.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Completion_Port.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="TimerThread.h">
       <Filter>Timer</Filter>
->>>>>>> dc287427746f566eed6921d59399fb4cf1fcd937
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{b322bd5a-8a08-472e-b9df-cf99ff704ac4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pb_files">
+      <UniqueIdentifier>{b3653e8d-9d91-40e5-a6e2-689c3eba8a1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{b1e87c06-1e03-47cf-93cc-6fdbb9499bc7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Timer">
+      <UniqueIdentifier>{b4094bb2-a732-4c27-a8d8-1324e0ef31fe}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>
