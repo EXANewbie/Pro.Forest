@@ -137,7 +137,16 @@ void main() {
 		return;
 	}
 
-	
+	char *str = "Hello World!";
+	int type = PHELLOWORLD, len = strlen(str);
+
+	char arr[25];
+
+	memcpy(arr, &type, sizeof(int));
+	memcpy(arr + sizeof(int), &len, sizeof(int));
+	memcpy(arr + 2 * sizeof(int), str, len);
+	timer->addSchedule(1000, string(arr, len + 2 * sizeof(int)));
+
 	//새로운 연결을 하나 수락
 	while (true) {
 		

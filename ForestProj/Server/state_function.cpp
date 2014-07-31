@@ -18,6 +18,8 @@
 #include "DMap.h"
 #include "Scoped_Lock.h"
 
+#include "Memory_Pool.h"
+#include "TimerThread.h"
 #include "monster.h"
 #include "DMap_monster.h"
 
@@ -35,6 +37,8 @@ void closeClient(int);
 void remove_valid_client(LPPER_HANDLE_DATA, LPPER_IO_DATA);
 void copy_to_buffer(char *, int **, int);
 void copy_to_param(int **, int, char *);
+
+void Handler_HELLOWORLD(LPPER_IO_DATA ioInfo, std::string* readContents);
 
 bool Boundary_Check(int, const int,const int, int, int);
 
@@ -396,4 +400,26 @@ void Handler_PDISCONN(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::s
 
 	printLog("Nomal turn off\n");
 	remove_valid_client(handleInfo, ioInfo);
+}
+
+void Handler_HELLOWORLD(LPPER_IO_DATA ioInfo, std::string* readContents) {
+	auto MemoryPool = Memory_Pool::getInstance();
+	auto ioInfoPool = ioInfo_Pool::getInstance();
+	if (ioInfo->block != nullptr) {
+		MemoryPool->pushBlock(ioInfo->block);
+	}
+	ioInfoPool->pushBlock(ioInfo);
+	printf("Hello\n");
+	
+	auto timer = Timer::getInstance();
+
+	char *str = "Hello World!";
+	int type = PHELLOWORLD, len = strlen(str);
+
+	char arr[25];
+
+	memcpy(arr, &type, sizeof(int));
+	memcpy(arr + sizeof(int), &len, sizeof(int));
+	memcpy(arr + 2 * sizeof(int), str, len);
+	timer->addSchedule(1000, string(arr,len+2*sizeof(int)));
 }
