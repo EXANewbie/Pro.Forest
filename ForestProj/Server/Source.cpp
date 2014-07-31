@@ -5,7 +5,6 @@
 #include <WinSock2.h>
 #include <Windows.h>
 
-//#include "Client_Map.h"
 #include "Check_Map.h"
 #include "Completion_Port.h"
 #include "Sock_set.h"
@@ -114,11 +113,8 @@ void main() {
 
 	
 	//새로운 연결을 하나 수락
-	int cnt = 0;
 	while (true) {
-		if (cnt >= 16360) {
-			printf("hello\n");
-		}
+		
 		if( (NewConnection = accept(ListeningSocket, (SOCKADDR *)&ClientAddr, &ClientAddrLen)) == SOCKET_ERROR )
 		{
 			printf("Socket failed with error(%d)\n", WSAGetLastError());
@@ -156,7 +152,6 @@ void main() {
 		getpeername(NewConnection, (SOCKADDR *)&temp_sock, &temp_sock_size);
 		//cout << "Connect IP : " << inet_ntoa(temp_sock.sin_addr) << endl;
 		printLog("Connect IP : %s\n", inet_ntoa(temp_sock.sin_addr));
-		cnt++;
 	}
 	 
 	closesocket(ListeningSocket); // 리스닝 소켓을 닫는다.

@@ -96,7 +96,6 @@ void main(void)
 		printLog("connection success\n");
 		succ++;
 
-
 		// 데이터 송신 부분
 		handleInfo = HandlerPool->popBlock();
 		handleInfo->hClntSock = ListeningSocket;

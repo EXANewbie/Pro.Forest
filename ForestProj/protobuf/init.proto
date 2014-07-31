@@ -7,6 +7,10 @@ message CONTENTS
 		optional int32 id = 1;
 		optional int32 x = 2;
 		optional int32 y = 3;
+		optional int32 lv = 4;
+		optional int32 maxHp = 5;
+		optional int32 power = 6;
+		optional int32 exp = 7;
 	}
 	repeated char_info data = 1; 
 }

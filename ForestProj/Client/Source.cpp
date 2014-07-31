@@ -1,5 +1,4 @@
-#include <memory>
-#include <cstdio>
+﻿#include <cstdio>
 #include <WinSock2.h>
 #include <thread>
 #include <conio.h>
@@ -7,6 +6,8 @@
 
 #include "character.h"
 #include "cmap.h"
+#include "types.h"
+#include "Scoped_Lock.h"
 
 #include "../protobuf/connect.pb.h""
 #include "../protobuf/disconn.pb.h"
@@ -15,118 +16,19 @@
 #include "../protobuf/moveuser.pb.h"
 #include "../protobuf/setuser.pb.h"
 
-
 #define PORT 78911
 
 #define SERVER_IP_ADDRESS /*"localhost"*/"10.1.7.10"
 
-enum packetType{ PCONNECT, PINIT, PSET_USER, PMOVE_USER, PDISCONN, PERASE_USER };
+SYNCHED_CHARACTER_MAP* SYNCHED_CHARACTER_MAP::instance;
 
 void send_move(const SOCKET s,const char& c,const int& myID);
 void copy_to_buffer(char *buf, int* type, int* len, std::string* content);
-
-struct deleter {
-	void operator()(char *c){ delete[]c; }
-};
-
-void receiver(const SOCKET s, int* myID, SYNCHED_CHARACTER_MAP* chars)
-{
-	char *buf;
-	packetType type;
-	int len;
-	while (true)
-	{
-		int chk=recv(s, (char*)&type, sizeof(int), 0);
-		if (chk != sizeof(int)) {
-			printf("disconnected\n");
-			break;
-		}
-		recv(s, (char*)&len, sizeof(int), 0);
-
-		std::shared_ptr <char> ptr(new char[len], deleter());
-		int end = recv(s, ptr.get(), len, 0);
-		std::string tmp(ptr.get(),len);
-		if (type == PSET_USER)
-		{
-			SET_USER::CONTENTS contents;
-			contents.ParseFromString(tmp);
-			for (int i = 0; i<contents.data_size(); ++i)
-			{
-				auto user = contents.data(i);
-				Character other;
-				int id = user.id(), x = user.x(), y = user.y();
-				other.setID(id);
-				other.setX(x);
-				other.setY(y);
-				chars->insert(id, other);
-
-				printf("your char id : %d  (%d,%d)\n", id, x, y);
-			}
-//			memset(buf, 0, sizeof(buf));
-			contents.clear_data();
-		}
-		else if (type == PINIT)
-		{
-			INIT::CONTENTS contents;
-			contents.ParseFromString(tmp);
-
-			auto user = contents.data(0);
-			int id = user.id(), x = user.x(), y = user.y();
-			
-			*myID = id;
-			Character myCharacter;
-			myCharacter.setID(id);
-			myCharacter.setX(x);
-			myCharacter.setY(y);
-			chars->insert(id, myCharacter);
-			
-			printf("my char id : %d, (%d,%d)\n", id, myCharacter.getX(), myCharacter.getY());
-//			memset(buf, 0, sizeof(buf));
-			contents.clear_data();
-
-		}
-		else if (type == PMOVE_USER)
-		{
-			MOVE_USER::CONTENTS contents;
-			contents.ParseFromString(tmp);
-
-			for (int i = 0; i<contents.data_size(); ++i)
-			{
-				auto user = contents.data(i);
-				int id = user.id(), x_off = user.xoff(), y_off = user.yoff();
-				Character* other;
-				other = (chars->find(id));
-				other->setX(other->getX() + x_off);
-				other->setY(other->getY() + y_off);
-
-				printf("your char id! : %d, (%d,%d) \n", other->getID(), other->getX(), other->getY());
-			}
-//			memset(buf, 0, sizeof(buf));
-			contents.clear_data();
-		}
-		else if (type == PERASE_USER)
-		{
-			ERASE_USER::CONTENTS contents;
-			contents.ParseFromString(tmp);
-
-			for (int i = 0; i<contents.data_size(); ++i)
-			{
-				auto user = contents.data(i);
-				int id = user.id();
-				chars->erase(id);
-
-				printf("your char id erase! : %d \n", id);
-			}
-//			memset(buf, 0, sizeof(buf));
-			contents.clear_data();
-		}
-		
-	}
-	
-}
+void receiver(const SOCKET s, int* myID);
 
 void main(void)
 {
+	SYNCHED_CHARACTER_MAP* chars = SYNCHED_CHARACTER_MAP::getInstance();
 	WSADATA wsaData;
 	SOCKET s;
 	SOCKADDR_IN ServerAddr;
@@ -171,10 +73,9 @@ void main(void)
 	
 	//자신의 캐릭터 생성
 	int myID;
-	SYNCHED_CHARACTER_MAP *chars = new SYNCHED_CHARACTER_MAP();
 
 	// 데이터 수신 쓰레드 동작.
-	std::thread t(receiver, s, &myID, chars);
+	std::thread t(receiver, s, &myID);
 	
 	while (true)
 	{
@@ -182,7 +83,6 @@ void main(void)
 		c=_getch();
 		if (c == 'x')
 		{
-			
 			//PDISCONN 전송
 			type = PDISCONN;
 			
@@ -203,44 +103,51 @@ void main(void)
 		{
 			send_move(s, c, myID);
 		}
+		else if (c == 'q')// attack!!
+		{
+
+		}
+		else if (c == 'i')
+		{
+			//내정보 보여주자.
+			printf("##내 정보:\n");
+			{
+				Scoped_Rlock(&chars->srw);
+				Character* me = chars->find(myID);
+				if (me == NULL)
+				{
+					printf("아직 캐릭터가 생성되지 않았습니다.\n잠시만 기다려 주십시오\n\n");
+					continue;
+				}
+				
+				printf("ID : %d 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d\n\n", me->getID(), me->getX(), me->getY(), me->getLv(), me->getPrtHp(), me->getMaxHp(), me->getPower());
+			}
+		}
+		else if (c == 'j')
+		{
+			//같은 방에 있는 녀석들의 정보를 보여주자.
+			printf("##동료 정보:\n");
+			{
+				Scoped_Rlock(&chars->srw);
+				int size = chars->size();
+				if (size == 1) 
+				{
+					printf("현재 같은방에 동료가 없습니다\n\n"); 
+					continue;
+				}
+				printf("--현재원 %d명\n", size-1);
+				for (auto iter = chars->begin(); iter != chars->end(); ++iter)
+				{
+					Character* other = iter->second;
+					if (other->getID() == myID) continue;
+					printf("ID : %d 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d\n\n", 
+						other->getID(), other->getX(), other->getY(), other->getLv(), other->getPrtHp(), other->getMaxHp(), other->getPower());
+				}
+			}
+		}
 	}
 
 	t.join();
 	closesocket(s);
 }
 
-void send_move(const SOCKET s, const char& c, const int& myID)
-{
-	int x_off, y_off;
-	char buf[1024];
-	int len;
-	packetType type = PMOVE_USER;
-
-	if (c == 'w') {	x_off = 0;y_off = -1;}
-	else if (c == 'a'){	x_off = -1;	y_off = 0;}
-	else if (c == 's'){	x_off = 0;	y_off = 1;}
-	else if (c == 'd'){	x_off = 1;	y_off = 0;}
-	
-	MOVE_USER::CONTENTS contents;
-	auto element = contents.mutable_data()->Add();
-	element->set_id(myID);
-	element->set_xoff(x_off);
-	element->set_yoff(y_off);
-		
-	std::string bytestring;
-	contents.SerializeToString(&bytestring);
-	len = bytestring.length();
-
-	copy_to_buffer(buf, (int *)&type, &len, &bytestring);
-	
-	send(s, buf, len+sizeof(int)*2, 0);
-}
-
-void copy_to_buffer(char* pBuf, int* type, int* len, std::string* content)
-{
-	memcpy(pBuf, (char*)type, sizeof(int));
-	pBuf += sizeof(int);
-	memcpy(pBuf, (char *)len, sizeof(int));
-	pBuf += sizeof(int);
-	memcpy(pBuf, content->c_str(), *len);
-}
