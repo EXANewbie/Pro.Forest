@@ -118,7 +118,7 @@ void main(void)
 			//내정보 보여주자.
 			printf("##내 정보:\n");
 			{
-				Scoped_Rlock(&chars->srw);
+				Scoped_Rlock SR(&chars->srw);
 				Character* me = chars->find(myID);
 				if (me == NULL)
 				{
@@ -131,10 +131,10 @@ void main(void)
 		}
 		else if (c == 'j')
 		{
-			//같은 방에 있는 녀석들의 정보를 보여주자.
+			//같은 방에 있는 유저들의 정보를 보여주자.
 			printf("##동료 정보:\n");
 			{
-				Scoped_Rlock(&chars->srw);
+				Scoped_Rlock SR(&chars->srw);
 				int size = chars->size();
 				if (size == 1) 
 				{
@@ -150,6 +150,29 @@ void main(void)
 						other->getID(), other->getX(), other->getY(), other->getLv(), other->getPrtHp(), other->getMaxHp(), other->getPower());
 				}
 			}
+		}
+		else if (c == 'o')
+		{
+			//같은 방에 있는 몬스터들의 정보를 보여주자.
+			{
+				Scoped_Rlock SR(&mons->srw);
+				int size = mons->size();
+				if (size == 0)
+				{
+					printf("현재 같은방에 몬스터가 없습니다\n\n");
+					continue;
+				}
+				printf("--몬스터 총 %d마리\n", size);
+				for (auto iter = mons->begin(); iter != mons->end(); ++iter)
+				{
+					Monster* mon = iter->second;
+					printf("이름(ID) : %s (%d) 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d\n\n",
+						mon->getName().c_str(), mon->getID(), mon->getX(), mon->getY(), mon->getLv(), mon->getPrtHp(), mon->getMaxHp(), mon->getPower());
+				}
+			}
+		}
+		else if (c == 'k')
+		{
 		}
 	}
 

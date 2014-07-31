@@ -62,7 +62,7 @@ void receiver(const SOCKET s, int* myID)
 				other->setLv(lv,maxHp,power);
 				other->setExp(exp);
 				{
-					Scoped_Wlock(&chars->srw);
+					Scoped_Wlock SW(&chars->srw);
 					chars->insert(id, other);
 				}
 				printf("He char id : %d  (%d,%d)\n", other->getID(), other->getX(), other->getY());
@@ -106,7 +106,7 @@ void receiver(const SOCKET s, int* myID)
 				int id = user.id(), x_off = user.xoff(), y_off = user.yoff();
 				Character* myChar;
 				{
-					Scoped_Rlock(&chars->srw);
+					Scoped_Rlock SR(&chars->srw);
 					myChar = (chars->find(id));
 				}
 				myChar->setX(myChar->getX() + x_off);
@@ -127,14 +127,14 @@ void receiver(const SOCKET s, int* myID)
 				auto user = contents.data(i);
 				int id = user.id();
 				{
-					Scoped_Wlock(&chars->srw);
+					Scoped_Wlock SW(&chars->srw);
 					chars->erase(id);
 				}
 				printf("His char id erase! : %d \n", id);
 			}
 			contents.clear_data();
 		}
-		else if (type = PSET_MON)
+		else if (type == PSET_MON)
 		{
 			SET_MONSTER::CONTENTS setmonsterContents;
 			setmonsterContents.ParseFromString(tmp);
@@ -163,13 +163,32 @@ void receiver(const SOCKET s, int* myID)
 				}
 				
 				printf("야생의 %s가 [id : %d (%d, %d) ]나타났습니다!\n",mon->getName().c_str(), mon->getID(), mon->getX(), mon->getY());
-				printf("상태 - 레벨 : %d, 체력 : ( %d / %d )\n", mon->getLv(), mon->getPrtHp(), mon->getMaxHp());
+				//printf("상태 - 레벨 : %d, 체력 : ( %d / %d )\n", mon->getLv(), mon->getPrtHp(), mon->getMaxHp());
 			}
 			setmonsterContents.clear_data();
 		}
 		
 		else if (type = PERASE_MON)
 		{
+			 ERASE_MONSTER::CONTENTS erasemonsterContents;
+			erasemonsterContents.ParseFromString(tmp);
+
+			for (int i = 0; i<erasemonsterContents.data_size(); ++i)
+			{
+				auto mon = erasemonsterContents.data(i);
+				int id = mon.id();
+				std::string monName;
+				{
+					Scoped_Rlock SR(&mons->srw);
+					monName = mons->find(id)->getName();
+				}
+				{
+					Scoped_Wlock SW(&mons->srw);
+					mons->erase(id);
+				}
+				printf("몬스터[%s]를 지나쳤다! : %d \n", monName.c_str(),id);
+			}
+			erasemonsterContents.clear_data();
 		}
 
 

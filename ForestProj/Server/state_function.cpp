@@ -219,29 +219,32 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 	MOVE_USER::CONTENTS moveuserContents;
 	ERASE_USER::CONTENTS eraseuserContents;
 	SET_USER::CONTENTS setuserContents;
+	ERASE_MONSTER::CONTENTS erasemonsterContents;
+	SET_MONSTER::CONTENTS setmonsterContents;
 	std::string bytestring;
 
 	auto Amap = Access_Map::getInstance();
 	auto FVEC = F_Vector::getInstance();
+	auto FVEC_M = F_Vector_Mon::getInstance();
 
 	int x = pCharacter->getX(), y = pCharacter->getY();
 	E_List* elist = FVEC->get(x, y);
 
 	vector<Character*> charId_in_room_except_me;
+	vector<Character *> me;
+	me.push_back(pCharacter);
+	vector<Monster *> vec_mon;
 	
 	moveuserContents.ParseFromString(*readContents);
 
 	int cur_id, x_off, y_off;
 	int len;
 
-	vector<Character *> me;
-	me.push_back(pCharacter);
-
 	auto user = moveuserContents.data(0);
 	cur_id = user.id();
 	x_off = user.xoff();
 	y_off = user.yoff();
-
+	moveuserContents.clear_data();
 
 	/* 경계값 체크 로직 */
 	if (Boundary_Check(cur_id, x, y, x_off, y_off) == false) {
@@ -275,6 +278,7 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 		eraseuserContents.SerializeToString(&bytestring);
 		len = bytestring.length();
 
+		// 기존 방의 유저들의 정보를 지운다.
 		send_message(msg(PERASE_USER, len, bytestring.c_str()), me, true);
 
 		bytestring.clear();
@@ -287,13 +291,28 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 		len = bytestring.length();
 
 		send_message(msg(PERASE_USER, len, bytestring.c_str()), charId_in_room_except_me, true);
+
+		// 기존 방의 몬스터들의 정보를 지운다.
+		E_List_Mon* elist_m = FVEC_M->get(x, y);
+		Scoped_Rlock(&elist_m->slock);
+		make_monster_vector_in_room(pCharacter, vec_mon, false);
+		
+		for (int i = 0; i < vec_mon.size(); ++i)
+		{
+			auto erasemon = erasemonsterContents.add_data();
+			erasemon->set_id(vec_mon[i]->getID());
+		}
+		erasemonsterContents.SerializeToString(&bytestring);
+		len = bytestring.length();
+
+		send_message(msg(PERASE_MON, len, bytestring.c_str()), me, true);
+
+		bytestring.clear();
+		erasemonsterContents.clear_data();
 	}
 
-	bytestring.clear();
-	moveuserContents.clear_data();
-	eraseuserContents.clear_data();
-
 	charId_in_room_except_me.clear();
+	vec_mon.clear();
 
 	// 캐릭터를 해당 좌표만큼 이동시킴
 	{
@@ -310,7 +329,7 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 		elist->push_back(pCharacter);
 	}
 
-	//**실제로 나를 움직임
+	//실제로 나를 움직임
 	{
 		auto moveuser = moveuserContents.add_data();
 		moveuser->set_id(cur_id);
@@ -377,12 +396,40 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 		len = bytestring.length();
 
 		send_message(msg(PSET_USER, len, bytestring.c_str()), me, true);
+
+		bytestring.clear();
+		setuserContents.clear_data();
+		
+		// 새로운 방의 몬스터들의 정보를 가져온다.
+		E_List_Mon* elist_m = FVEC_M->get(x, y);
+		Scoped_Rlock(&elist_m->slock);
+		make_monster_vector_in_room(pCharacter, vec_mon, false);
+
+		for (int i = 0; i < vec_mon.size(); ++i)
+		{
+			Monster* tmpMon = vec_mon[i];
+			auto setmon = setmonsterContents.add_data();
+			setmon->set_id(tmpMon->getID());
+			setmon->set_x(tmpMon->getX());
+			setmon->set_y(tmpMon->getY());
+			setmon->set_name(tmpMon->getName());
+			setmon->set_lv(tmpMon->getLv());
+			setmon->set_maxhp(tmpMon->getMaxHp());
+			setmon->set_power(tmpMon->getPower());
+			setmon->set_exp(tmpMon->getExp());
+
+		}
+		setmonsterContents.SerializeToString(&bytestring);
+		len = bytestring.length();
+
+		send_message(msg(PSET_MON, len, bytestring.c_str()), me, true);
+
+		bytestring.clear();
+		setmonsterContents.clear_data();
 	}
 
-	bytestring.clear();
-	setuserContents.clear_data();
-
 	charId_in_room_except_me.clear();
+	vec_mon.clear();
 
 	printLog("id : %d, x_off : %d, y_off : %d\n", cur_id, x_off, y_off);
 

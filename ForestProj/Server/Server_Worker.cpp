@@ -28,15 +28,12 @@ void Handler_PDISCONN(LPPER_HANDLE_DATA, LPPER_IO_DATA, std::string*);
 
 void Handler_HELLOWORLD(LPPER_IO_DATA, std::string*);
 
-
 int k;
-
 
 unsigned WINAPI Server_Worker(LPVOID pComPort)
 {
 	Sock_set *sock_set = Sock_set::getInstance();
 	
-	//auto HandlerPool = Handler_Pool::getInstance();
 	auto ioInfoPool = ioInfo_Pool::getInstance();
 	auto MemoryPool = Memory_Pool::getInstance();
 
@@ -178,7 +175,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 			}
 
 			printLog("MESSAGE SEND!");
-//			free(ioInfo);
+
 			if (ioInfo->block != nullptr) {
 				MemoryPool->pushBlock(ioInfo->block);
 				ioInfo->block = nullptr;

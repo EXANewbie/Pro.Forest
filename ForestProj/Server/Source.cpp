@@ -153,7 +153,6 @@ void main() {
 		if( (NewConnection = accept(ListeningSocket, (SOCKADDR *)&ClientAddr, &ClientAddrLen)) == SOCKET_ERROR )
 		{
 			printf("Socket failed with error(%d)\n", WSAGetLastError());
-//			printLog("Socket failed with error(%d)\n", WSAGetLastError());
 		}
 		printLog("User (Socket : %d) is connected\n", NewConnection);
 

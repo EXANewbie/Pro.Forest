@@ -32,7 +32,7 @@ void TimerThreadProc(Timer* T) {
 			ioInfo->myCharacter = nullptr;
 
 			PostQueuedCompletionStatus(T->getCompletionPort(), (DWORD)i->size(), NULL, (LPOVERLAPPED)ioInfo);
-			//				GetQueuedCompletionStatus(hComPort, &bytesTrans, (LPDWORD)&handleInfo, (LPOVERLAPPED *)&ioInfo, INFINITE);
+			//GetQueuedCompletionStatus(hComPort, &bytesTrans, (LPDWORD)&handleInfo, (LPOVERLAPPED *)&ioInfo, INFINITE);
 		}
 
 		SleepEx(T->getTick(), false);
