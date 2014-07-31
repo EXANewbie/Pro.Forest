@@ -2,7 +2,9 @@
 #define MONSTER_H
 
 #include <WinSock2.h>
+#include <string>
 #include "Constant.h"
+
 int bigRand();
 
 class Monster
@@ -10,6 +12,7 @@ class Monster
 public:	
 	Monster() = default;
 	virtual const int getID() = 0;
+	virtual const int getName() = 0;
 	virtual const int getX() = 0;
 	virtual const int getY() = 0;
 	virtual const int getLv() = 0;
@@ -29,6 +32,7 @@ public:
 class Knight : public Monster
 {
 private:
+	int name ;
 	int ID;
 	int x, y;
 	int lv;
@@ -36,15 +40,20 @@ private:
 	int power;
 	int exp;
 public:
-	Knight() : Monster() {}
+	Knight() : Monster() { name = 1; }
 	Knight(int x, int y) : Monster()
 	{
+		name = 1;
 		this->x = x;
 		this->y = y;
 	}
-	Knight(int ID) : Knight(bigRand() % (WIDTH + 1), bigRand() % (HEIGHT + 1))
+	Knight(int ID) : Knight(/*bigRand() % (WIDTH + 1)*/22, /*bigRand() % (HEIGHT + 1)*/22)
 	{
 		this->ID = ID;
+	}
+	const int getName()
+	{
+		return name;
 	}
 	const int getID()
 	{

@@ -34,8 +34,16 @@
     <ClCompile Include="state_function.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+<<<<<<< HEAD
     <ClCompile Include="TimerThread.cpp">
       <Filter>Timer</Filter>
+=======
+    <ClCompile Include="..\protobuf\erasemonster.pb.cc">
+      <Filter>pb_files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\protobuf\setmonster.pb.cc">
+      <Filter>pb_files</Filter>
+>>>>>>> 1047ffbc330ddcd5dc468fbc1c5dbfff95357289
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

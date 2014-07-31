@@ -5,7 +5,6 @@
 #include "../protobuf/eraseuser.pb.h"
 
 #include "Check_Map.h"
-//#include "Client_Map.h"
 #include "types.h"
 #include "Completion_Port.h"
 #include "msg.h"
@@ -15,6 +14,9 @@
 #include "DMap.h"
 #include "Scoped_Lock.h"
 
+#include "monster.h"
+#include "DMap_monster.h"
+
 using namespace std;
 
 extern int k;
@@ -22,12 +24,14 @@ extern int k;
 void printLog(const char *msg, ...);
 void set_single_cast(int, vector<int>&);
 void make_vector_id_in_room_except_me(Character*, vector<int>&, bool);
+void make_monster_vector_in_room(Character* myChar, vector<Monster *>& send_list, bool autolocked);
 void send_message(msg, vector<Character *> &, bool);
 void unpack(msg, char *, int *);
 void closeClient(int);
 void remove_valid_client(LPPER_HANDLE_DATA, LPPER_IO_DATA);
 void copy_to_buffer(char *, int **, int);
 void copy_to_param(int **, int, char *);
+
 
 bool Boundary_Check(const int, const int, int, int);
 int bigRand();
@@ -61,7 +65,26 @@ void make_vector_id_in_room_except_me(Character* myChar, vector<Character *>& se
 	}
 }
 
+void make_monster_vector_in_room(Character* myChar, vector<Monster *>& send_list, bool autolocked)
+{
+	auto FVEC = F_Vector_Mon::getInstance();
+	E_List_Mon* elist = FVEC->get(myChar->getX(), myChar->getY());
 
+	if (autolocked == true)
+	{
+		AcquireSRWLockShared(&elist->slock);
+	}
+
+	for (auto itr = elist->begin(); itr != elist->end(); itr++)
+	{
+		send_list.push_back(*itr);
+	}
+
+	if (autolocked == true)
+	{
+		ReleaseSRWLockShared(&elist->slock);
+	}
+}
 
 void send_message(msg message, vector<Character *> &send_list, bool autolocked) {
 	auto CMap = Check_Map::getInstance();
