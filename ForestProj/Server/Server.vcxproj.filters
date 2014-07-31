@@ -19,6 +19,9 @@
     <Filter Include="pb_files">
       <UniqueIdentifier>{dccc8e21-c680-4b7a-8c8e-d36da5374391}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Timer">
+      <UniqueIdentifier>{c2295ac9-8e3d-460b-9ab7-b15af44ceb26}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
@@ -91,6 +94,9 @@
     </ClInclude>
     <ClInclude Include="Check_Map.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TimerThread.h">
+      <Filter>Timer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

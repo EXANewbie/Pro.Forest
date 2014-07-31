@@ -10,6 +10,7 @@
 #include "Completion_Port.h"
 #include "Sock_set.h"
 #include "Memory_Pool.h"
+#include "TimerThread.h"
 
 #include "DMap.h"
 
@@ -22,6 +23,7 @@ Memory_Pool *Memory_Pool::instance;
 F_Vector *F_Vector::instance;
 Access_Map *Access_Map::instance;
 Check_Map *Check_Map::instance;
+Timer *Timer::instance;
 
 using std::cout;
 using std::endl;
@@ -40,6 +42,7 @@ void main() {
 	ioInfo_Pool *ioInfo_Pool = ioInfo_Pool::getInstance();
 	Handler_Pool *Handler_Pool = Handler_Pool::getInstance();
 	Memory_Pool *Memory_Pool = Memory_Pool::getInstance();
+	Timer *timer = Timer::getInstance();
 
 	F_Vector::makeThis();
 	Access_Map::makeThis();
@@ -67,6 +70,9 @@ void main() {
 
 	// CP 생성
 	hComPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
+
+	timer->setCompletionPort(hComPort);
+	timer->start();
 
 	// 시스템 정보 불러오기
 	GetSystemInfo(&sysInfo);
