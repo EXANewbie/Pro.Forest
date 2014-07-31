@@ -16,16 +16,12 @@ enum CAST {
 enum AITYPE {
 	PHELLOWORLD
 };
+
 enum INFOTYPE {
-<<<<<<< HEAD
-	READ = 3, WRITE 
+	READ = 3, WRITE, TIMER
 };
 
 enum STATE_MON {
-	PEACE,BATTLE,DEAD
-=======
-	READ = 3, WRITE, TIMER
->>>>>>> dde842d3757fda2613ab1c8292914ae25726bb4d
+	PEACE, BATTLE, DEAD
 };
-
 #endif

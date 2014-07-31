@@ -1,10 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="..\protobuf\connect.pb.cc">
+    <ClCompile Include="..\protobuf\erasemonster.pb.cc">
       <Filter>pb_files</Filter>
     </ClCompile>
     <ClCompile Include="..\protobuf\disconn.pb.cc">
+      <Filter>pb_files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\protobuf\connect.pb.cc">
       <Filter>pb_files</Filter>
     </ClCompile>
     <ClCompile Include="..\protobuf\eraseuser.pb.cc">
@@ -14,6 +17,9 @@
       <Filter>pb_files</Filter>
     </ClCompile>
     <ClCompile Include="..\protobuf\moveuser.pb.cc">
+      <Filter>pb_files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\protobuf\setmonster.pb.cc">
       <Filter>pb_files</Filter>
     </ClCompile>
     <ClCompile Include="..\protobuf\setuser.pb.cc">
@@ -36,14 +42,10 @@
     </ClCompile>
     <ClCompile Include="TimerThread.cpp">
       <Filter>Timer</Filter>
-    <ClCompile Include="..\protobuf\erasemonster.pb.cc">
-      <Filter>pb_files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\protobuf\setmonster.pb.cc">
-      <Filter>pb_files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="TimerThread.h" />
     <ClInclude Include="character.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -51,6 +53,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Client_Map.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Completion_Port.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Constant.h">
@@ -77,31 +82,25 @@
     <ClInclude Include="Scoped_Lock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="types.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Sock_set.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Completion_Port.h">
+    <ClInclude Include="types.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TimerThread.h">
-      <Filter>Timer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{17b7a802-0acb-44cd-8fa4-7fff0ac1aff1}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{b322bd5a-8a08-472e-b9df-cf99ff704ac4}</UniqueIdentifier>
+      <UniqueIdentifier>{3dbe0dc5-f30f-44d3-a3f7-6f6f5b97e180}</UniqueIdentifier>
     </Filter>
     <Filter Include="pb_files">
-      <UniqueIdentifier>{b3653e8d-9d91-40e5-a6e2-689c3eba8a1e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{b1e87c06-1e03-47cf-93cc-6fdbb9499bc7}</UniqueIdentifier>
+      <UniqueIdentifier>{6ddece88-f4c1-448b-baa3-966c3b823c2f}</UniqueIdentifier>
     </Filter>
     <Filter Include="Timer">
-      <UniqueIdentifier>{b4094bb2-a732-4c27-a8d8-1324e0ef31fe}</UniqueIdentifier>
+      <UniqueIdentifier>{68b24116-6a68-4351-bd62-17d19533c8c6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
