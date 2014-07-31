@@ -23,7 +23,7 @@ public :
 		this->x = x;
 		this->y = y;
 	}
-	Character(int ID) : Character(bigRand()%(WIDTH+1), bigRand()%(HEIGHT+1))
+	Character(int ID) : Character(/*bigRand()%(WIDTH+1)*/22, /*bigRand()%(HEIGHT+1)*/22)
 	{
 		this->ID = ID;
 	}

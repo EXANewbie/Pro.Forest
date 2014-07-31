@@ -8,6 +8,7 @@
 #include "cmap.h"
 #include "types.h"
 #include "Scoped_Lock.h"
+#include "mmap.h"
 
 #include "../protobuf/connect.pb.h""
 #include "../protobuf/disconn.pb.h"
@@ -15,12 +16,15 @@
 #include "../protobuf/init.pb.h"
 #include "../protobuf/moveuser.pb.h"
 #include "../protobuf/setuser.pb.h"
+#include "../protobuf/setmonster.pb.h"
+#include "../protobuf/erasemonster.pb.h"
 
 #define PORT 78911
 
 #define SERVER_IP_ADDRESS /*"localhost"*/"10.1.7.10"
 
 SYNCHED_CHARACTER_MAP* SYNCHED_CHARACTER_MAP::instance;
+SYNCHED_MONSTER_MAP* SYNCHED_MONSTER_MAP::instance;
 
 void send_move(const SOCKET s,const char& c,const int& myID);
 void copy_to_buffer(char *buf, int* type, int* len, std::string* content);
@@ -29,6 +33,8 @@ void receiver(const SOCKET s, int* myID);
 void main(void)
 {
 	SYNCHED_CHARACTER_MAP* chars = SYNCHED_CHARACTER_MAP::getInstance();
+	SYNCHED_MONSTER_MAP* mons = SYNCHED_MONSTER_MAP::getInstance();
+
 	WSADATA wsaData;
 	SOCKET s;
 	SOCKADDR_IN ServerAddr;

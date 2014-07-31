@@ -74,12 +74,17 @@ void main() {
 
 	int generateNum = NumOfKight;
 	
+	//몬스터 동적할당으로 만들었으니 메모리 해제 신경써야 함. 아직은 그 부분 구현 안함! 잊지말 것!
 	while (generateNum--)
 	{
 		static int knightId = 1;
 		Knight* knight = new Knight(knightId);
-		
-
+		knight->setLv(1, 100, 5);
+		knight->setExp(0);
+		int knightX = knight->getX(), knightY = knight->getY();
+		E_List_Mon* elist = F_vector_M->get(knightX, knightY);
+		elist->push_back(knight);
+		++knightId;
 	}
 	
 	// 윈도우 소켓 2.2로 초기화

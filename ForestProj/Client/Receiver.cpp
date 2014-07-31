@@ -1,14 +1,17 @@
-#include <memory>
+﻿#include <memory>
 #include <cstdio>
 #include <WinSock2.h>
 #include <thread>
 #include <conio.h>
 #include <string>
+#include <iostream>
 
 #include "character.h"
 #include "cmap.h"
 #include "types.h"
 #include "Scoped_Lock.h"
+#include "monster.h"
+#include "mmap.h"
 
 #include "../protobuf/connect.pb.h""
 #include "../protobuf/disconn.pb.h"
@@ -16,6 +19,8 @@
 #include "../protobuf/init.pb.h"
 #include "../protobuf/moveuser.pb.h"
 #include "../protobuf/setuser.pb.h"
+#include "../protobuf/setmonster.pb.h"
+#include "../protobuf/erasemonster.pb.h"
 
 struct deleter {
 	void operator()(char *c){ delete[]c; }
@@ -24,6 +29,7 @@ struct deleter {
 void receiver(const SOCKET s, int* myID)
 {
 	SYNCHED_CHARACTER_MAP* chars = SYNCHED_CHARACTER_MAP::getInstance();
+	SYNCHED_MONSTER_MAP* mons = SYNCHED_MONSTER_MAP::getInstance();
 	char *buf;
 	TYPE type;
 	int len;
@@ -34,7 +40,7 @@ void receiver(const SOCKET s, int* myID)
 			printf("disconnected\n");
 			break;
 		}
-		recv(s, (char*)&len, sizeof(int), 0);
+		int chk2=recv(s, (char*)&len, sizeof(int), 0);
 
 		std::shared_ptr <char> ptr(new char[len], deleter());
 		int end = recv(s, ptr.get(), len, 0);
@@ -83,7 +89,7 @@ void receiver(const SOCKET s, int* myID)
 				Scoped_Wlock(&chars->srw);
 				chars->insert(id, myCharacter);
 			}
-			printf("���� ���ƿԴ�\n");
+			printf("내가 돌아왔다\n");
 			printf("My char id : %d, (%d,%d)\n", id, myCharacter->getX(), myCharacter->getY());
 			//printf("my lv : %d, hp : %d, power : %d, exp : %d\n",myCharacter->getLv(),myCharacter->getPrtHp(),myCharacter->getPower(),myCharacter->getExp());
 			contents.clear_data();
@@ -128,7 +134,46 @@ void receiver(const SOCKET s, int* myID)
 			}
 			contents.clear_data();
 		}
+		else if (type = PSET_MON)
+		{
+			SET_MONSTER::CONTENTS setmonsterContents;
+			setmonsterContents.ParseFromString(tmp);
 
+			for (int i = 0; i < setmonsterContents.data_size(); ++i)
+			{
+				auto tmpMon = setmonsterContents.data(i);
+				int monName = tmpMon.name();
+				Monster* mon;
+				if (monName == 1)
+				{
+					mon = new Knight(tmpMon.id());
+				}
+				// 일단 else문 달음. 이것 안하면 c4703에러뜸
+				else
+				{
+					mon = new Knight();
+				}
+				mon->setX(tmpMon.x());
+				mon->setY(tmpMon.y());
+				mon->setLv(tmpMon.lv(), tmpMon.maxhp(), tmpMon.power());
+				mon->setExp(tmpMon.exp());
+				{
+					Scoped_Wlock SW(&mons->srw);
+					mons->insert(tmpMon.id(), mon);//@@ monster map의 key를 id로 하고있으나, 차후에 pair<string,int>형태로 바꾸어야 할듯 함.
+				}
+				
+				printf("야생의 %s가 [id : %d (%d, %d) ]나타났습니다!\n",mon->getName().c_str(), mon->getID(), mon->getX(), mon->getY());
+				printf("상태 - 레벨 : %d, 체력 : ( %d / %d )\n", mon->getLv(), mon->getPrtHp(), mon->getMaxHp());
+			}
+			setmonsterContents.clear_data();
+		}
+		
+		else if (type = PERASE_MON)
+		{
+		}
+
+
+		tmp.clear();
 	}
 
 }

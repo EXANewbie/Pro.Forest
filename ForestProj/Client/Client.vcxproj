@@ -83,9 +83,11 @@
   <ItemGroup>
     <ClCompile Include="..\protobuf\connect.pb.cc" />
     <ClCompile Include="..\protobuf\disconn.pb.cc" />
+    <ClCompile Include="..\protobuf\erasemonster.pb.cc" />
     <ClCompile Include="..\protobuf\eraseuser.pb.cc" />
     <ClCompile Include="..\protobuf\init.pb.cc" />
     <ClCompile Include="..\protobuf\moveuser.pb.cc" />
+    <ClCompile Include="..\protobuf\setmonster.pb.cc" />
     <ClCompile Include="..\protobuf\setuser.pb.cc" />
     <ClCompile Include="Function.cpp" />
     <ClCompile Include="Receiver.cpp" />
@@ -94,6 +96,7 @@
   <ItemGroup>
     <ClInclude Include="character.h" />
     <ClInclude Include="cmap.h" />
+    <ClInclude Include="mmap.h" />
     <ClInclude Include="monster.h" />
     <ClInclude Include="Scoped_Lock.h" />
     <ClInclude Include="types.h" />
