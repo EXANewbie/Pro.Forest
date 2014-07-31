@@ -100,9 +100,11 @@
     <ClInclude Include="character.h" />
     <ClInclude Include="Client_Map.h" />
     <ClInclude Include="DMap.h" />
+    <ClInclude Include="DMap_monster.h" />
     <ClInclude Include="Memory_Block.h" />
     <ClInclude Include="Memory_Pool.h" />
     <ClInclude Include="msg.h" />
+    <ClInclude Include="monster.h" />
     <ClInclude Include="Scoped_Lock.h" />
     <ClInclude Include="Sock_set.h" />
     <ClInclude Include="types.h" />

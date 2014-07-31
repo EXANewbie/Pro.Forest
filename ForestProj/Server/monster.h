@@ -1,35 +1,50 @@
-#ifndef CHARACTER_H
-#define CHARACTER_H
+#ifndef MONSTER_H
+#define MONSTER_H
 
 #include <WinSock2.h>
 #include "Constant.h"
-
 int bigRand();
 
-class Character 
+class Monster
 {
-private :
-	SOCKET sock;
+public:	
+	Monster() = default;
+	virtual const int getID() = 0;
+	virtual const int getX() = 0;
+	virtual const int getY() = 0;
+	virtual const int getLv() = 0;
+	virtual const int getMaxHp() = 0;
+	virtual const int getPrtHp() = 0;
+	virtual const int getPower() = 0;
+	virtual const int getExp() = 0;
+
+	virtual void setID(const int ID) = 0;
+	virtual void setX(const int x) = 0;
+	virtual void setY(const int y) = 0;
+	virtual void setLv(const int lv, const int maxHp, const int power) = 0;
+	virtual void setExp(const int exp) = 0;
+	virtual void attacked(int damage) = 0;
+};
+
+class Knight : public Monster
+{
+private:
 	int ID;
 	int x, y;
 	int lv;
 	int prtHp, maxHp;
 	int power;
 	int exp;
-public :
-	Character() = default;
-	Character(int x, int y)
+public:
+	Knight() : Monster() {}
+	Knight(int x, int y) : Monster()
 	{
 		this->x = x;
 		this->y = y;
 	}
-	Character(int ID) : Character(bigRand()%(WIDTH+1), bigRand()%(HEIGHT+1))
+	Knight(int ID) : Knight(bigRand() % (WIDTH + 1), bigRand() % (HEIGHT + 1))
 	{
 		this->ID = ID;
-	}
-	const int getSock()
-	{
-		return sock;
 	}
 	const int getID()
 	{
@@ -64,10 +79,6 @@ public :
 		return exp;
 	}
 
-	void setSock(const SOCKET sock)
-	{
-		this->sock = sock;
-	}
 	void setID(const int ID)
 	{
 		this->ID = ID;
@@ -97,6 +108,7 @@ public :
 		prtHp -= damage;
 		if (prtHp <= 0) prtHp = 0;
 	}
+
 };
 
 #endif

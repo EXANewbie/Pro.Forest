@@ -9,8 +9,11 @@
 #include "Completion_Port.h"
 #include "Sock_set.h"
 #include "Memory_Pool.h"
+#include "Constant.h"
+#include "monster.h"
 
 #include "DMap.h"
+#include "DMap_monster.h"
 
 unsigned WINAPI Server_Worker(LPVOID);
 
@@ -21,6 +24,8 @@ Memory_Pool *Memory_Pool::instance;
 F_Vector *F_Vector::instance;
 Access_Map *Access_Map::instance;
 Check_Map *Check_Map::instance;
+F_Vector_Mon *F_Vector_Mon::instance;
+Access_Map_Mon *Access_Map_Mon::instance;
 
 using std::cout;
 using std::endl;
@@ -35,14 +40,16 @@ void main() {
 #ifdef PACKET_SIZE_TEST
 	test(30000);
 #endif
+
 	Sock_set *Sock_set = Sock_set::getInstance();
 	ioInfo_Pool *ioInfo_Pool = ioInfo_Pool::getInstance();
 	Handler_Pool *Handler_Pool = Handler_Pool::getInstance();
 	Memory_Pool *Memory_Pool = Memory_Pool::getInstance();
-
-	F_Vector::makeThis();
-	Access_Map::makeThis();
-
+	F_Vector *F_vector = F_Vector::getInstance();
+	Access_Map * A_Map = Access_Map::getInstance();
+	F_Vector_Mon *F_vector_M = F_Vector_Mon::getInstance();
+	Access_Map_Mon * A_Map_M = Access_Map_Mon::getInstance();
+	
 	WSADATA wsaData;
 	SYSTEM_INFO sysInfo;
 	LPPER_IO_DATA ioInfo;
@@ -57,8 +64,17 @@ void main() {
 
 	int ClientAddrLen = sizeof(ClientAddr); // 클라이언트 어드레스의 길이를 저장
 
-	// 윈도우 소켓 2.2로 초기화
+	int generateNum = NumOfKight;
 	
+	while (generateNum--)
+	{
+		static int knightId = 1;
+		Knight* knight = new Knight(knightId);
+		
+
+	}
+	
+	// 윈도우 소켓 2.2로 초기화
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != NULL ) {
 		printLog("WASStartup failed with error \n");
 		return;

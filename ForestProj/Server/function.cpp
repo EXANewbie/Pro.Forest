@@ -138,7 +138,6 @@ void unpack(msg message, char *buf, int *size)
 
 void closeClient(SOCKET sock, int id, Character* myChar)
 {
-//	Client_Map *CMap = Client_Map::getInstance();
 	auto FVEC = F_Vector::getInstance();
 	auto elist = FVEC->get(myChar->getX(), myChar->getY());
 	auto Amap = Access_Map::getInstance();
@@ -155,8 +154,8 @@ void closeClient(SOCKET sock, int id, Character* myChar)
 		std::string bytestring;
 		contents.SerializeToString(&bytestring);
 		{
-			Scoped_Wlock(&Amap->slock);
-			Scoped_Wlock(&elist->slock);
+			Scoped_Wlock SW1(&Amap->slock);
+			Scoped_Wlock SW2(&elist->slock);
 			// 처음으로 소켓을 닫을 때.
 			make_vector_id_in_room_except_me(myChar, send_list, false/*not autolock*/);
 

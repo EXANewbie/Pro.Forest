@@ -79,8 +79,8 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::s
 	E_List* elist = FVEC->get(x, y);
 
 	{
-		Scoped_Wlock(&AMAP->slock);
-		Scoped_Wlock(&elist->slock);
+		Scoped_Wlock SW1(&AMAP->slock);
+		Scoped_Wlock SW2(&elist->slock);
 		AMAP->insert(char_id, c);
 		CMap->insert(handleInfo->hClntSock, char_id);
 		sock_set->erase(handleInfo->hClntSock);
@@ -103,7 +103,7 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::s
 	len = bytestring.length();
 
 	{
-		Scoped_Rlock(&elist->slock);
+		Scoped_Rlock SR(&elist->slock);
 		send_message(msg(PINIT, len, bytestring.c_str()), me, true);
 	}
 	receiver.clear();
@@ -126,9 +126,7 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::s
 	len = bytestring.length();
 
 	{
-		//@@@@@@@@@@@@@@@@@@@@@ 형 보여주기 위해서 일부러 남긴 것. SRWLock 두번 점유하려해도 문제 발생 안생긴다는....................??
-		Scoped_Rlock(&elist->slock);
-		Scoped_Rlock(&elist->slock);
+		Scoped_Rlock SR(&elist->slock);
 		make_vector_id_in_room_except_me(c, receiver, false/*autolock*/);
 
 		send_message(msg(PSET_USER, len, bytestring.c_str()), receiver, false);
@@ -210,7 +208,7 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 
 	// 나와 같은방에 있는 친구들은 누구?
 	{
-		Scoped_Rlock(&elist->slock);
+		Scoped_Rlock SR(&elist->slock);
 		make_vector_id_in_room_except_me(pCharacter, charId_in_room_except_me, false/*autolock*/);
 
 		for (int i = 0; i < charId_in_room_except_me.size(); ++i)
@@ -255,7 +253,7 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 
 	// 캐릭터를 해당 좌표만큼 이동시킴
 	{
-		Scoped_Wlock(&elist->slock);
+		Scoped_Wlock SW(&elist->slock);
 		elist->erase(cur_id);
 	}
 	int newX = x + x_off, newY = y + y_off;
@@ -264,7 +262,7 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 
 	elist = FVEC->get(newX, newY);
 	{
-		Scoped_Wlock(&elist->slock);
+		Scoped_Wlock SW(&elist->slock);
 		elist->push_back(pCharacter);
 	}
 
@@ -285,7 +283,7 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 
 	// 나와 같은방에 있는 친구들은 누구?
 	{
-		Scoped_Rlock(&elist->slock);
+		Scoped_Rlock SR(&elist->slock);
 		make_vector_id_in_room_except_me(pCharacter, charId_in_room_except_me, false/*autolock*/);
 
 		// 새로운 방의 유저들에게 내가 등장함을 알림

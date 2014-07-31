@@ -111,14 +111,12 @@ private:
 public:
 	static F_Vector* getInstance()
 	{
+		if (instance == NULL)
+		{
+			instance = new F_Vector();
+		}
 		return instance;
 	}
-
-	static void makeThis() {
-		if (instance == nullptr)
-			instance = new F_Vector();
-	}
-
 	listptr get(int x, int y) {
 		return vec[x][y];
 	}
@@ -145,15 +143,13 @@ private:
 public:
 	static Access_Map* getInstance()
 	{
-		return instance;
-	}
-	static void makeThis()
-	{
-		if (instance == nullptr)
+		if (instance == NULL)
 		{
 			instance = new Access_Map();
 		}
+		return instance;
 	}
+
 	void insert(int id, Character *c)
 	{
 		charMap.insert(pair<int, Character *>(id, c));
