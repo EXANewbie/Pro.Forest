@@ -32,6 +32,11 @@ public:
 	virtual void attacked(int damage) = 0;
 
 	virtual void getNextOffset(int bef_x_off, int bef_y_off, int *nxt_x_off, int *nxt_y_off) = 0;
+	virtual void SET_BATTLE_MODE() = 0;
+	virtual void SET_PEACE_MODE() = 0;
+
+	virtual void CONTINUE_BATTLE_MODE(int user_id,int attack_type) = 0;
+	virtual void CONTINUE_PEACE_MODE(int bef_x_off,int bef_y_off) = 0;
 
 	virtual PSRWLOCK getLock() = 0;
 };
@@ -62,6 +67,7 @@ public:
 	{
 		this->ID = ID;
 		state = NULL;
+		InitializeSRWLock(&srw);
 	}
 	const int getName()
 	{
@@ -138,12 +144,18 @@ public:
 		if (prtHp <= 0) prtHp = 0;
 	}
 
-	void getNextOffset(int bef_x_off, int bef_y_off, int *nxt_x_off, int *nxt_y_off);
-	
 	PSRWLOCK getLock()
 	{
 		return &srw;
 	}
+
+	void getNextOffset(int bef_x_off, int bef_y_off, int *nxt_x_off, int *nxt_y_off);
+
+	void SET_BATTLE_MODE();
+	void SET_PEACE_MODE();
+
+	void CONTINUE_BATTLE_MODE(int user_id, int attack_type);
+	void CONTINUE_PEACE_MODE(int bef_x_off, int bef_y_off);
 };
 
 #endif
