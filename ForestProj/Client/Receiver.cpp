@@ -158,7 +158,7 @@ void receiver(const SOCKET s, int* myID)
 				mon->setExp(tmpMon.exp());
 				{
 					Scoped_Wlock SW(&mons->srw);
-					mons->insert(tmpMon.id(), mon);//@@ monster map의 key를 id로 하고있으나, 차후에 pair<string,int>형태로 바꾸어야 할듯 함.
+					mons->insert(tmpMon.id(), mon);
 				}
 				
 				printf("야생의 %s가 [id : %d (%d, %d) ]나타났습니다!\n",mon->getName().c_str(), mon->getID(), mon->getX(), mon->getY());

@@ -193,11 +193,11 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				continue;
 			}
 
-			printLog("AI Timer(%d)\n", ioInfo->type);
-
 			int type, len;
 			type = ioInfo->type;
 			len = ioInfo->len;
+	
+			printLog("AI Timer(%d)\n", ioInfo->type);
 
 			std::string readContents(ioInfo->wsaBuf.buf, len);
 			if (ioInfo->type == PHELLOWORLD)

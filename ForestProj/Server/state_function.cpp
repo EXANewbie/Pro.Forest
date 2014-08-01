@@ -75,6 +75,7 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::s
 	static int id = 0;
 
 	// 캐릭터 객체를 생성 후
+	// 캐릭터 생성하고 init 하는 것에 대해선 char lock할 필요가 없다.
 	char_id = InterlockedIncrement((unsigned *)&id);
 	Character* myChar = new Character(char_id);
 	myChar->setLv(1, HpPw[0][0], HpPw[0][1]);
@@ -148,7 +149,9 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, std::s
 		// 나와 같은방에 있는 친구들은 누구?
 		make_vector_id_in_room_except_me(myChar, receiver, false/*autolock*/);
 
-		send_message(msg(PSET_USER, len, bytestring.c_str()), receiver, false);
+		send_message(msg(PSET_USER, len, bytestring.c_str()), receiver, false);	
+		// 이제 생성한 char에 대해서 자료구조에 넣어주었고 내가등장함을 다른 유저에게 알렸다. 이제부턴 char 에대해서 lock을 해줘야 겠다.
+		// 근데 해줄 곳이 없네.. 캐릭터를 read write 하는 곳에 해야하는데 그런 곳이 없으니. 내 판단 맞나요?
 
 		setuserContents.clear_data();
 		bytestring.clear();
@@ -258,6 +261,7 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 	// 나와 같은방에 있는 친구들은 누구?
 	{
 		Scoped_Rlock SR(&elist->slock);
+		Scoped_Rlock SRU(pCharacter->getLock());
 		make_vector_id_in_room_except_me(pCharacter, charId_in_room_except_me, false/*autolock*/);
 
 		for (int i = 0; i < charId_in_room_except_me.size(); ++i)
@@ -296,7 +300,9 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 
 		// 기존 방의 몬스터들의 정보를 지운다.
 		E_List_Mon* elist_m = FVEC_M->get(x, y);
-		Scoped_Rlock SR_M(&elist_m->slock);
+
+		Scoped_Rlock SRM(&elist_m->slock);
+
 		make_monster_vector_in_room(pCharacter, vec_mon, false);
 		
 		for (int i = 0; i < vec_mon.size(); ++i)
@@ -312,7 +318,7 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 		bytestring.clear();
 		erasemonsterContents.clear_data();
 	}
-
+	
 	charId_in_room_except_me.clear();
 	vec_mon.clear();
 
@@ -322,16 +328,18 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 		elist->erase(cur_id);
 	}
 	int newX = x + x_off, newY = y + y_off;
-	pCharacter->setX(newX);
-	pCharacter->setY(newY);
-
+	{
+		Scoped_Wlock SWU(pCharacter->getLock());
+		pCharacter->setX(newX);
+		pCharacter->setY(newY);
+	}
 	elist = FVEC->get(newX, newY);
 	{
 		Scoped_Wlock SW(&elist->slock);
 		elist->push_back(pCharacter);
 	}
 
-	//실제로 나를 움직임
+	//실제로 나를 움직임을 보냄.
 	{
 		auto moveuser = moveuserContents.add_data();
 		moveuser->set_id(cur_id);
@@ -349,6 +357,7 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 	// 나와 같은방에 있는 친구들은 누구?
 	{
 		Scoped_Rlock SR(&elist->slock);
+		Scoped_Rlock SRU(pCharacter->getLock());
 		make_vector_id_in_room_except_me(pCharacter, charId_in_room_except_me, false/*autolock*/);
 
 		// 새로운 방의 유저들에게 내가 등장함을 알림
