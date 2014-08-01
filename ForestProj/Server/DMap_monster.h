@@ -70,6 +70,7 @@ public:
 	}
 	list<Monster*>::iterator begin()	{ return clist.begin(); }
 	list<Monster*>::iterator end() { return clist.end(); }
+	bool empty() { return clist.empty(); }
 };
 
 class F_Vector_Mon

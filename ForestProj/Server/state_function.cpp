@@ -256,6 +256,28 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 		return;
 	}
 
+	// 지금 내가 있는 방에 몬스터가 있는지 확인을 하도록 하자. 몬스터와 함께있으면 못움직이게 할 것이기 때문.
+	{
+		E_List_Mon* elist_m = FVEC_M->get(x, y);
+		Scoped_Rlock SR(&elist_m->slock);
+		if (!elist_m->empty())
+		{
+			auto moveuser = moveuserContents.add_data();
+			moveuser->set_id(cur_id);
+			moveuser->set_xoff(0);
+			moveuser->set_yoff(0);
+			
+			moveuserContents.SerializeToString(&bytestring);
+			len = bytestring.size();
+
+			send_message(msg(PMOVE_USER, len, bytestring.c_str()), me, true);
+
+			eraseuserContents.clear_data();
+			bytestring.clear();
+			return;
+		}
+	}
+
 	// 기존의 방의 유저들의 정보를 삭제함
 
 	// 나와 같은방에 있는 친구들은 누구?
@@ -419,6 +441,8 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 		for (int i = 0; i < vec_mon.size(); ++i)
 		{
 			Monster* tmpMon = vec_mon[i];
+			//tmpMon->setState(BATTLE);
+
 			auto setmon = setmonsterContents.add_data();
 			setmon->set_id(tmpMon->getID());
 			setmon->set_x(tmpMon->getX());
@@ -438,6 +462,7 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 		bytestring.clear();
 		setmonsterContents.clear_data();
 	}
+
 
 	charId_in_room_except_me.clear();
 	vec_mon.clear();

@@ -103,6 +103,12 @@ void receiver(const SOCKET s, int* myID)
 			{
 				auto user = contents.data(i);
 				int id = user.id(), x_off = user.xoff(), y_off = user.yoff();
+				
+				if (x_off == 0 && y_off == 0) {
+					printf("몬스터와 전투중입니다. 움직일수 없습니다.\n");
+					break;
+				}
+
 				Character* myChar;
 				{
 					Scoped_Rlock SR(&chars->srw);

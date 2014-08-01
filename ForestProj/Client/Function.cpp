@@ -27,9 +27,9 @@ void send_move(const SOCKET s, const char& c, const int& myID)
 	int len;
 	TYPE type = PMOVE_USER;
 
-	if (c == 'w') { x_off = 0; y_off = -1; }
+	if (c == 'w') { x_off = 0; y_off = 1; }
 	else if (c == 'a'){ x_off = -1;	y_off = 0; }
-	else if (c == 's'){ x_off = 0;	y_off = 1; }
+	else if (c == 's'){ x_off = 0;	y_off = -1; }
 	else if (c == 'd'){ x_off = 1;	y_off = 0; }
 
 	MOVE_USER::CONTENTS contents;
