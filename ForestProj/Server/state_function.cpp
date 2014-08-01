@@ -450,7 +450,6 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 			setmon->set_maxhp(tmpMon->getMaxHp());
 			setmon->set_power(tmpMon->getPower());
 			setmon->set_exp(tmpMon->getExp());
-
 		}
 		setmonsterContents.SerializeToString(&bytestring);
 		len = bytestring.length();
