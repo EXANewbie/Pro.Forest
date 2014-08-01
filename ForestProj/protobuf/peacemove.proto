@@ -1,0 +1,9 @@
+package PEACEMOVE;
+
+message CONTENTS
+{
+	optional int32 id = 1;
+	optional int32 state = 2;
+	optional int32 xoff = 3;
+	optional int32 yoff = 4;
+}

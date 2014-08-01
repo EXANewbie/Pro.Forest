@@ -87,9 +87,11 @@
     <ClCompile Include="..\protobuf\eraseuser.pb.cc" />
     <ClCompile Include="..\protobuf\init.pb.cc" />
     <ClCompile Include="..\protobuf\moveuser.pb.cc" />
+    <ClCompile Include="..\protobuf\peacemove.pb.cc" />
     <ClCompile Include="..\protobuf\setmonster.pb.cc" />
     <ClCompile Include="..\protobuf\setuser.pb.cc" />
     <ClCompile Include="Client_Map.cpp" />
+    <ClCompile Include="Method.cpp" />
     <ClCompile Include="state_function.cpp" />
     <ClCompile Include="TimerThread.cpp" />
     <ClInclude Include="Check_Map.h" />

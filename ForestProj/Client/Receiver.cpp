@@ -86,10 +86,9 @@ void receiver(const SOCKET s, int* myID)
 			myCharacter->setLv(lv,maxHp,power);
 			myCharacter->setExp(exp);
 			{
-				Scoped_Wlock(&chars->srw);
+				Scoped_Wlock SW(&chars->srw);
 				chars->insert(id, myCharacter);
 			}
-			printf("내가 돌아왔다\n");
 			printf("My char id : %d, (%d,%d)\n", id, myCharacter->getX(), myCharacter->getY());
 			//printf("my lv : %d, hp : %d, power : %d, exp : %d\n",myCharacter->getLv(),myCharacter->getPrtHp(),myCharacter->getPower(),myCharacter->getExp());
 			contents.clear_data();

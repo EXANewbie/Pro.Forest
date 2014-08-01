@@ -83,6 +83,9 @@ public:
 
 		return value;
 	}
+	inline int size() {
+		return clist.size();
+	}
 	list<Charptr>::iterator begin()	{ return clist.begin(); }
 	list<Charptr>::iterator end() { return clist.end(); }
 };

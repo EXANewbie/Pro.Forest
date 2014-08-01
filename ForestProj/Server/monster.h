@@ -4,6 +4,7 @@
 #include <WinSock2.h>
 #include <string>
 #include "Constant.h"
+#include "types.h"
 
 int bigRand();
 
@@ -27,6 +28,10 @@ public:
 	virtual void setLv(const int lv, const int maxHp, const int power) = 0;
 	virtual void setExp(const int exp) = 0;
 	virtual void attacked(int damage) = 0;
+
+	virtual void getNextOffset(int bef_x_off, int bef_y_off, int *nxt_x_off, int *nxt_y_off);
+
+	virtual PSRWLOCK getLock();
 };
 
 class Knight : public Monster
@@ -40,6 +45,8 @@ private:
 	int power;
 	int exp;
 	int state;
+
+	SRWLOCK slock;
 public:
 	Knight() : Monster() { name = 1; }
 	Knight(int x, int y) : Monster()
@@ -49,7 +56,7 @@ public:
 		this->y = y;
 		state = PEACE;
 	}
-	Knight(int ID) : Knight(/*bigRand() % (WIDTH + 1)*/22, /*bigRand() % (HEIGHT + 1)*/22)
+	Knight(int ID) : Knight(bigRand() % (WIDTH + 1), bigRand() % (HEIGHT + 1))
 	{
 		this->ID = ID;
 		state = PEACE;
@@ -128,6 +135,12 @@ public:
 		if (prtHp <= 0) prtHp = 0;
 	}
 
+	void getNextOffset(int bef_x_off, int bef_y_off, int *nxt_x_off, int *nxt_y_off);
+	
+	PSRWLOCK getLock()
+	{
+		return &slock;
+	}
 };
 
 #endif

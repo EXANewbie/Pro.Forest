@@ -32,8 +32,9 @@ void remove_valid_client(LPPER_HANDLE_DATA, LPPER_IO_DATA);
 void copy_to_buffer(char *, int **, int);
 void copy_to_param(int **, int, char *);
 
+void make_vector_id_in_room(E_List *, vector<int>&);
 
-bool Boundary_Check(const int, const int, int, int);
+bool Boundary_Check(int, const int, const int, int, int);
 int bigRand();
 
 void set_single_cast(Character* c, vector<Character *>& send_list)
@@ -279,22 +280,22 @@ bool Boundary_Check(int id, const int cX, const int cY, int x_off, int y_off)
 	bool checker = true;
 	if (cX + x_off < 0)
 	{
-		printLog("User(%d) try to move left at left boundary.", id);
+		printLog("Object(%d) try to move left at left boundary.", id);
 		checker = false;
 	}
 	if (cX + x_off > WIDTH)
 	{
-		printLog("User(%d) try to move right at right boundary.", id);
+		printLog("Object(%d) try to move right at right boundary.", id);
 		checker = false;
 	}
 	if (cY + y_off < 0)
 	{
-		printLog("User(%d) try to move up at top boundary.", id);
+		printLog("Object(%d) try to move up at top boundary.", id);
 		checker = false;
 	}
 	if (cY + y_off > HEIGHT)
 	{
-		printLog("User(%d) try to move down at bottom boundary.", id);
+		printLog("Object(%d) try to move down at bottom boundary.", id);
 		checker = false;
 	}
 
@@ -304,4 +305,11 @@ bool Boundary_Check(int id, const int cX, const int cY, int x_off, int y_off)
 int bigRand()
 {
 	return (rand() << 15) + rand();
+}
+
+void make_vector_id_in_room(E_List *elist, vector<int>& send_list) {
+	for (auto i = elist->begin(); i != elist->end(); i++)
+	{
+		send_list.push_back((*i)->getID());
+	}
 }

@@ -8,6 +8,7 @@
 #include "../protobuf/init.pb.h"
 #include "../protobuf/setmonster.pb.h"
 #include "../protobuf/erasemonster.pb.h"
+#include "../protobuf/peacemove.pb.h"
 
 #include "Check_Map.h"
 #include "types.h"
@@ -39,6 +40,7 @@ void copy_to_buffer(char *, int **, int);
 void copy_to_param(int **, int, char *);
 
 void Handler_HELLOWORLD(LPPER_IO_DATA ioInfo, std::string* readContents);
+void Handler_PEACEMOVE(LPPER_IO_DATA, std::string*);
 
 bool Boundary_Check(int, const int,const int, int, int);
 
@@ -294,7 +296,7 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 
 		// 기존 방의 몬스터들의 정보를 지운다.
 		E_List_Mon* elist_m = FVEC_M->get(x, y);
-		Scoped_Rlock(&elist_m->slock);
+		Scoped_Rlock SR_M(&elist_m->slock);
 		make_monster_vector_in_room(pCharacter, vec_mon, false);
 		
 		for (int i = 0; i < vec_mon.size(); ++i)
@@ -402,7 +404,7 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 		
 		// 새로운 방의 몬스터들의 정보를 가져온다.
 		E_List_Mon* elist_m = FVEC_M->get(x, y);
-		Scoped_Rlock(&elist_m->slock);
+		Scoped_Rlock SR_M(&elist_m->slock);
 		make_monster_vector_in_room(pCharacter, vec_mon, false);
 
 		for (int i = 0; i < vec_mon.size(); ++i)
@@ -456,7 +458,7 @@ void Handler_HELLOWORLD(LPPER_IO_DATA ioInfo, std::string* readContents) {
 		MemoryPool->pushBlock(ioInfo->block);
 	}
 	ioInfoPool->pushBlock(ioInfo);
-	printf("Hello\n");
+	printLog("Hello\n");
 	
 	auto timer = Timer::getInstance();
 
@@ -469,4 +471,65 @@ void Handler_HELLOWORLD(LPPER_IO_DATA ioInfo, std::string* readContents) {
 	memcpy(arr + sizeof(int), &len, sizeof(int));
 	memcpy(arr + 2 * sizeof(int), str, len);
 	timer->addSchedule(1000, string(arr,len+2*sizeof(int)));
+}
+
+void Handler_PEACEMOVE(LPPER_IO_DATA ioInfo, std::string* readContents) {
+	PEACEMOVE::CONTENTS peacemove;
+
+	peacemove.ParseFromString(*readContents);
+	int ID = peacemove.id();
+
+	auto AMAP_MON = Access_Map_Mon::getInstance();
+	Monster* monster;
+	{
+		Scoped_Rlock SR(&AMAP_MON->slock);
+		monster = AMAP_MON->find(ID);
+	}
+	
+	{
+		Scoped_Wlock SW(monster->getLock());
+		int bef_x_off, bef_y_off;
+		
+		if (peacemove.has_xoff() == true && peacemove.has_yoff() == true )
+		{
+			bef_x_off = peacemove.xoff();
+			bef_y_off = peacemove.yoff();
+		}
+		else
+		{
+			bef_x_off = 0;
+			bef_y_off = 0;
+		}
+
+		int nxt_x_off = 0, nxt_y_off = 0;
+
+		monster->getNextOffset(bef_x_off, bef_y_off, &nxt_x_off, &nxt_y_off);
+
+		// 더 이상 움직일 곳이 없는 경우 ㅠ.ㅠ
+		if (nxt_x_off == 0 && nxt_y_off == 0)
+		{
+
+		}
+		else
+		{
+			monster->setX(monster->getX() + nxt_x_off);
+			monster->setY(monster->getY() + nxt_y_off);
+
+			auto elist = F_Vector::getInstance()->get(monster->getX(), monster->getY());
+			Scoped_Rlock(&elist->slock);
+			int size = elist->size();
+
+			// 유저가 존재합니다!! W.A.R.N.I.N.G !! W.A.R.N.I.N.G !!
+			if (size > 0)
+			{
+				monster->setState(BATTLE);
+				// 여기서부터 배틀모드가 되었다는걸 타이머에게 전송해줘요~
+			}
+			else
+			{
+				// 이동해도 되요~~ ^-^
+			}
+		}
+	}
+	
 }
