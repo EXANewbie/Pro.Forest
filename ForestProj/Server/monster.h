@@ -20,12 +20,14 @@ public:
 	virtual const int getPrtHp() = 0;
 	virtual const int getPower() = 0;
 	virtual const int getExp() = 0;
+	virtual const int getState() = 0;
 
 	virtual void setID(const int ID) = 0;
 	virtual void setX(const int x) = 0;
 	virtual void setY(const int y) = 0;
 	virtual void setLv(const int lv, const int maxHp, const int power) = 0;
 	virtual void setExp(const int exp) = 0;
+	virtual void setState(const int state) = 0;
 	virtual void attacked(int damage) = 0;
 };
 
@@ -47,12 +49,12 @@ public:
 		name = 1;
 		this->x = x;
 		this->y = y;
-		state = PEACE;
+		state = NULL;
 	}
 	Knight(int ID) : Knight(/*bigRand() % (WIDTH + 1)*/22, /*bigRand() % (HEIGHT + 1)*/22)
 	{
 		this->ID = ID;
-		state = PEACE;
+		state = NULL;
 	}
 	const int getName()
 	{
@@ -118,8 +120,9 @@ public:
 	{
 		this->exp = exp;
 	}
-	void setState()
+	void setState(const int state)
 	{
+		this->state = state;
 	}
 
 	void attacked(int damage)

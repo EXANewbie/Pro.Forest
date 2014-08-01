@@ -16,9 +16,13 @@ private :
 	int prtHp, maxHp;
 	int power;
 	int exp;
+	SRWLOCK srw;
 public :
-	Character() = default;
-	Character(int x, int y)
+	Character()
+	{
+		InitializeSRWLock(&srw);
+	}
+	Character(int x, int y) :Character()
 	{
 		this->x = x;
 		this->y = y;
@@ -96,6 +100,11 @@ public :
 	{
 		prtHp -= damage;
 		if (prtHp <= 0) prtHp = 0;
+	}
+
+	PSRWLOCK getLock()
+	{
+		return &srw;
 	}
 };
 
