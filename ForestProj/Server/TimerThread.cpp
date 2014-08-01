@@ -16,7 +16,7 @@ void TimerThreadProc(Timer* T) {
 
 			memcpy(&type, i->c_str(), sizeof(int));
 			memcpy(&len, i->c_str() + sizeof(int), sizeof(int));
-			string contents(i->c_str(), len);
+			string contents(i->c_str()+2*sizeof(int), len);
 
 			memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
 			ioInfo->wsaBuf.len = len;	/* 이 부분에서 BUFFER_SIZE를 필히 수정해야됨, (엄밀히 말하면 8바이트만 먼저 받도록)*/

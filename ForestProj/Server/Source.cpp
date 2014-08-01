@@ -5,6 +5,8 @@
 #include <WinSock2.h>
 #include <Windows.h>
 
+#include "../protobuf/peacemove.pb.h"
+
 #include "Check_Map.h"
 #include "Completion_Port.h"
 #include "Sock_set.h"
@@ -14,6 +16,7 @@
 #include "monster.h"
 
 #include "TimerThread.h"
+#include "msg.h"
 
 #include "DMap.h"
 #include "DMap_monster.h"
@@ -32,6 +35,7 @@ Access_Map_Mon *Access_Map_Mon::instance;
 
 Timer *Timer::instance;
 
+void unpack(msg,char*,int*);
 
 using std::cout;
 using std::endl;
@@ -47,14 +51,14 @@ void main() {
 	test(30000);
 #endif
 
-	Sock_set *Sock_set = Sock_set::getInstance();
-	ioInfo_Pool *ioInfo_Pool = ioInfo_Pool::getInstance();
-	Handler_Pool *Handler_Pool = Handler_Pool::getInstance();
-	Memory_Pool *Memory_Pool = Memory_Pool::getInstance();
-	F_Vector *F_vector = F_Vector::getInstance();
-	Access_Map * A_Map = Access_Map::getInstance();
-	F_Vector_Mon *F_vector_M = F_Vector_Mon::getInstance();
-	Access_Map_Mon * A_Map_M = Access_Map_Mon::getInstance();
+	Sock_set *SockSet = Sock_set::getInstance();
+	ioInfo_Pool *ioInfoPool = ioInfo_Pool::getInstance();
+	Handler_Pool *HandlerPool = Handler_Pool::getInstance();
+	Memory_Pool *MemoryPool = Memory_Pool::getInstance();
+	F_Vector *FVEC = F_Vector::getInstance();
+	Access_Map * AMAP = Access_Map::getInstance();
+	F_Vector_Mon *FVEC_M = F_Vector_Mon::getInstance();
+	Access_Map_Mon * AMAP_M = Access_Map_Mon::getInstance();
 	
 	Timer *timer = Timer::getInstance();
 
@@ -81,10 +85,15 @@ void main() {
 		Knight* knight = new Knight(knightId);
 		knight->setLv(1, 100, 5);
 		knight->setExp(0);
+
 		int knightX = knight->getX(), knightY = knight->getY();
-		E_List_Mon* elist = F_vector_M->get(knightX, knightY);
+		E_List_Mon* elist = FVEC_M->get(knightX, knightY);
 		elist->push_back(knight);
+
+		AMAP_M->insert(knightId, knight);
 		++knightId;
+
+		knight->SET_PEACE_MODE();
 	}
 	
 	// 윈도우 소켓 2.2로 초기화
@@ -156,7 +165,7 @@ void main() {
 		}
 		printLog("User (Socket : %d) is connected\n", NewConnection);
 
-		handleInfo = Handler_Pool->popBlock();
+		handleInfo = HandlerPool->popBlock();
 		handleInfo->hClntSock = NewConnection;
 		
 
@@ -165,7 +174,7 @@ void main() {
 		CreateIoCompletionPort((HANDLE)NewConnection, hComPort, (DWORD)handleInfo,0);
 
 		//ioInfo = (LPPER_IO_DATA)malloc(sizeof(PER_IO_DATA));
-		ioInfo = ioInfo_Pool->popBlock();
+		ioInfo = ioInfoPool->popBlock();
 		memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
 		ioInfo->wsaBuf.len = HEADER_SIZE;	/* 이 부분에서 BUFFER_SIZE를 필히 수정해야됨, (엄밀히 말하면 8바이트만 먼저 받도록)*/
 		ioInfo->wsaBuf.buf = ioInfo->buffer;
@@ -177,7 +186,7 @@ void main() {
 		ioInfo->offset = UNDEFINED;
 		ioInfo->block = nullptr;
 				
-		Sock_set->insert(NewConnection);
+		SockSet->insert(NewConnection);
 		WSARecv(handleInfo->hClntSock, &(ioInfo->wsaBuf), 1, &recvBytes, &flags, &(ioInfo->overlapped), NULL);
 
 		// GET IP ADDRESS
