@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="..\protobuf\erasemonster.pb.cc">
+    <ClCompile Include="..\protobuf\connect.pb.cc">
       <Filter>pb_files</Filter>
     </ClCompile>
     <ClCompile Include="..\protobuf\disconn.pb.cc">
       <Filter>pb_files</Filter>
     </ClCompile>
-    <ClCompile Include="..\protobuf\connect.pb.cc">
+    <ClCompile Include="..\protobuf\erasemonster.pb.cc">
       <Filter>pb_files</Filter>
     </ClCompile>
     <ClCompile Include="..\protobuf\eraseuser.pb.cc">
@@ -19,16 +19,43 @@
     <ClCompile Include="..\protobuf\moveuser.pb.cc">
       <Filter>pb_files</Filter>
     </ClCompile>
+    <ClCompile Include="..\protobuf\setuser.pb.cc">
+      <Filter>pb_files</Filter>
+    </ClCompile>
     <ClCompile Include="..\protobuf\setmonster.pb.cc">
       <Filter>pb_files</Filter>
     </ClCompile>
-    <ClCompile Include="..\protobuf\setuser.pb.cc">
+    <ClCompile Include="..\protobuf\peacemove.pb.cc">
       <Filter>pb_files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\protobuf\userattack.pb.cc">
+      <Filter>pb_files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\protobuf\userattackresult.pb.cc">
+      <Filter>pb_files</Filter>
+    </ClCompile>
+    <ClCompile Include="TimerThread.cpp">
+      <Filter>Timer</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_PCONNECT.cpp">
+      <Filter>state_function</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_PDISCONN.cpp">
+      <Filter>state_function</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_PMOVEUSER.cpp">
+      <Filter>state_function</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_PUSER_ATTACK.cpp">
+      <Filter>state_function</Filter>
     </ClCompile>
     <ClCompile Include="Client_Map.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="function.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Method.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Server_Worker.cpp">
@@ -37,37 +64,11 @@
     <ClCompile Include="Source.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TimerThread.cpp">
-      <Filter>Timer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\protobuf\peacemove.pb.cc">
-      <Filter>pb_files</Filter>
-    </ClCompile>
-    <ClCompile Include="Method.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\protobuf\userattack.pb.cc">
-      <Filter>pb_files</Filter>
-    </ClCompile>
-    <ClCompile Include="Handler_PMOVEUSER.cpp">
-      <Filter>state_function</Filter>
-    </ClCompile>
-    <ClCompile Include="Handler_PDISCONN.cpp">
-      <Filter>state_function</Filter>
-    </ClCompile>
-    <ClCompile Include="Handler_PCONNECT.cpp">
-      <Filter>state_function</Filter>
+    <ClCompile Include="Handler_HELLOWORLD.cpp">
+      <Filter>monster_state</Filter>
     </ClCompile>
     <ClCompile Include="Handler_PEACEMOVE.cpp">
       <Filter>monster_state</Filter>
-    </ClCompile>
-    <ClCompile Include="Handler_HELLOWORLD.cpp">
-      <Filter>monster_state</Filter>
-    <ClCompile Include="Handler_PUSER_ATTACK.cpp">
-      <Filter>state_function</Filter>
-    </ClCompile>
-    <ClCompile Include="..\protobuf\userattackresult.pb.cc">
-      <Filter>pb_files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -92,16 +93,10 @@
     <ClInclude Include="DMap_monster.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Memory_Block.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Memory_Pool.h">
+    <ClInclude Include="msg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="monster.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Scoped_Lock.h">
@@ -116,25 +111,31 @@
     <ClInclude Include="TimerThread.h">
       <Filter>Timer</Filter>
     </ClInclude>
+    <ClInclude Include="Memory_Block.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory_Pool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{17b7a802-0acb-44cd-8fa4-7fff0ac1aff1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{3dbe0dc5-f30f-44d3-a3f7-6f6f5b97e180}</UniqueIdentifier>
+      <UniqueIdentifier>{b2e47ef0-e946-4fc2-95c3-a6991aad1493}</UniqueIdentifier>
     </Filter>
     <Filter Include="pb_files">
-      <UniqueIdentifier>{6ddece88-f4c1-448b-baa3-966c3b823c2f}</UniqueIdentifier>
+      <UniqueIdentifier>{ace674f4-995e-47df-865d-55150ff659ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{70fd830a-f390-42a1-93f2-46f41de53953}</UniqueIdentifier>
     </Filter>
     <Filter Include="Timer">
-      <UniqueIdentifier>{68b24116-6a68-4351-bd62-17d19533c8c6}</UniqueIdentifier>
+      <UniqueIdentifier>{40e24baf-1ac9-445c-9187-51aed0e5710e}</UniqueIdentifier>
     </Filter>
     <Filter Include="state_function">
-      <UniqueIdentifier>{9e3c4571-2b7f-40c2-82a4-a6e740307d9a}</UniqueIdentifier>
+      <UniqueIdentifier>{8b02e2cb-9f5f-4bc6-9955-2e193c385658}</UniqueIdentifier>
     </Filter>
     <Filter Include="monster_state">
-      <UniqueIdentifier>{10626b44-fd72-440c-9f60-55d402efb3d2}</UniqueIdentifier>
+      <UniqueIdentifier>{8ca0fa20-7143-4e74-a34a-e9a73f3f6130}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -175,7 +175,7 @@ void receiver(const SOCKET s, int* myID, Character* myChar)
 			setmonsterContents.clear_data();
 		}
 		
-		else if (type = PERASE_MON)
+		else if (type == PERASE_MON)
 		{
 			 ERASE_MONSTER::CONTENTS erasemonsterContents;
 			erasemonsterContents.ParseFromString(tmp);
@@ -198,7 +198,10 @@ void receiver(const SOCKET s, int* myID, Character* myChar)
 			erasemonsterContents.clear_data();
 		}
 
-
+		else if (type == PUSER_ATTCK_RESULT)
+		{
+			printf("확인\n");
+		}
 		tmp.clear();
 	}
 

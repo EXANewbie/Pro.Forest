@@ -55,9 +55,10 @@ private:
 
 	SRWLOCK srw;
 public:
-	Knight() : Monster() { name = 1; }
+	Knight() : Monster() { InitializeSRWLock(&srw);  name = 1; }
 	Knight(int x, int y) : Monster()
 	{
+		InitializeSRWLock(&srw);
 		name = 1;
 		this->x = x;
 		this->y = y;

@@ -160,8 +160,8 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 			{
 				Scoped_Rlock SR(atkMon->getLock());
 				userattack->set_id_m(atkMon->getID());
-				userattack->set_x(atkMon->getX());
-				userattack->set_y(atkMon->getY());
+				userattack->set_x_m(atkMon->getX());
+				userattack->set_y_m(atkMon->getY());
 			}
 			std::string bytestring;
 			userattackContents.SerializeToString(&bytestring);

@@ -37,11 +37,16 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 		}
 
 		// 유저데미지 계산.
-		int damage = myChar->getPower();
-		
+		int damage;
+		{
+			Scoped_Rlock SR(myChar->getLock());
+			damage = myChar->getPower();
+		}
 		// 몬스터 객체에 데미지 입힘.
-		mon->attacked(damage);
-
+		{
+			Scoped_Rlock SR(mon->getLock());
+			mon->attacked(damage);
+		}
 		// 몬스터 객체가 데미지 당한 량을 유저에게 알림.
 
 		USER_ATTACK_RESULT::CONTENTS userattackresultContents;
@@ -52,7 +57,13 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 		userattackresult->set_y_m(y_mon);
 		userattackresult->set_damage(damage);
 
-		send_message(msg(PUSER_ATTCK_RESULT)
+		std::string bytestring;
+		userattackresult->SerializeToString(&bytestring);
+		int len = bytestring.length();
+		vector<Character*> me;
+		me.push_back(myChar);
+
+		send_message(msg(PUSER_ATTCK_RESULT, len, bytestring.c_str()), me, false);
 
 	}
 }
