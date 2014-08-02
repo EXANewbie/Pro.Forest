@@ -90,7 +90,11 @@
     <ClCompile Include="..\protobuf\peacemove.pb.cc" />
     <ClCompile Include="..\protobuf\setmonster.pb.cc" />
     <ClCompile Include="..\protobuf\setuser.pb.cc" />
+    <ClCompile Include="..\protobuf\userattack.pb.cc" />
     <ClCompile Include="Client_Map.cpp" />
+    <ClCompile Include="Handler_PCONNECT.cpp" />
+    <ClCompile Include="Handler_PDISCONN.cpp" />
+    <ClCompile Include="Handler_PMOVEUSER.cpp" />
     <ClCompile Include="Method.cpp" />
     <ClCompile Include="state_function.cpp" />
     <ClCompile Include="TimerThread.cpp" />
