@@ -142,6 +142,7 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 		send_message(msg(PSET_USER, len, bytestring.c_str()), receiver, false);
 		// 이제 생성한 char에 대해서 자료구조에 넣어주었고 내가등장함을 다른 유저에게 알렸다. 이제부턴 char 에대해서 lock을 해줘야 겠다.
 		// 근데 해줄 곳이 없네.. 캐릭터를 read write 하는 곳에 해야하는데 그런 곳이 없으니. 내 판단 맞나요?
+		// RE : 굿굿!!
 
 		setuserContents.clear_data();
 		bytestring.clear();
@@ -188,6 +189,10 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 		for (int i = 0; i < vec_mon.size(); ++i)
 		{
 			Monster* tmpMon = vec_mon[i];
+			{
+				Scoped_Wlock(tmpMon->getLock());
+				tmpMon->SET_BATTLE_MODE();
+			}
 			auto setmon = setmonsterContents.add_data();
 			setmon->set_id(tmpMon->getID());
 			setmon->set_x(tmpMon->getX());
@@ -197,6 +202,16 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 			setmon->set_maxhp(tmpMon->getMaxHp());
 			setmon->set_power(tmpMon->getPower());
 			setmon->set_exp(tmpMon->getExp());
+
+			if (setmonsterContents.data_size() == SET_MONSTER_MAXIMUM)
+			{
+				setmonsterContents.SerializeToString(&bytestring);
+				len = bytestring.length();
+
+				send_message(msg(PSET_MON, len, bytestring.c_str()), me, false);
+				setmonsterContents.clear_data();
+				bytestring.clear();
+			}
 		}
 		setmonsterContents.SerializeToString(&bytestring);
 		len = bytestring.length();

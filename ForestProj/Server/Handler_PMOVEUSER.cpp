@@ -25,7 +25,6 @@
 #include "DMap_monster.h"
 #include "msg.h"
 */
-using std::string;
 
 bool Boundary_Check(int, const int, const int, int, int);
 void send_message(msg, vector<Character *> &, bool);
@@ -33,7 +32,9 @@ void make_vector_id_in_room_except_me(Character*, vector<Character *>&, bool);
 void make_monster_vector_in_room(Character* myChar, vector<Monster *>& send_list, bool autolocked);
 void printLog(const char *msg, ...);
 
-void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
+using std::string;
+
+void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 {
 	MOVE_USER::CONTENTS moveuserContents;
 	ERASE_USER::CONTENTS eraseuserContents;
@@ -255,7 +256,10 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 		for (int i = 0; i < vec_mon.size(); ++i)
 		{
 			Monster* tmpMon = vec_mon[i];
-			//tmpMon->setState(BATTLE);
+			{
+				Scoped_Wlock SW(tmpMon->getLock());
+				tmpMon->SET_BATTLE_MODE();
+			}
 
 			auto setmon = setmonsterContents.add_data();
 			setmon->set_id(tmpMon->getID());
@@ -266,6 +270,16 @@ void Handler_PMOVE_USER(Character *pCharacter, std::string* readContents)
 			setmon->set_maxhp(tmpMon->getMaxHp());
 			setmon->set_power(tmpMon->getPower());
 			setmon->set_exp(tmpMon->getExp());
+
+			if (setmonsterContents.data_size() == SET_MONSTER_MAXIMUM)
+			{
+				setmonsterContents.SerializeToString(&bytestring);
+				len = bytestring.length();
+				send_message(msg(PSET_MON, len, bytestring.c_str()), me, true);
+
+				bytestring.clear();
+				setmonsterContents.clear_data();
+			}
 		}
 		setmonsterContents.SerializeToString(&bytestring);
 		len = bytestring.length();

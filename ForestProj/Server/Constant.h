@@ -17,6 +17,9 @@ const int WIDTH = 50, HEIGHT = 50;
 const int MINIMUM_SET_USER_BLOCK_SIZE = 21;
 const int SET_USER_MAXIMUM = (2 * BLOCK_SIZE) / (3 * MINIMUM_SET_USER_BLOCK_SIZE);
 
+const int MINIMUM_SET_MONSTER_BLOCK_SIZE = 32;
+const int SET_MONSTER_MAXIMUM = (2 * BLOCK_SIZE) / (3 * MINIMUM_SET_MONSTER_BLOCK_SIZE);
+
 const int MINIMUM_ERASE_USER_BLOCK_SIZE = 4;
 const int ERASE_USER_MAXIMUM = BLOCK_SIZE / (2 * MINIMUM_ERASE_USER_BLOCK_SIZE);
 
@@ -26,6 +29,6 @@ const int MOVE_USER_MAXIMUM = (2 * BLOCK_SIZE) / (3 * MINIMUM_MOVE_USER_BLOCK_SI
 const int HpPw[5][2] = { { 300, 10 }, { 500, 20 }, { 800, 30 }, { 1100, 40 }, { 1500, 50 } };
 const int maxEx[5] = { 100, 300, 500, 700, 900 };
 
-const int NumOfKight = 50;
+const int NumOfKight = 500;
 
 #endif

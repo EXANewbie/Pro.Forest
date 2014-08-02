@@ -56,10 +56,31 @@ void Knight::getNextOffset(int bef_x_off, int bef_y_off, int *nxt_x_off, int *nx
 }
 
 void Knight::SET_BATTLE_MODE() {
+	if (state == BATTLE)
+		return;
+
 	state = BATTLE;
+	/*BATTLEATTACK::CONTENTS battlemsg;
+	battlemsg.set_id(ID);
+	battlemsg.set_state(BATTLE);
+
+	int time = 1000;
+	string message;
+	battlemsg.SerializePartialToString(&message);
+	auto MemoryPool = Memory_Pool::getInstance();
+	auto blocks = MemoryPool->popBlock();
+	int len = 0;
+	unpack(msg(PMODEBATTLEATTACK, message.size(), message.c_str()), blocks->getBuffer(), &len);
+
+	Timer::getInstance()->addSchedule(time, string(blocks->getBuffer(), len));
+
+	MemoryPool->pushBlock(blocks);*/
 }
 
 void Knight::SET_PEACE_MODE() {
+	if (state == PEACE)
+		return;
+
 	state = PEACE;
 	PEACEMOVE::CONTENTS peacemsg;
 	peacemsg.set_id(ID);
