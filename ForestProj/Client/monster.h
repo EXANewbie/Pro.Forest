@@ -18,6 +18,7 @@ public:
 	virtual const int getPrtHp() = 0;
 	virtual const int getPower() = 0;
 	virtual const int getExp() = 0;
+	virtual PSRWLOCK getLock() = 0;
 
 	virtual void setID(const int ID) = 0;
 	virtual void setX(const int x) = 0;
@@ -25,6 +26,7 @@ public:
 	virtual void setLv(const int lv, const int maxHp, const int power) = 0;
 	virtual void setExp(const int exp) = 0;
 	virtual void attacked(int damage) = 0;
+	
 };
 
 class Knight : public Monster
@@ -37,6 +39,7 @@ private:
 	int prtHp, maxHp;
 	int power;
 	int exp;
+	SRWLOCK srw;
 public:
 	Knight() : Monster() { name = "±â»ç"; }
 	Knight(int x, int y) : Monster()
@@ -85,6 +88,10 @@ public:
 	const int getExp()
 	{
 		return exp;
+	}
+	PSRWLOCK getLock()
+	{
+		return &srw;
 	}
 
 	void setID(const int ID)

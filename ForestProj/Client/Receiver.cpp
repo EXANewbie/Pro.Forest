@@ -26,10 +26,11 @@ struct deleter {
 	void operator()(char *c){ delete[]c; }
 };
 
-void receiver(const SOCKET s, int* myID)
+void receiver(const SOCKET s, int* myID, Character* myChar)
 {
 	SYNCHED_CHARACTER_MAP* chars = SYNCHED_CHARACTER_MAP::getInstance();
 	SYNCHED_MONSTER_MAP* mons = SYNCHED_MONSTER_MAP::getInstance();
+
 	char *buf;
 	TYPE type;
 	int len;
@@ -85,11 +86,12 @@ void receiver(const SOCKET s, int* myID)
 			myCharacter->setY(y);
 			myCharacter->setLv(lv,maxHp,power);
 			myCharacter->setExp(exp);
+			myChar = myCharacter;
 			{
 				Scoped_Wlock SW(&chars->srw);
-				chars->insert(id, myCharacter);
+				chars->insert(id, myChar);
 			}
-			printf("My char id : %d, (%d,%d)\n", id, myCharacter->getX(), myCharacter->getY());
+			printf("My char id : %d, (%d,%d)\n", id, myChar->getX(), myChar->getY());
 			//printf("my lv : %d, hp : %d, power : %d, exp : %d\n",myCharacter->getLv(),myCharacter->getPrtHp(),myCharacter->getPower(),myCharacter->getExp());
 			contents.clear_data();
 

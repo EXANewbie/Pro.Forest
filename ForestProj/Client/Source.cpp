@@ -28,7 +28,8 @@ SYNCHED_MONSTER_MAP* SYNCHED_MONSTER_MAP::instance;
 
 void send_move(const SOCKET s,const char& c,const int& myID);
 void copy_to_buffer(char *buf, int* type, int* len, std::string* content);
-void receiver(const SOCKET s, int* myID);
+void receiver(const SOCKET s, int* myID, Character* myChar);
+void Sender(const SOCKET sock, int* myID, Character* myChar);
 
 void main(void)
 {
@@ -79,102 +80,12 @@ void main(void)
 	
 	//자신의 캐릭터 생성
 	int myID;
+	Character* myChar = NULL;
 
 	// 데이터 수신 쓰레드 동작.
-	std::thread t(receiver, s, &myID);
+	std::thread t(receiver, s, &myID, myChar);
 	
-	while (true)
-	{
-		char c;
-		c=_getch();
-		if (c == 'x')
-		{
-			//PDISCONN 전송
-			type = PDISCONN;
-			
-			DISCONN::CONTENTS contents;
-			std::string* buff_msg = contents.mutable_data();
-			*buff_msg = "BYE SERVER!";
-			std::string bytestring;
-			contents.SerializeToString(&bytestring);
-
-			len = bytestring.length();
-			
-			copy_to_buffer(buf, &type, &len, &bytestring);
-
-			send(s, buf, len+sizeof(int)*2, 0);
-			break;
-		}
-		else if (c == 'w'||c=='a'||c=='s'||c=='d')
-		{
-			send_move(s, c, myID);
-		}
-		else if (c == 'q')// attack!!
-		{
-
-		}
-		else if (c == 'i')
-		{
-			//내정보 보여주자.
-			printf("##내 정보:\n");
-			{
-				Scoped_Rlock SR(&chars->srw);
-				Character* me = chars->find(myID);
-				if (me == NULL)
-				{
-					printf("아직 캐릭터가 생성되지 않았습니다.\n잠시만 기다려 주십시오\n\n");
-					continue;
-				}
-				
-				printf("ID : %d 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d\n\n", me->getID(), me->getX(), me->getY(), me->getLv(), me->getPrtHp(), me->getMaxHp(), me->getPower());
-			}
-		}
-		else if (c == 'j')
-		{
-			//같은 방에 있는 유저들의 정보를 보여주자.
-			printf("##동료 정보:\n");
-			{
-				Scoped_Rlock SR(&chars->srw);
-				int size = chars->size();
-				if (size == 1) 
-				{
-					printf("현재 같은방에 동료가 없습니다\n\n"); 
-					continue;
-				}
-				printf("--현재원 %d명\n", size-1);
-				for (auto iter = chars->begin(); iter != chars->end(); ++iter)
-				{
-					Character* other = iter->second;
-					if (other->getID() == myID) continue;
-					printf("ID : %d 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d\n\n", 
-						other->getID(), other->getX(), other->getY(), other->getLv(), other->getPrtHp(), other->getMaxHp(), other->getPower());
-				}
-			}
-		}
-		else if (c == 'o')
-		{
-			//같은 방에 있는 몬스터들의 정보를 보여주자.
-			{
-				Scoped_Rlock SR(&mons->srw);
-				int size = mons->size();
-				if (size == 0)
-				{
-					printf("현재 같은방에 몬스터가 없습니다\n\n");
-					continue;
-				}
-				printf("--몬스터 총 %d마리\n", size);
-				for (auto iter = mons->begin(); iter != mons->end(); ++iter)
-				{
-					Monster* mon = iter->second;
-					printf("이름(ID) : %s (%d) 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d\n\n",
-						mon->getName().c_str(), mon->getID(), mon->getX(), mon->getY(), mon->getLv(), mon->getPrtHp(), mon->getMaxHp(), mon->getPower());
-				}
-			}
-		}
-		else if (c == 'k')
-		{
-		}
-	}
+	Sender(s,&myID,myChar);
 
 	t.join();
 	closesocket(s);

@@ -89,8 +89,10 @@
     <ClCompile Include="..\protobuf\moveuser.pb.cc" />
     <ClCompile Include="..\protobuf\setmonster.pb.cc" />
     <ClCompile Include="..\protobuf\setuser.pb.cc" />
+    <ClCompile Include="..\protobuf\userattack.pb.cc" />
     <ClCompile Include="Function.cpp" />
     <ClCompile Include="Receiver.cpp" />
+    <ClCompile Include="Sender.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>

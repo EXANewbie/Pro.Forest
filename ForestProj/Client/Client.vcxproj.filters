@@ -54,6 +54,12 @@
     <ClCompile Include="..\protobuf\setmonster.pb.cc">
       <Filter>pb_files</Filter>
     </ClCompile>
+    <ClCompile Include="Sender.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\protobuf\userattack.pb.cc">
+      <Filter>pb_files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="character.h">
