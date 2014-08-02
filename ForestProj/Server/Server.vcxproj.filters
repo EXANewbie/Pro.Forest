@@ -37,9 +37,6 @@
     <ClCompile Include="Source.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="state_function.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="TimerThread.cpp">
       <Filter>Timer</Filter>
     </ClCompile>
@@ -61,6 +58,11 @@
     <ClCompile Include="Handler_PCONNECT.cpp">
       <Filter>state_function</Filter>
     </ClCompile>
+    <ClCompile Include="Handler_PEACEMOVE.cpp">
+      <Filter>monster_state</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_HELLOWORLD.cpp">
+      <Filter>monster_state</Filter>
     <ClCompile Include="Handler_PUSER_ATTACK.cpp">
       <Filter>state_function</Filter>
     </ClCompile>
@@ -130,6 +132,9 @@
     </Filter>
     <Filter Include="state_function">
       <UniqueIdentifier>{9e3c4571-2b7f-40c2-82a4-a6e740307d9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="monster_state">
+      <UniqueIdentifier>{10626b44-fd72-440c-9f60-55d402efb3d2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

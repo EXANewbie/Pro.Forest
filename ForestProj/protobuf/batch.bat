@@ -9,3 +9,4 @@ protoc.exe --cpp_out=.\ erasemonster.proto
 protoc.exe --cpp_out=.\ peacemove.proto
 protoc.exe --cpp_out=.\ userattack.proto
 protoc.exe --cpp_out=.\ userattackresult.proto
+protoc.exe --cpp_out=.\ battleattack.proto
