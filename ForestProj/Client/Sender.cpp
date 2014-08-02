@@ -18,6 +18,7 @@
 #include "../protobuf/setmonster.pb.h"
 #include "../protobuf/erasemonster.pb.h"
 #include "../protobuf/userattack.pb.h"
+#include "../protobuf/userattackresult.pb.h"
 
 void send_move(const SOCKET s, const char& c, const int& myID);
 void copy_to_buffer(char *buf, int* type, int* len, std::string* content);
@@ -149,12 +150,12 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 			
 			USER_ATTACK::CONTENTS userattackContents;
 			auto userattack = userattackContents.add_data();
-			{
+			/*{
 				Scoped_Rlock SR(myChar->getLock());
 				userattack->set_id(myChar->getID());
 				userattack->set_x(myChar->getX());
 				userattack->set_y(myChar->getY());
-			}
+			}*/
 			userattack->set_attcktype(1);
 			{
 				Scoped_Rlock SR(atkMon->getLock());
@@ -173,7 +174,9 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 				printf("시스템 오류\n");
 			}
 			else
+			{
 				printf("몬스터 %s[%d]를 공격하였습니다!\n", atkMon->getName().c_str(), atkMon->getID());
+			}
 		}
 	}
 }

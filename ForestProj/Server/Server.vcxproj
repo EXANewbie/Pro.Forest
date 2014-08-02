@@ -91,12 +91,14 @@
     <ClCompile Include="..\protobuf\setmonster.pb.cc" />
     <ClCompile Include="..\protobuf\setuser.pb.cc" />
     <ClCompile Include="..\protobuf\userattack.pb.cc" />
+    <ClCompile Include="..\protobuf\userattackresult.pb.cc" />
     <ClCompile Include="Client_Map.cpp" />
     <ClCompile Include="Handler_HELLOWORLD.cpp" />
     <ClCompile Include="Handler_PCONNECT.cpp" />
     <ClCompile Include="Handler_PDISCONN.cpp" />
     <ClCompile Include="Handler_PEACEMOVE.cpp" />
     <ClCompile Include="Handler_PMOVEUSER.cpp" />
+    <ClCompile Include="Handler_PUSER_ATTACK.cpp" />
     <ClCompile Include="Method.cpp" />
     <ClCompile Include="TimerThread.cpp" />
     <ClInclude Include="Check_Map.h" />

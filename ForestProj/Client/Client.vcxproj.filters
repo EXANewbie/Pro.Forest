@@ -60,6 +60,9 @@
     <ClCompile Include="..\protobuf\userattack.pb.cc">
       <Filter>pb_files</Filter>
     </ClCompile>
+    <ClCompile Include="..\protobuf\userattackresult.pb.cc">
+      <Filter>pb_files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="character.h">

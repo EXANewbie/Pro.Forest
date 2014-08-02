@@ -90,6 +90,7 @@
     <ClCompile Include="..\protobuf\setmonster.pb.cc" />
     <ClCompile Include="..\protobuf\setuser.pb.cc" />
     <ClCompile Include="..\protobuf\userattack.pb.cc" />
+    <ClCompile Include="..\protobuf\userattackresult.pb.cc" />
     <ClCompile Include="Function.cpp" />
     <ClCompile Include="Receiver.cpp" />
     <ClCompile Include="Sender.cpp" />

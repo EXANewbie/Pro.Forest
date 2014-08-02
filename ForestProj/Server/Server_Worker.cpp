@@ -25,6 +25,7 @@ void copy_to_param(int **, int, char *);
 void Handler_PCONNECT(LPPER_HANDLE_DATA, LPPER_IO_DATA, std::string*);
 void Handler_PMOVE_USER(Character *, std::string*);
 void Handler_PDISCONN(LPPER_HANDLE_DATA, LPPER_IO_DATA, std::string*);
+void Handler_PUSER_ATTCK(Character *, std::string*);
 
 void Handler_HELLOWORLD(LPPER_IO_DATA, std::string*);
 void Handler_PEACEMOVE(LPPER_IO_DATA, std::string*);
@@ -137,8 +138,9 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					else if (type == PUSER_ATTCK)
 					{
 						// 유저로부터 유저가 공격할 것이라고 패킷을 보냈다.
-						// 데미지 계산을 하고 그 데미지로 몬스터 체력을 깎고 클라한테 결과를 보낼 것이다.
+						// 데미지 계산을 하고 그 데미지로 몬스터 체력을 깎고 클라한테 그 결과를 보낼 것이다.
 
+						Handler_PUSER_ATTCK(ioInfo->myCharacter, &readContents);
 
 					}
 

@@ -63,6 +63,11 @@
     </ClCompile>
     <ClCompile Include="Handler_HELLOWORLD.cpp">
       <Filter>monster_state</Filter>
+    <ClCompile Include="Handler_PUSER_ATTACK.cpp">
+      <Filter>state_function</Filter>
+    </ClCompile>
+    <ClCompile Include="..\protobuf\userattackresult.pb.cc">
+      <Filter>pb_files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
