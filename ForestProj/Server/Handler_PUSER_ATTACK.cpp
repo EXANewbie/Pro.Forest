@@ -12,6 +12,7 @@
 #include "DMap_monster.h"
 #include "msg.h"
 
+void send_message(msg, vector<Character *> &, bool);
 
 void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 {
@@ -25,14 +26,14 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 		auto userattack = userattackContents.data(i);
 		//int char_id = userattack.id(), x = userattack.x(), y = userattack.y();
 		int attckType = userattack.attcktype();
-		int mon_id = userattack.id_m(), mon_x = userattack.x_m(), mon_y = userattack.y_m();
-		E_List_Mon* elist_m = FVEC_M->get(mon_x, mon_y);
+		int id_mon = userattack.id_m(), x_mon = userattack.x_m(), y_mon = userattack.y_m();
+		E_List_Mon* elist_m = FVEC_M->get(x_mon, y_mon);
 		Monster* mon = NULL;
 		
 		// 몬스터 객체를 얻어옴.
 		{
 			Scoped_Rlock SR(&elist_m->slock);
-			mon = elist_m->find(mon_id);
+			mon = elist_m->find(id_mon);
 		}
 
 		// 유저데미지 계산.
@@ -44,7 +45,14 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 		// 몬스터 객체가 데미지 당한 량을 유저에게 알림.
 
 		USER_ATTACK_RESULT::CONTENTS userattackresultContents;
+		auto userattackresult = userattackresultContents.add_data();
+		userattackresult->set_attcktype(attckType);
+		userattackresult->set_id_m(id_mon);
+		userattackresult->set_x_m(x_mon);
+		userattackresult->set_y_m(y_mon);
+		userattackresult->set_damage(damage);
 
+		send_message(msg(PUSER_ATTCK_RESULT)
 
 	}
 }
