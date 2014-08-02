@@ -37,9 +37,6 @@
     <ClCompile Include="Source.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="state_function.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="TimerThread.cpp">
       <Filter>Timer</Filter>
     </ClCompile>
@@ -48,6 +45,21 @@
     </ClCompile>
     <ClCompile Include="Method.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="state_function.cpp">
+      <Filter>state_function</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_PCONNECT.cpp">
+      <Filter>state_function</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_PMOVEUSER.cpp">
+      <Filter>state_function</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_PDISCONN.cpp">
+      <Filter>state_function</Filter>
+    </ClCompile>
+    <ClCompile Include="..\protobuf\userattack.pb.cc">
+      <Filter>pb_files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -109,6 +121,9 @@
     </Filter>
     <Filter Include="Timer">
       <UniqueIdentifier>{68b24116-6a68-4351-bd62-17d19533c8c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="state_function">
+      <UniqueIdentifier>{126dd421-e39e-44b2-807a-93c773c9c624}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
