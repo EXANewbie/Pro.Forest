@@ -134,6 +134,13 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 					{
 						Handler_PMOVE_USER(ioInfo->myCharacter, &readContents);
 					}
+					else if (type == PUSER_ATTCK)
+					{
+						// 유저로부터 유저가 공격할 것이라고 패킷을 보냈다.
+						// 데미지 계산을 하고 그 데미지로 몬스터 체력을 깎고 클라한테 결과를 보낼 것이다.
+
+
+					}
 
 					memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
 					ioInfo->wsaBuf.len = HEADER_SIZE;

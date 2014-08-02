@@ -21,7 +21,7 @@
 
 #define PORT 78911
 
-#define SERVER_IP_ADDRESS /*"localhost"*/"10.1.7.206"
+#define SERVER_IP_ADDRESS /*"localhost"*/"10.1.7.10"
 
 SYNCHED_CHARACTER_MAP* SYNCHED_CHARACTER_MAP::instance;
 SYNCHED_MONSTER_MAP* SYNCHED_MONSTER_MAP::instance;
@@ -80,12 +80,14 @@ void main(void)
 	
 	//자신의 캐릭터 생성
 	int myID;
-	Character* myChar = NULL;
+	Character myChar ;
 
 	// 데이터 수신 쓰레드 동작.
-	std::thread t(receiver, s, &myID, myChar);
+	std::thread t(receiver, s, &myID, &myChar);
 	
-	Sender(s,&myID,myChar);
+	Sleep(2000);
+	printf("%d", myChar.getID());
+	Sender(s,&myID,&myChar);
 
 	t.join();
 	closesocket(s);

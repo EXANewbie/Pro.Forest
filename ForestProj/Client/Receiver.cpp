@@ -80,13 +80,13 @@ void receiver(const SOCKET s, int* myID, Character* myChar)
 			int id = user.id(), x = user.x(), y = user.y();
 			int lv = user.lv(), maxHp = user.maxhp(), power = user.power(), exp = user.exp();
 			*myID = id;
-			Character* myCharacter = new Character;
+			Character* myCharacter = new Character();
 			myCharacter->setID(id);
 			myCharacter->setX(x);
 			myCharacter->setY(y);
 			myCharacter->setLv(lv,maxHp,power);
 			myCharacter->setExp(exp);
-			myChar = myCharacter;
+			*myChar = *myCharacter;
 			{
 				Scoped_Wlock SW(&chars->srw);
 				chars->insert(id, myChar);

@@ -15,6 +15,7 @@ private:
 public:
 	Character()
 	{
+		ID = -1;
 	}
 	Character(int x, int y)
 	{

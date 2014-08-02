@@ -62,7 +62,7 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 		{
 			//내정보 보여주자.
 			printf("##내 정보:\n");
-			if (myChar == NULL)
+			if (myChar->getID() == -1)
 			{
 				printf("아직 캐릭터가 생성되지 않았습니다.\n잠시만 기다려 주십시오\n\n");
 				continue;
@@ -117,7 +117,7 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 		}
 		else if (c == 'q')
 		{
-			if (myChar == NULL)
+			if (myChar->getID() == -1)
 			{
 				printf("아직 캐릭터가 생성되지 않았습니다.\n잠시만 기다려 주십시오\n\n");
 				continue;
