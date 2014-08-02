@@ -85,8 +85,6 @@ void main(void)
 	// 데이터 수신 쓰레드 동작.
 	std::thread t(receiver, s, &myID, &myChar);
 	
-	Sleep(2000);
-	printf("%d", myChar.getID());
 	Sender(s,&myID,&myChar);
 
 	t.join();
