@@ -61,6 +61,12 @@
     <ClCompile Include="Handler_PCONNECT.cpp">
       <Filter>state_function</Filter>
     </ClCompile>
+    <ClCompile Include="Handler_PUSER_ATTACK.cpp">
+      <Filter>state_function</Filter>
+    </ClCompile>
+    <ClCompile Include="..\protobuf\userattackresult.pb.cc">
+      <Filter>pb_files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="character.h">
