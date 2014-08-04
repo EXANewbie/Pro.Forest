@@ -1,9 +1,11 @@
 #include <string>
 
 #include "../protobuf/peacemove.pb.h"
+#include "../protobuf/battleattack.pb.h"
 
 #include "Memory_Pool.h"
 #include "TimerThread.h"
+#include "Scoped_Lock.h"
 #include "monster.h"
 #include "DMap.h"
 #include "msg.h"
@@ -55,12 +57,45 @@ void Knight::getNextOffset(int bef_x_off, int bef_y_off, int *nxt_x_off, int *nx
 	return;
 }
 
+void Knight::getAttackInfo(int attacktype, const vector<int>& befusers, int *nextattacktype, vector<int>& nextusers, vector<int>& damage)
+{
+	// 멀티샷을 후려쳤거나, 한명을 두방 후려쳤다면
+	if (attacktype == MULTIATTACK || attacktype == DOUBLEATTACK)
+	{
+		getBASICATTACKINFO(nextattacktype, nextusers, damage);
+	}
+	// 그 전에 일반 공격을 했다면
+	else
+	{
+		int rand = bigRand() % 4;
+		// 50프로 확률로 다시 일반 공격
+		if (rand < 2)
+		{
+			getBASICATTACKINFO(nextattacktype, nextusers, damage);
+		}
+		// 25프로 확률로 데미지 2배 공격
+		else if (rand == 2)
+		{
+			getDOUBLEATTACKINFO(nextattacktype, nextusers, damage);
+		}
+		// 25프로 확률로 데미지 1/3으로 전체 공격
+		else
+		{
+			getMULTIATTACKINFO(nextattacktype, nextusers, damage);
+		}
+	}
+}
+
+void Knight::getRespawnTime(int* time) {
+	*time = 20000;
+}
+
 void Knight::SET_BATTLE_MODE() {
 	if (state == BATTLE)
 		return;
 
 	state = BATTLE;
-	/*BATTLEATTACK::CONTENTS battlemsg;
+	BATTLEATTACK::CONTENTS battlemsg;
 	battlemsg.set_id(ID);
 	battlemsg.set_state(BATTLE);
 
@@ -74,7 +109,7 @@ void Knight::SET_BATTLE_MODE() {
 
 	Timer::getInstance()->addSchedule(time, string(blocks->getBuffer(), len));
 
-	MemoryPool->pushBlock(blocks);*/
+	MemoryPool->pushBlock(blocks);
 }
 
 void Knight::SET_PEACE_MODE() {
@@ -99,8 +134,46 @@ void Knight::SET_PEACE_MODE() {
 	MemoryPool->pushBlock(blocks);
 }
 
-void Knight::CONTINUE_BATTLE_MODE(int user_id, int attack_type) {
+void Knight::CONTINUE_BATTLE_MODE(vector<int> users, int attack_type) {
+	BATTLEATTACK::CONTENTS battlemsg;
+	battlemsg.set_id(ID);
+	battlemsg.set_state(BATTLE);
+	battlemsg.set_attacktype(attack_type);
+	battlemsg.set_finished(0);
 
+	int time = 1000;
+
+	for (int i = 0; i < users.size(); i++) {
+		auto target = battlemsg.add_data();
+		target->set_id(users[i]);
+
+		if (battlemsg.data_size() == TARGET_USER_MAXIMUM) {
+			string message;
+			battlemsg.SerializeToString(&message);
+			auto MemoryPool = Memory_Pool::getInstance();
+			auto blocks = MemoryPool->popBlock();
+			int len = 0;
+			unpack(msg(PMODEBATTLEATTACK, message.size(), message.c_str()), blocks->getBuffer(), &len);
+
+			Timer::getInstance()->addSchedule(time, string(blocks->getBuffer(), len));
+
+			MemoryPool->pushBlock(blocks);
+			battlemsg.clear_data();
+		}
+	}
+
+	battlemsg.set_finished(1);
+
+	string message;
+	battlemsg.SerializeToString(&message);
+	auto MemoryPool = Memory_Pool::getInstance();
+	auto blocks = MemoryPool->popBlock();
+	int len = 0;
+	unpack(msg(PMODEBATTLEATTACK, message.size(), message.c_str()), blocks->getBuffer(), &len);
+
+	Timer::getInstance()->addSchedule(time, string(blocks->getBuffer(), len));
+	
+	MemoryPool->pushBlock(blocks);
 }
 
 void Knight::CONTINUE_PEACE_MODE(int nxt_x_off, int nxt_y_off) {
@@ -112,7 +185,7 @@ void Knight::CONTINUE_PEACE_MODE(int nxt_x_off, int nxt_y_off) {
 
 	int time = 1000;
 	string message;
-	peacemsg.SerializePartialToString(&message);
+	peacemsg.SerializeToString(&message);
 	auto MemoryPool = Memory_Pool::getInstance();
 	auto blocks = MemoryPool->popBlock();
 	int len = 0;
@@ -121,4 +194,76 @@ void Knight::CONTINUE_PEACE_MODE(int nxt_x_off, int nxt_y_off) {
 	Timer::getInstance()->addSchedule(time, string(blocks->getBuffer(), len));
 
 	MemoryPool->pushBlock(blocks);
+}
+
+void Knight::getBASICATTACKINFO(int *nextattacktype, vector<int>& nextusers, vector<int>& damage)
+{
+	*nextattacktype = BASICATTACK; // 평타 설정
+	int nextTarget = UNDEFINED, minHP;
+
+	auto FVEC = F_Vector::getInstance();
+	auto elist = FVEC->get(x, y);
+	{
+		Scoped_Rlock(&elist->slock);
+		for (auto itr = elist->begin(); itr != elist->end(); itr++)
+		{
+			auto chars = *itr;
+			Scoped_Rlock(chars->getLock());
+
+			if (nextTarget == UNDEFINED || minHP > chars->getPrtHp())
+			{
+				nextTarget = chars->getID();
+				minHP = chars->getPrtHp();
+			}
+		}
+		int realdamage = power; // 데미지 계산은 여기에서!
+		damage.push_back(power);
+		nextusers.push_back(nextTarget);
+	}
+}
+
+void Knight::getDOUBLEATTACKINFO(int *nextattacktype, vector<int>& nextusers, vector<int>& damage)
+{
+	*nextattacktype = DOUBLEATTACK; // 평타 설정
+	int nextTarget = UNDEFINED, minHP;
+
+	auto FVEC = F_Vector::getInstance();
+	auto elist = FVEC->get(x, y);
+	{
+		Scoped_Rlock(&elist->slock);
+		for (auto itr = elist->begin(); itr != elist->end(); itr++)
+		{
+			auto chars = *itr;
+			Scoped_Rlock(chars->getLock());
+
+			if (nextTarget == UNDEFINED || minHP > chars->getPrtHp())
+			{
+				nextTarget = chars->getID();
+				minHP = chars->getPrtHp();
+			}
+		}
+		int realdamage = 2*power; // 데미지 계산은 여기에서!
+		damage.push_back(power);
+		nextusers.push_back(nextTarget);
+	}
+}
+
+void Knight::getMULTIATTACKINFO(int *nextattacktype, vector<int>& nextusers, vector<int>& damage)
+{
+	*nextattacktype = MULTIATTACK; // 평타 설정
+
+	auto FVEC = F_Vector::getInstance();
+	auto elist = FVEC->get(x, y);
+	{
+		Scoped_Rlock(&elist->slock);
+		for (auto itr = elist->begin(); itr != elist->end(); itr++)
+		{
+			auto chars = *itr;
+			int realdamage = power / 3; // 데미지 공식은 여기서 변경하세요!
+			Scoped_Rlock(chars->getLock());
+
+			nextusers.push_back(chars->getID());
+			damage.push_back(realdamage);
+		}
+	}
 }

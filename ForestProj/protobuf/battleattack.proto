@@ -2,14 +2,13 @@ package BATTLEATTACK;
 
 message CONTENTS
 {
-	message CHAR_ID_X_Y
+	message CHAR_ID
 	{
 		optional int32 id = 1;
-		optional int32 x = 2;
-		optional int32 y = 3;
 	}
 	optional int32 id = 1;
 	optional int32 state = 2;
 	optional int32 attacktype = 3;
-	repeated CHAR_ID_X_Y data = 4;
+	optional int32 finished = 4;
+	repeated CHAR_ID data = 5;
 }

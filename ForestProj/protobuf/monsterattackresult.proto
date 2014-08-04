@@ -1,0 +1,13 @@
+package MONSTER_ATTACK_RESULT;
+
+message CONTENTS
+{
+	message CHAR_ID_DAMAGE
+	{
+		optional int32 id = 1;
+		optional int32 damage = 2;
+	}
+	optional int32 id = 1;
+	optional int32 attacktype = 2;
+	repeated CHAR_ID_DAMAGE data = 3;
+}
