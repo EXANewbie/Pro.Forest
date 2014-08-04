@@ -48,6 +48,10 @@ void Handler_PEACEMOVE(LPPER_IO_DATA ioInfo, string* readContents) {
 	{
 		Scoped_Rlock SR(&AMAP_MON->slock);
 		monster = AMAP_MON->find(ID);
+
+		if (monster == nullptr) {
+			//몬스터가 유효하지 않습니다.
+		}
 		//지금 현재 상태와 패킷의 상태가 일치하지 않습니다!!
 		if (monster->getState() != peacemove.state())
 		{

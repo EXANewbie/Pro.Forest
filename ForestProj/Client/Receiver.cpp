@@ -23,6 +23,7 @@
 #include "../protobuf/erasemonster.pb.h"
 
 #include "../protobuf/userattackresult.pb.h"
+#include "../protobuf/setuserlv.pb.h"
 
 struct deleter {
 	void operator()(char *c){ delete[]c; }
@@ -171,7 +172,6 @@ void receiver(const SOCKET s, int* myID, Character* myChar)
 				}
 				
 				printf("야생의 %s가 [id : %d (%d, %d) ]나타났습니다!\n",mon->getName().c_str(), mon->getID(), mon->getX(), mon->getY());
-				//printf("상태 - 레벨 : %d, 체력 : ( %d / %d )\n", mon->getLv(), mon->getPrtHp(), mon->getMaxHp());
 			}
 			setmonsterContents.clear_data();
 		}
@@ -247,7 +247,30 @@ void receiver(const SOCKET s, int* myID, Character* myChar)
 		}
 		else if (type == PUSER_SET_LV)
 		{
+			SET_USER_LV::CONTENTS setuserlvContents;
+			setuserlvContents.ParseFromString(tmp);
 
+			{
+				Scoped_Rlock SR(&chars->srw);
+				for (int i = 0; i < setuserlvContents.data_size(); ++i)
+				{
+					auto setuserlv = setuserlvContents.data(i);
+					int id = setuserlv.id();
+					int lv = setuserlv.lv();
+					int maxHp = setuserlv.maxhp();
+					int power = setuserlv.power();
+					int exp = setuserlv.exp();
+
+					Character* lvUpChar = chars->find(id);
+					if (lvUpChar == NULL) printf("나 나오면 안돼는데 나옴?");
+					else
+					{
+						Scoped_Wlock SW(lvUpChar->getLock());
+						lvUpChar->setLv(lv, maxHp, power);
+						printf("유저 [%d]가 레벨이 %d로 올랐습니다!!\n", id, lv);
+					}
+				}
+			}
 		}
 
 		tmp.clear();

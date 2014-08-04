@@ -15,10 +15,12 @@ private:
 public:
 	Character()
 	{
+		InitializeSRWLock(&srw);
 		ID = -1;
 	}
 	Character(int x, int y)
 	{
+		InitializeSRWLock(&srw);
 		this->x = x;
 		this->y = y;
 	}

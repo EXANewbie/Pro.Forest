@@ -39,7 +39,7 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 	USER_ATTACK::CONTENTS userattackContents;
 	userattackContents.ParseFromString(*str);
 
-	bool existLvUser = false;
+	bool existKillUser = false;
 	//여러 몬스터을 공격할수도 있기에 for문으로 구성.
 	for (int i = 0; i < userattackContents.data_size(); ++i)
 	{
@@ -74,7 +74,10 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 			{
 				//몬스터 시키 죽였따!!
 				//mon->SET_DEAD_MODE();
-
+				{
+					Scoped_Wlock SW(&elist_m->slock);
+					elist_m->erase(mon->getID());
+				}
 				//경험치를 얻도록하자.
 				kill = true;
 			}
@@ -85,7 +88,7 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 			Scoped_Wlock SW(myChar->getLock());
 			int prtExp = myChar->getExp() + knightExp;
 			int prtLv = myChar->getLv();
-			if (prtExp >= maxExp[prtLv])
+			if (prtExp >= maxExp[prtLv-1])
 			{
 				myChar->setLv(prtLv + 1, HpPw[prtLv][0], HpPw[prtLv][1]);
 				myChar->setExp(prtExp - maxExp[prtLv]);
@@ -98,7 +101,7 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 		}
 		if (lvUp == true)
 		{
-			existLvUser = true;
+			existKillUser = true;
 			Scoped_Rlock SR(myChar->getLock());
 			auto setuserlv = setuserlvContents.add_data();
 			setuserlv->set_id(myChar->getID());
@@ -123,7 +126,7 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 	send_message(msg(PUSER_ATTCK_RESULT, len, bytestring.c_str()), charId_in_room, false);
 	bytestring.clear();
 
-	if (existLvUser == true)
+	if (existKillUser == true)
 	{
 		setuserlvContents.SerializeToString(&bytestring);
 		len = bytestring.length();
