@@ -46,9 +46,11 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 	int ID = battleattack.id();
 
 	auto AMAP_MON = Access_Map_Mon::getInstance();
+	auto AMAP = Access_Map::getInstance();
 	Monster* monster;
 	{
-		Scoped_Rlock SR(&AMAP_MON->slock);
+		Scoped_Rlock SR(&AMAP->slock);
+		Scoped_Rlock SR2(&AMAP_MON->slock);
 		monster = AMAP_MON->find(ID);
 		//지금 현재 상태와 패킷의 상태가 일치하지 않습니다!!
 		if (monster->getState() != battleattack.state())
@@ -56,33 +58,51 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 			return;
 		}
 
-		vector<int> nxt, damage;
-		int attackType;
-		monster->getAttackInfo(Monster::ATTACKSTART, vector<int>(), &attackType, nxt, damage);
-
+		vector<int> damage;
+		vector<Character *> nxt, receiver;
 		auto elist = F_Vector::getInstance()->get(monster->getX(), monster->getY());
-		Scoped_Wlock SW(&elist->slock);
-
-		vector<Character *> receiver;
-		make_vector_id_in_room(elist, receiver);
-
-		MONSTER_ATTACK_RESULT::CONTENTS monsterattackresultContents;
-		monsterattackresultContents.set_id(monster->getID());
-		monsterattackresultContents.set_attacktype(attackType);
-		for (int i = 0; i < receiver.size(); i++)
+		int attackType;
 		{
-			auto data = monsterattackresultContents.add_data();
+			Scoped_Wlock SW(&elist->slock);
+
+			// AI를 통해 대상과 데미지를 계산합니다.
+			monster->getAttackInfo(Monster::ATTACKSTART, vector<int>(), &attackType, nxt, damage);
+
+			// 현재 방에 참여하고 있는 유저들의 정보를 가져옵니다.
+			make_vector_id_in_room(elist, receiver);
+
+			MONSTER_ATTACK_RESULT::CONTENTS monsterattackresultContents;
+			monsterattackresultContents.set_id(monster->getID());
+			monsterattackresultContents.set_attacktype(attackType);
+
+
+			string bytestring;
+			monsterattackresultContents.SerializeToString(&bytestring);
+			
+			monsterattackresultContents.clear_data();
+
+			// 체력이 0이 되는 유저들을 제거하는 부분입니다.
+			for (int i = 0; i < nxt.size(); i++)
 			{
-				Scoped_Wlock SW2(receiver[i]->getLock());
-				receiver[i]->attacked(damage[i]);
-				data->set_id(receiver[i]->getID());
-				data->set_damage(receiver[i]->getPrtHp());
-			}
-			// 유저의 체력이 0인 경우 현재 방에서 제거하고, 리스폰 시간을 결정해서 타이머에 넣는다.
-			{
-				Scoped_Rlock SR2(receiver[i]->getLock());
-				if (receiver[i]->getPrtHp() == 0) {
-					elist->erase(receiver[i]);
+				Scoped_Wlock SW(nxt[i]->getLock());
+				nxt[i]->attacked(damage[i]);
+
+				auto data = monsterattackresultContents.add_data();
+				data->set_id(nxt[i]->getID());
+				data->set_damage(nxt[i]->getPrtHp());
+
+				if (monsterattackresultContents.data_size() < ATTACKED_USER_MAXIMUM)
+				{
+					monsterattackresultContents.SerializeToString(&bytestring);
+					send_message(msg(PMONSTER_ATTACK_RESULT, bytestring.size(), bytestring.c_str()), receiver, false);
+
+					monsterattackresultContents.clear_data();
+					bytestring.clear();
+				}
+
+				if (nxt[i]->getPrtHp() == 0)
+				{
+					elist->erase(nxt[i]);
 
 					int Respawn_Time = receiver[i]->getLv() * 2000; // 리스폰 시간은 여기서 정의
 					string bytestring;
@@ -91,7 +111,7 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 					userrespawnContents.set_x(22); // 리스폰될 x의 위치를 결정
 					userrespawnContents.set_y(22); // 리스폰될 y의 위치를 결정
 					userrespawnContents.SerializeToString(&bytestring);
-					
+
 					auto MemoryPool = Memory_Pool::getInstance();
 					auto blocks = MemoryPool->popBlock();
 
@@ -99,24 +119,15 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 					unpack(msg(USERRESPAWN, bytestring.size(), bytestring.c_str()), blocks->getBuffer(), &len);
 
 					Timer::getInstance()->addSchedule(Respawn_Time, string(blocks->getBuffer(), len));
+
+					MemoryPool->pushBlock(blocks);
 				}
 			}
+			monsterattackresultContents.SerializeToString(&bytestring);
+			send_message(msg(PMONSTER_ATTACK_RESULT, bytestring.size(), bytestring.c_str()), receiver, false);
 
-			if (monsterattackresultContents.data_size() < ATTACKED_USER_MAXIMUM)
-			{
-				string bytestring;
-				monsterattackresultContents.SerializeToString(&bytestring);
-				send_message(msg(PMONSTER_ATTACK_RESULT, bytestring.size(), bytestring.c_str()), receiver, false);
-
-				monsterattackresultContents.clear_data();
-			}
+			monsterattackresultContents.clear_data();
 		}
-
-		string bytestring;
-		monsterattackresultContents.SerializeToString(&bytestring);
-		send_message(msg(PMONSTER_ATTACK_RESULT, bytestring.size(), bytestring.c_str()), receiver, false);
-
-		monsterattackresultContents.clear_data();
 
 		if (elist->size() == 0)
 		{
@@ -127,7 +138,7 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 			vector<int> clist;
 			for (int i = 0; i < nxt.size(); i++)
 			{
-				clist.push_back(nxt[i]);
+				clist.push_back(nxt[i]->getID());
 			}
 
 			monster->CONTINUE_BATTLE_MODE(clist,attackType);

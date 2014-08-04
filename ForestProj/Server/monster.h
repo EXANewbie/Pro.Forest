@@ -37,7 +37,7 @@ public:
 	virtual void attacked(int damage) = 0;
 
 	virtual void getNextOffset(int bef_x_off, int bef_y_off, int *nxt_x_off, int *nxt_y_off) = 0;
-	virtual void getAttackInfo(int attacktype, const vector<int>& befusers, int *nextattacktype, vector<int>& nextusers, vector<int>& damage) = 0;
+	virtual void getAttackInfo(int attacktype, const vector<int>& befusers, int *nextattacktype, vector<Character *>& nextusers, vector<int>& damage) = 0;
 	virtual void getRespawnTime(int* time) = 0;
 
 	virtual void SET_BATTLE_MODE() = 0;
@@ -67,9 +67,9 @@ private:
 
 	SRWLOCK srw;
 private :
-	void getBASICATTACKINFO(int *nextattacktype, vector<int>& nextusers, vector<int>& damage);
-	void getDOUBLEATTACKINFO(int *nextattacktype, vector<int>& nextusers, vector<int>& damage);
-	void getMULTIATTACKINFO(int *nextattacktype, vector<int>& nextusers, vector<int>& damage);
+	void getBASICATTACKINFO(int *nextattacktype, vector<Character *>& nextusers, vector<int>& damage);
+	void getDOUBLEATTACKINFO(int *nextattacktype, vector<Character *>& nextusers, vector<int>& damage);
+	void getMULTIATTACKINFO(int *nextattacktype, vector<Character *>& nextusers, vector<int>& damage);
 public:
 	Knight() : Monster() { InitializeSRWLock(&srw);  name = 1; }
 	Knight(int x, int y) : Monster()
@@ -167,7 +167,7 @@ public:
 	}
 
 	void getNextOffset(int bef_x_off, int bef_y_off, int *nxt_x_off, int *nxt_y_off);
-	void getAttackInfo(int attacktype, const vector<int>& befusers, int *nextattacktype, vector<int>& nextusers, vector<int>& damage);
+	void getAttackInfo(int attacktype, const vector<int>& befusers, int *nextattacktype, vector<Character *>& nextusers, vector<int>& damage);
 	void getRespawnTime(int* time);
 
 	void SET_BATTLE_MODE();

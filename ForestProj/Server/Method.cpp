@@ -57,7 +57,7 @@ void Knight::getNextOffset(int bef_x_off, int bef_y_off, int *nxt_x_off, int *nx
 	return;
 }
 
-void Knight::getAttackInfo(int attacktype, const vector<int>& befusers, int *nextattacktype, vector<int>& nextusers, vector<int>& damage)
+void Knight::getAttackInfo(int attacktype, const vector<int>& befusers, int *nextattacktype, vector<Character *>& nextusers, vector<int>& damage)
 {
 	// 멀티샷을 후려쳤거나, 한명을 두방 후려쳤다면
 	if (attacktype == MULTIATTACK || attacktype == DOUBLEATTACK)
@@ -196,10 +196,11 @@ void Knight::CONTINUE_PEACE_MODE(int nxt_x_off, int nxt_y_off) {
 	MemoryPool->pushBlock(blocks);
 }
 
-void Knight::getBASICATTACKINFO(int *nextattacktype, vector<int>& nextusers, vector<int>& damage)
+void Knight::getBASICATTACKINFO(int *nextattacktype, vector<Character *>& nextusers, vector<int>& damage)
 {
 	*nextattacktype = BASICATTACK; // 평타 설정
-	int nextTarget = UNDEFINED, minHP;
+	Character* nextTarget = nullptr;
+	int minHP;
 
 	auto FVEC = F_Vector::getInstance();
 	auto elist = FVEC->get(x, y);
@@ -210,9 +211,9 @@ void Knight::getBASICATTACKINFO(int *nextattacktype, vector<int>& nextusers, vec
 			auto chars = *itr;
 			Scoped_Rlock(chars->getLock());
 
-			if (nextTarget == UNDEFINED || minHP > chars->getPrtHp())
+			if (nextTarget == nullptr || minHP > chars->getPrtHp())
 			{
-				nextTarget = chars->getID();
+				nextTarget = chars;
 				minHP = chars->getPrtHp();
 			}
 		}
@@ -222,10 +223,11 @@ void Knight::getBASICATTACKINFO(int *nextattacktype, vector<int>& nextusers, vec
 	}
 }
 
-void Knight::getDOUBLEATTACKINFO(int *nextattacktype, vector<int>& nextusers, vector<int>& damage)
+void Knight::getDOUBLEATTACKINFO(int *nextattacktype, vector<Character *>& nextusers, vector<int>& damage)
 {
 	*nextattacktype = DOUBLEATTACK; // 평타 설정
-	int nextTarget = UNDEFINED, minHP;
+	Character *nextTarget = nullptr;
+	int minHP;
 
 	auto FVEC = F_Vector::getInstance();
 	auto elist = FVEC->get(x, y);
@@ -236,9 +238,9 @@ void Knight::getDOUBLEATTACKINFO(int *nextattacktype, vector<int>& nextusers, ve
 			auto chars = *itr;
 			Scoped_Rlock(chars->getLock());
 
-			if (nextTarget == UNDEFINED || minHP > chars->getPrtHp())
+			if (nextTarget == nullptr || minHP > chars->getPrtHp())
 			{
-				nextTarget = chars->getID();
+				nextTarget = chars;
 				minHP = chars->getPrtHp();
 			}
 		}
@@ -248,7 +250,7 @@ void Knight::getDOUBLEATTACKINFO(int *nextattacktype, vector<int>& nextusers, ve
 	}
 }
 
-void Knight::getMULTIATTACKINFO(int *nextattacktype, vector<int>& nextusers, vector<int>& damage)
+void Knight::getMULTIATTACKINFO(int *nextattacktype, vector<Character *>& nextusers, vector<int>& damage)
 {
 	*nextattacktype = MULTIATTACK; // 평타 설정
 
@@ -262,7 +264,7 @@ void Knight::getMULTIATTACKINFO(int *nextattacktype, vector<int>& nextusers, vec
 			int realdamage = power / 3; // 데미지 공식은 여기서 변경하세요!
 			Scoped_Rlock(chars->getLock());
 
-			nextusers.push_back(chars->getID());
+			nextusers.push_back(chars);
 			damage.push_back(realdamage);
 		}
 	}
