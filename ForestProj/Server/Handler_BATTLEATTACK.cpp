@@ -80,7 +80,7 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 			}
 			// 유저의 체력이 0인 경우 현재 방에서 제거하고, 리스폰 시간을 결정해서 타이머에 넣는다.
 			{
-				Scoped_Rlock SW2(receiver[i]->getLock());
+				Scoped_Rlock SR2(receiver[i]->getLock());
 				if (receiver[i]->getPrtHp() == 0) {
 					elist->erase(receiver[i]);
 
@@ -95,7 +95,6 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 					auto MemoryPool = Memory_Pool::getInstance();
 					auto blocks = MemoryPool->popBlock();
 
-					blocks->getBuffer();
 					int len = 0;
 					unpack(msg(USERRESPAWN, bytestring.size(), bytestring.c_str()), blocks->getBuffer(), &len);
 
@@ -126,9 +125,9 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 		else
 		{
 			vector<int> clist;
-			for (int i = 0; i < receiver.size(); i++)
+			for (int i = 0; i < nxt.size(); i++)
 			{
-				clist.push_back(receiver[i]->getID());
+				clist.push_back(nxt[i]);
 			}
 
 			monster->CONTINUE_BATTLE_MODE(clist,attackType);

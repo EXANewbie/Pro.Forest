@@ -95,8 +95,6 @@ void Handler_PEACEMOVE(LPPER_IO_DATA ioInfo, string* readContents) {
 				elist->push_back(monster);
 			}
 
-
-
 			auto elist = F_Vector::getInstance()->get(monster->getX(), monster->getY());
 			Scoped_Rlock SR(&elist->slock);
 			int size = elist->size();

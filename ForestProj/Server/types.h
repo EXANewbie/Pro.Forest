@@ -22,6 +22,6 @@ enum INFOTYPE {
 };
 
 enum STATE_MON {
-	PEACE, BATTLE, DEAD
+	PEACE=1, BATTLE, DEAD
 };
 #endif

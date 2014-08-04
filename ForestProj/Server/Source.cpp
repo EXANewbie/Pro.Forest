@@ -105,8 +105,8 @@ void main() {
 	// CP 생성
 	hComPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
 
-	//timer->setCompletionPort(hComPort);
-	//timer->start();
+	timer->setCompletionPort(hComPort);
+	timer->start();
 
 	// 시스템 정보 불러오기
 	GetSystemInfo(&sysInfo);

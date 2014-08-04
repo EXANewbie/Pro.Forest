@@ -245,6 +245,11 @@ void receiver(const SOCKET s, int* myID, Character* myChar)
 			}
 			
 		}
+		else if (type == PUSER_SET_LV)
+		{
+
+		}
+
 		tmp.clear();
 	}
 

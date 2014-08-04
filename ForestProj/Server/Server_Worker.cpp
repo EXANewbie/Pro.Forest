@@ -27,8 +27,9 @@ void Handler_PMOVE_USER(Character *, std::string*);
 void Handler_PDISCONN(LPPER_HANDLE_DATA, LPPER_IO_DATA, std::string*);
 void Handler_PUSER_ATTCK(Character *, std::string*);
 
-void Handler_HELLOWORLD(LPPER_IO_DATA, std::string*);
-void Handler_PEACEMOVE(LPPER_IO_DATA, std::string*);
+void Handler_HELLOWORLD(LPPER_IO_DATA, string*);
+void Handler_PEACEMOVE(LPPER_IO_DATA, string*);
+void Handler_BATTLEATTACK(LPPER_IO_DATA, string*);
 
 int k;
 
@@ -216,6 +217,10 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 			if (ioInfo->type == PMODEPEACEMOVE)
 			{
 				Handler_PEACEMOVE(ioInfo, &readContents);
+			}
+			if (ioInfo->type == PMODEBATTLEATTACK)
+			{
+				Handler_BATTLEATTACK(ioInfo, &readContents);
 			}
 		}
 	}
