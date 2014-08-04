@@ -15,12 +15,13 @@ private :
 	int lv;
 	int prtHp, maxHp;
 	int power;
-	int exp;
+	int prtExp, maxExp;
 	SRWLOCK srw;
 public :
 	Character()
 	{
 		InitializeSRWLock(&srw);
+		prtExp = 0;
 	}
 	Character(int x, int y) :Character()
 	{
@@ -63,9 +64,13 @@ public :
 	{
 		return power;
 	}
-	const int getExp()
+	const int getPrtExp()
 	{
-		return exp;
+		return prtExp;
+	}
+	const int getMaxExp()
+	{
+		return maxExp;
 	}
 
 	void setSock(const SOCKET sock)
@@ -84,16 +89,17 @@ public :
 	{
 		this->y = y;
 	}
-	void setLv(const int lv, const int maxHp, const int power)
+	void setLv(const int lv, const int maxHp, const int power, const int maxExp)
 	{
 		this->lv = lv;
 		this->maxHp = maxHp;
 		this->prtHp = this->maxHp;
 		this->power = power;
+		this->maxExp = maxExp;
 	}
-	void setExp(const int exp)
+	void setExpUp(const int exp)
 	{
-		this->exp = exp;
+		prtExp += exp;
 	}
 
 	void attacked(int damage)

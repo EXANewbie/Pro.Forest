@@ -8,7 +8,8 @@ message CONTENTS
 		optional int32 lv = 2;
 		optional int32 maxHp = 3;
 		optional int32 power = 4;
-		optional int32 exp = 5;
+		optional int32 expup = 5;
+		optional int32 maxexp = 6;
 	}
 	repeated CHAR_ID_X_Y data = 1;
 }

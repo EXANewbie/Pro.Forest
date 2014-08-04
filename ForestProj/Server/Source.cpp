@@ -84,7 +84,7 @@ void main() {
 		static int knightId = 1;
 		Knight* knight = new Knight(knightId);
 		knight->setLv(1, 100, 5);
-		knight->setExp(0);
+		knight->setExp(knightExp);
 
 		int knightX = knight->getX(), knightY = knight->getY();
 		E_List_Mon* elist = FVEC_M->get(knightX, knightY);
@@ -105,8 +105,8 @@ void main() {
 	// CP 생성
 	hComPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
 
-	timer->setCompletionPort(hComPort);
-	timer->start();
+	//timer->setCompletionPort(hComPort);
+	//timer->start();
 
 	// 시스템 정보 불러오기
 	GetSystemInfo(&sysInfo);

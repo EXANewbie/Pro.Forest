@@ -24,6 +24,7 @@
 
 #include "../protobuf/userattackresult.pb.h"
 #include "../protobuf/setuserlv.pb.h"
+#include "../protobuf/setuserexp.pb.h"
 
 struct deleter {
 	void operator()(char *c){ delete[]c; }
@@ -59,18 +60,18 @@ void receiver(const SOCKET s, int* myID, Character* myChar)
 				auto user = contents.data(i);
 				Character* other = new Character;
 				int id = user.id(), x = user.x(), y = user.y();
-				int lv = user.lv(), maxHp = user.maxhp(), power = user.power(), exp = user.exp();
+				int lv = user.lv(), maxHp = user.maxhp(), power = user.power(), prtExp = user.prtexp(), maxExp=user.maxexp();
 				other->setID(id);
 				other->setX(x);
 				other->setY(y);
-				other->setLv(lv,maxHp,power);
-				other->setExp(exp);
+				other->setLv(lv,maxHp,power,maxExp);
+				other->setPrtExp(prtExp);
 				{
 					Scoped_Wlock SW(&chars->srw);
 					chars->insert(id, other);
 				}
-				printf("He char id : %d  (%d,%d)\n", other->getID(), other->getX(), other->getY());
-				printf("His lv : %d, hp : %d, power : %d, exp : %d\n", other->getLv(), other->getPrtHp(), other->getPower(), other->getExp());
+				printf("동료[ %d ]가 왔습니다. ", other->getID());
+				printf("레벨 : %d, 체력 : %d, 공격력 : %d, 경혐치 : %d\n", other->getLv(), other->getPrtHp(), other->getPower(), other->getPrtExp());
 			}
 			contents.clear_data();
 		}
@@ -81,14 +82,13 @@ void receiver(const SOCKET s, int* myID, Character* myChar)
 
 			auto user = contents.data(0);
 			int id = user.id(), x = user.x(), y = user.y();
-			int lv = user.lv(), maxHp = user.maxhp(), power = user.power(), exp = user.exp();
+			int lv = user.lv(), maxHp = user.maxhp(), power = user.power(), maxexp = user.maxexp();
 			*myID = id;
 			Character* myCharacter = new Character();
 			myCharacter->setID(id);
 			myCharacter->setX(x);
 			myCharacter->setY(y);
-			myCharacter->setLv(lv,maxHp,power);
-			myCharacter->setExp(exp);
+			myCharacter->setLv(lv,maxHp,power,maxexp);
 			*myChar = *myCharacter;
 			{
 				Scoped_Wlock SW(&chars->srw);
@@ -259,18 +259,40 @@ void receiver(const SOCKET s, int* myID, Character* myChar)
 					int lv = setuserlv.lv();
 					int maxHp = setuserlv.maxhp();
 					int power = setuserlv.power();
-					int exp = setuserlv.exp();
+					int expUp = setuserlv.expup();
+					int maxexp = setuserlv.maxexp();
 
 					Character* lvUpChar = chars->find(id);
 					if (lvUpChar == NULL) printf("나 나오면 안돼는데 나옴?");
 					else
 					{
 						Scoped_Wlock SW(lvUpChar->getLock());
-						lvUpChar->setLv(lv, maxHp, power);
+						lvUpChar->setExpUp(expUp);
+						lvUpChar->setLv(lv, maxHp, power, maxexp);
 						printf("유저 [%d]가 레벨이 %d로 올랐습니다!!\n", id, lv);
 					}
 				}
 			}
+		}
+		else if (type == PUSER_SET_EXP)
+		{
+			SET_USER_EXP::CONTENTS setuserexpContents;
+			setuserexpContents.ParseFromString(tmp);
+			auto setuserexp = setuserexpContents.data(0);
+			
+			int id = setuserexp.id();
+			int expUp = setuserexp.expup();
+
+			Character* expUpChar = chars->find(id);
+			{
+				Scoped_Wlock Sw(expUpChar->getLock());
+				expUpChar->setExpUp(expUp);
+			}
+			printf("유저 [%d]가 경험치가 상승했습니다!!\n", expUpChar->getID());
+		}
+		else if (type == PMONSTER_ATTACK_RESULT)
+		{
+			//내일할 곳.
 		}
 
 		tmp.clear();

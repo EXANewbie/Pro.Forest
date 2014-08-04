@@ -13,4 +13,5 @@ protoc.exe --cpp_out=.\ battleattack.proto
 protoc.exe --cpp_out=.\ setuserlv.proto
 protoc.exe --cpp_out=.\ monsterattackresult.proto
 protoc.exe --cpp_out=.\ userrespawn.proto
+protoc.exe --cpp_out=.\ setuserexp.proto
 

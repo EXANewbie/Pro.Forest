@@ -70,8 +70,8 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 			}
 			{
 				Scoped_Rlock SR(myChar->getLock());
-				printf("ID : %d 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d 경험치 : %d\n\n", 
-					myChar->getID(), myChar->getX(), myChar->getY(), myChar->getLv(), myChar->getPrtHp(), myChar->getMaxHp(), myChar->getPower(),myChar->getExp());
+				printf("ID : %d 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d 경험치[현재/목표] : [%d/%d]\n\n", 
+					myChar->getID(), myChar->getX(), myChar->getY(), myChar->getLv(), myChar->getPrtHp(), myChar->getMaxHp(), myChar->getPower(), myChar->getPrtExp(), myChar->getMaxExp());
 			}
 		}
 		else if (c == 'j')
@@ -91,8 +91,8 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 				{
 					Character* other = iter->second;
 					if (other->getID() == *myID) continue;
-					printf("ID : %d 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d 경험치 : %d \n\n",
-						other->getID(), other->getX(), other->getY(), other->getLv(), other->getPrtHp(), other->getMaxHp(), other->getPower(),other->getExp());
+					printf("ID : %d 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d 현재 경험치 : %d \n\n",
+						other->getID(), other->getX(), other->getY(), other->getLv(), other->getPrtHp(), other->getMaxHp(), other->getPower(),other->getPrtExp());
 				}
 			}
 		}
@@ -150,12 +150,6 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 			
 			USER_ATTACK::CONTENTS userattackContents;
 			auto userattack = userattackContents.add_data();
-			/*{
-				Scoped_Rlock SR(myChar->getLock());
-				userattack->set_id(myChar->getID());
-				userattack->set_x(myChar->getX());
-				userattack->set_y(myChar->getY());
-			}*/
 			userattack->set_attcktype(1);
 			{
 				Scoped_Rlock SR(atkMon->getLock());

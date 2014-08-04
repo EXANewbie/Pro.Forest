@@ -89,6 +89,7 @@
     <ClCompile Include="..\protobuf\moveuser.pb.cc" />
     <ClCompile Include="..\protobuf\setmonster.pb.cc" />
     <ClCompile Include="..\protobuf\setuser.pb.cc" />
+    <ClCompile Include="..\protobuf\setuserexp.pb.cc" />
     <ClCompile Include="..\protobuf\setuserlv.pb.cc" />
     <ClCompile Include="..\protobuf\userattack.pb.cc" />
     <ClCompile Include="..\protobuf\userattackresult.pb.cc" />

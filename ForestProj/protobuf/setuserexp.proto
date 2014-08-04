@@ -1,0 +1,11 @@
+package SET_USER_EXP;
+
+message CONTENTS
+{
+	message CHAR_ID_X_Y
+	{
+		optional int32 id = 1;
+		optional int32 expup = 2;
+	}
+	repeated CHAR_ID_X_Y data = 1;
+}

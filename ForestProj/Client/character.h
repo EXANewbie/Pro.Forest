@@ -10,17 +10,17 @@ private:
 	int lv;
 	int prtHp, maxHp;
 	int power;
-	int exp;
+	int prtExp, maxExp;
 	SRWLOCK srw;
 public:
 	Character()
 	{
 		InitializeSRWLock(&srw);
 		ID = -1;
+		prtExp = 0;
 	}
-	Character(int x, int y)
+	Character(int x, int y) : Character()
 	{
-		InitializeSRWLock(&srw);
 		this->x = x;
 		this->y = y;
 	}
@@ -53,9 +53,13 @@ public:
 	{
 		return power;
 	}
-	const int getExp()
+	const int getPrtExp()
 	{
-		return exp;
+		return prtExp;
+	}
+	const int getMaxExp()
+	{
+		return maxExp;
 	}
 	PSRWLOCK getLock()
 	{
@@ -74,20 +78,25 @@ public:
 	{
 		this->y = y;
 	}
-	void setLv(const int lv,const int maxHp,const int power)
+	void setLv(const int lv, const int maxHp, const int power, const int maxExp)
 	{
 		this->lv = lv;
 		this->maxHp = maxHp;
 		this->prtHp = this->maxHp;
 		this->power = power;
+		this->maxExp = maxExp;
 	}
-	void setExp(const int exp)
+	void setExpUp(const int exp)
 	{
-		this->exp = exp;
+		prtExp += exp;
 	}
 	void setPrtHp(const int hp)
 	{
 		this->prtHp = hp;
+	}
+	void setPrtExp(const int exp)
+	{
+		this->prtExp = exp;
 	}
 
 	void attacked(int damage)
