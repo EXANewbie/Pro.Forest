@@ -25,6 +25,7 @@ public:
 	virtual void setY(const int y) = 0;
 	virtual void setLv(const int lv, const int maxHp, const int power) = 0;
 	virtual void setExp(const int exp) = 0;
+	virtual void setPrtHp(const int hp) = 0;
 	virtual void attacked(int damage) = 0;
 	
 };
@@ -41,15 +42,17 @@ private:
 	int exp;
 	SRWLOCK srw;
 public:
-	Knight() : Monster() { name = "기사"; }
+	Knight() : Monster() { InitializeSRWLock(&srw); name = "기사"; }
 	Knight(int x, int y) : Monster()
 	{
+		InitializeSRWLock(&srw);
 		name = "기사";
 		this->x = x;
 		this->y = y;
 	}
 	Knight(int ID) : Monster()
 	{
+		InitializeSRWLock(&srw);
 		name = "기사" ;
 		this->ID = ID;
 	}
@@ -116,6 +119,10 @@ public:
 	void setExp(const int exp)
 	{
 		this->exp = exp;
+	}
+	void setPrtHp(const int hp)
+	{
+		this->prtHp = hp;
 	}
 
 	void attacked(int damage)

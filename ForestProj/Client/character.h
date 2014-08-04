@@ -83,6 +83,10 @@ public:
 	{
 		this->exp = exp;
 	}
+	void setPrtHp(const int hp)
+	{
+		this->prtHp = hp;
+	}
 
 	void attacked(int damage)
 	{

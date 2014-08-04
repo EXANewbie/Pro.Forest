@@ -4,11 +4,10 @@ message CONTENTS
 {
 	message CHAR_ID_X_Y
 	{
-		optional int32 attckType = 1;
-		optional int32 id_m = 2;
-		optional int32 x_m = 3;
-		optional int32 y_m = 4;
-		optional int32 damage=5;
+		optional int32 id = 1;
+		optional int32 attckType = 2;
+		optional int32 id_m = 3;
+		optional int32 prtHP_m = 4;
 	}
 	repeated CHAR_ID_X_Y data = 1;
 }

@@ -269,7 +269,6 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 			setmon->set_lv(tmpMon->getLv());
 			setmon->set_maxhp(tmpMon->getMaxHp());
 			setmon->set_power(tmpMon->getPower());
-			setmon->set_exp(tmpMon->getExp());
 
 			if (setmonsterContents.data_size() == SET_MONSTER_MAXIMUM)
 			{

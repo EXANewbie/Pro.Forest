@@ -201,7 +201,6 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 			setmon->set_lv(tmpMon->getLv());
 			setmon->set_maxhp(tmpMon->getMaxHp());
 			setmon->set_power(tmpMon->getPower());
-			setmon->set_exp(tmpMon->getExp());
 
 			if (setmonsterContents.data_size() == SET_MONSTER_MAXIMUM)
 			{

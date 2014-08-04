@@ -70,6 +70,9 @@
     <ClCompile Include="Handler_PEACEMOVE.cpp">
       <Filter>monster_state</Filter>
     </ClCompile>
+    <ClCompile Include="..\protobuf\setuserlv.pb.cc">
+      <Filter>pb_files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="character.h">

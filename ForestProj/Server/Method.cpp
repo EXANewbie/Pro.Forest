@@ -11,7 +11,7 @@
 using std::string;
 
 bool Boundary_Check(const int, const int, const int, int, int);
-void make_vector_id_in_room(E_List *, vector<int>&);
+void make_vector_id_in_room(E_List *, vector<Character*>&);
 void unpack(msg, char *, int *);
 
 void Knight::getNextOffset(int bef_x_off, int bef_y_off, int *nxt_x_off, int *nxt_y_off)
