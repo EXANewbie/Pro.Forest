@@ -34,6 +34,15 @@
     <ClCompile Include="..\protobuf\userattackresult.pb.cc">
       <Filter>pb_files</Filter>
     </ClCompile>
+    <ClCompile Include="..\protobuf\userrespawn.pb.cc">
+      <Filter>pb_files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\protobuf\setuserlv.pb.cc">
+      <Filter>pb_files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\protobuf\monsterattackresult.pb.cc">
+      <Filter>pb_files</Filter>
+    </ClCompile>
     <ClCompile Include="TimerThread.cpp">
       <Filter>Timer</Filter>
     </ClCompile>
@@ -70,7 +79,10 @@
     <ClCompile Include="Handler_PEACEMOVE.cpp">
       <Filter>monster_state</Filter>
     </ClCompile>
-    <ClCompile Include="..\protobuf\setuserlv.pb.cc">
+    <ClCompile Include="Handler_BATTLEATTACK.cpp">
+      <Filter>monster_state</Filter>
+    </ClCompile>
+    <ClCompile Include="..\protobuf\battleattack.pb.cc">
       <Filter>pb_files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -108,9 +120,6 @@
     <ClInclude Include="Sock_set.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="types.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="TimerThread.h">
       <Filter>Timer</Filter>
     </ClInclude>
@@ -118,6 +127,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Memory_Pool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

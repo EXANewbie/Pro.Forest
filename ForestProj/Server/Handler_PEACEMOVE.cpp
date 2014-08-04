@@ -1,12 +1,14 @@
 #include <string>
 
 #include "../protobuf/peacemove.pb.h"
+#include "../protobuf/setmonster.pb.h"
 
 #include "Completion_Port.h"
 #include "DMap.h"
 #include "Scoped_Lock.h"
 #include "Memory_Pool.h"
 #include "DMap_monster.h"
+#include "msg.h"
 
 /*
 #include "Check_Map.h"
@@ -23,6 +25,10 @@
 #include "msg.h"
 */
 using std::string;
+
+void make_vector_id_in_room(E_List *, vector<Character *>&);
+void send_message(msg, vector<Character *> &, bool);
+void unpack(msg, char *, int *);
 
 void Handler_PEACEMOVE(LPPER_IO_DATA ioInfo, string* readContents) {
 	auto FVEC_M = F_Vector_Mon::getInstance();
@@ -78,26 +84,45 @@ void Handler_PEACEMOVE(LPPER_IO_DATA ioInfo, string* readContents) {
 		{
 			{
 				auto elist = FVEC_M->get(monster->getX(), monster->getY());
-				Scoped_Wlock(&elist->slock);
+				Scoped_Wlock SW(&elist->slock);
 				elist->erase(monster);
 			}
 			monster->setX(monster->getX() + nxt_x_off);
 			monster->setY(monster->getY() + nxt_y_off);
 			{
 				auto elist = FVEC_M->get(monster->getX(), monster->getY());
-				Scoped_Wlock(&elist->slock);
+				Scoped_Wlock SW(&elist->slock);
 				elist->push_back(monster);
 			}
 
 
 
 			auto elist = F_Vector::getInstance()->get(monster->getX(), monster->getY());
-			Scoped_Rlock(&elist->slock);
+			Scoped_Rlock SR(&elist->slock);
 			int size = elist->size();
 
 			// 유저가 존재합니다!! W.A.R.N.I.N.G !! W.A.R.N.I.N.G !!
 			if (size > 0)
 			{
+				vector<Character *> receiver;
+				make_vector_id_in_room(elist, receiver);
+				
+				string bytestring;
+				SET_MONSTER::CONTENTS setmonsterContents;
+				auto data = setmonsterContents.add_data();
+				data->set_id(monster->getID());
+				data->set_name(monster->getName());
+				data->set_lv(monster->getLv());
+				data->set_maxhp(monster->getMaxHp());
+				data->set_power(monster->getPower());
+				data->set_x(monster->getX());
+				data->set_y(monster->getY());
+				
+				setmonsterContents.SerializeToString(&bytestring);
+				auto message = msg(PSET_MON, bytestring.size(), bytestring.c_str());
+
+				send_message(message, receiver,false);
+				// 여기에 모든 유저들에게 나의 존재를 알려줘야되요~
 
 				monster->SET_BATTLE_MODE();
 				// 여기서부터 배틀모드가 되었다는걸 타이머에게 전송해줘요~

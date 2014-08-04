@@ -8,9 +8,14 @@
 
 int bigRand();
 
+using std::vector;
+
 class Monster
 {
 public:	
+	enum {
+		ATTACKSTART
+	};
 	Monster() = default;
 	virtual const int getID() = 0;
 	virtual const int getName() = 0;
@@ -32,10 +37,13 @@ public:
 	virtual void attacked(int damage) = 0;
 
 	virtual void getNextOffset(int bef_x_off, int bef_y_off, int *nxt_x_off, int *nxt_y_off) = 0;
+	virtual void getAttackInfo(int attacktype, const vector<int>& befusers, int *nextattacktype, vector<int>& nextusers, vector<int>& damage) = 0;
+	virtual void getRespawnTime(int* time) = 0;
+
 	virtual void SET_BATTLE_MODE() = 0;
 	virtual void SET_PEACE_MODE() = 0;
 
-	virtual void CONTINUE_BATTLE_MODE(int user_id,int attack_type) = 0;
+	virtual	void CONTINUE_BATTLE_MODE(vector<int> users, int attack_type) = 0;
 	virtual void CONTINUE_PEACE_MODE(int bef_x_off,int bef_y_off) = 0;
 
 	virtual PSRWLOCK getLock() = 0;
@@ -53,7 +61,15 @@ private:
 	int exp;
 	int state;
 
+	enum {
+		ATTACKSTART, BASICATTACK, DOUBLEATTACK, MULTIATTACK
+	};
+
 	SRWLOCK srw;
+private :
+	void getBASICATTACKINFO(int *nextattacktype, vector<int>& nextusers, vector<int>& damage);
+	void getDOUBLEATTACKINFO(int *nextattacktype, vector<int>& nextusers, vector<int>& damage);
+	void getMULTIATTACKINFO(int *nextattacktype, vector<int>& nextusers, vector<int>& damage);
 public:
 	Knight() : Monster() { InitializeSRWLock(&srw);  name = 1; }
 	Knight(int x, int y) : Monster()
@@ -151,11 +167,13 @@ public:
 	}
 
 	void getNextOffset(int bef_x_off, int bef_y_off, int *nxt_x_off, int *nxt_y_off);
+	void getAttackInfo(int attacktype, const vector<int>& befusers, int *nextattacktype, vector<int>& nextusers, vector<int>& damage);
+	void getRespawnTime(int* time);
 
 	void SET_BATTLE_MODE();
 	void SET_PEACE_MODE();
 
-	void CONTINUE_BATTLE_MODE(int user_id, int attack_type);
+	void CONTINUE_BATTLE_MODE(vector<int> users, int attack_type);
 	void CONTINUE_PEACE_MODE(int bef_x_off, int bef_y_off);
 };
 

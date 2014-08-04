@@ -31,8 +31,7 @@ void closeClient(int);
 void remove_valid_client(LPPER_HANDLE_DATA, LPPER_IO_DATA);
 void copy_to_buffer(char *, int **, int);
 void copy_to_param(int **, int, char *);
-
-void make_vector_id_in_room(E_List *, vector<Character*>&);
+void make_vector_id_in_room(E_List *, vector<Character *>&);
 
 bool Boundary_Check(int, const int, const int, int, int);
 int bigRand();
@@ -308,7 +307,9 @@ int bigRand()
 	return (rand() << 15) + rand();
 }
 
-void make_vector_id_in_room(E_List *elist, vector<Character*>& send_list) {
+
+void make_vector_id_in_room(E_List *elist, vector<Character *>& send_list) {
+
 	for (auto i = elist->begin(); i != elist->end(); i++)
 	{
 		send_list.push_back(*i);
