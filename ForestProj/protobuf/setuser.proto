@@ -10,7 +10,8 @@ message CONTENTS
 		optional int32 lv = 4;
 		optional int32 maxHp = 5;
 		optional int32 power = 6;
-		optional int32 exp = 7;
+		optional int32 prtexp = 7;
+		optional int32 maxexp = 8;
 	}
 	repeated CHAR_ID_X_Y data = 1;
 }

@@ -11,16 +11,18 @@ class Character
 private :
 	SOCKET sock;
 	int ID;
+	std::string name;
 	int x, y;
 	int lv;
 	int prtHp, maxHp;
 	int power;
-	int exp;
+	int prtExp, maxExp;
 	SRWLOCK srw;
 public :
 	Character()
 	{
 		InitializeSRWLock(&srw);
+		prtExp = 0;
 	}
 	Character(int x, int y) :Character()
 	{
@@ -38,6 +40,10 @@ public :
 	const int getID()
 	{
 		return ID;
+	}
+	std::string getName()
+	{
+		return name;
 	}
 	const int getX()
 	{
@@ -63,9 +69,13 @@ public :
 	{
 		return power;
 	}
-	const int getExp()
+	const int getPrtExp()
 	{
-		return exp;
+		return prtExp;
+	}
+	const int getMaxExp()
+	{
+		return maxExp;
 	}
 
 	void setSock(const SOCKET sock)
@@ -76,6 +86,10 @@ public :
 	{
 		this->ID = ID;
 	}
+	void setString(string name)
+	{
+		this->name = name;
+	}
 	void setX(const int x)
 	{
 		this->x = x;
@@ -84,16 +98,17 @@ public :
 	{
 		this->y = y;
 	}
-	void setLv(const int lv, const int maxHp, const int power)
+	void setLv(const int lv, const int maxHp, const int power, const int maxExp)
 	{
 		this->lv = lv;
 		this->maxHp = maxHp;
 		this->prtHp = this->maxHp;
 		this->power = power;
+		this->maxExp = maxExp;
 	}
-	void setExp(const int exp)
+	void setExpUp(const int exp)
 	{
-		this->exp = exp;
+		prtExp += exp;
 	}
 
 	void attacked(int damage)

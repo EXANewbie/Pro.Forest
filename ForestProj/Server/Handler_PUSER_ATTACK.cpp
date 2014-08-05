@@ -3,6 +3,7 @@
 #include "../protobuf/userattack.pb.h"
 #include "../protobuf/userattackresult.pb.h"
 #include "../protobuf/setuserlv.pb.h"
+#include "../protobuf/setuserexp.pb.h"
 
 #include "Check_Map.h"
 #include "Completion_Port.h"
@@ -12,6 +13,7 @@
 #include "Scoped_Lock.h"
 #include "DMap_monster.h"
 #include "msg.h"
+#include "types.h"
 
 void send_message(msg, vector<Character *> &, bool);
 void make_vector_id_in_room(E_List *, vector<Character*>&);
@@ -22,6 +24,9 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 	F_Vector_Mon* FVEC_M = F_Vector_Mon::getInstance();
 	USER_ATTACK_RESULT::CONTENTS userattackresultContents;
 	SET_USER_LV::CONTENTS setuserlvContents;
+	SET_USER_EXP::CONTENTS setuserexpContents;
+	vector<Character*> me;
+	me.push_back(myChar);
 	
 	//****** 이부분 좀 고민좀 됨. 공격을 하고 바로 그자리에서 빠지면 브로드 캐스트가 어떻게 될까 등등. 일단 뒤로 미루겠음.
 	E_List* elist;
@@ -39,10 +44,12 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 	USER_ATTACK::CONTENTS userattackContents;
 	userattackContents.ParseFromString(*str);
 
-	bool existKillUser = false;
+	bool existKillUser, existLvUpUser;
 	//여러 몬스터을 공격할수도 있기에 for문으로 구성.
 	for (int i = 0; i < userattackContents.data_size(); ++i)
 	{
+		existKillUser = false;
+		existLvUpUser = false;
 		auto userattack = userattackContents.data(i);
 		
 		int attckType = userattack.attcktype();
@@ -64,7 +71,7 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 		}
 
 		// 몬스터 객체에 데미지 입힘.
-		int monprtHp;
+		int monprtHp, expUp=0;
 		bool kill = false;
 		{
 			Scoped_Wlock SR(mon->getLock());
@@ -76,6 +83,7 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 				//mon->SET_DEAD_MODE();
 				{
 					Scoped_Wlock SW(&elist_m->slock);
+					expUp = mon->getExp();
 					elist_m->erase(mon->getID());
 				}
 				//경험치를 얻도록하자.
@@ -85,31 +93,40 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 		bool lvUp = false;
 		if (kill == true)
 		{
-			Scoped_Wlock SW(myChar->getLock());
-			int prtExp = myChar->getExp() + knightExp;
-			int prtLv = myChar->getLv();
-			if (prtExp >= maxExp[prtLv-1])
 			{
-				myChar->setLv(prtLv + 1, HpPw[prtLv][0], HpPw[prtLv][1]);
-				myChar->setExp(prtExp - maxExp[prtLv]);
-				lvUp = true;
+				Scoped_Wlock SW(myChar->getLock());
+				int prtLv = myChar->getLv(); 
+				myChar->setExpUp(expUp);
+
+				if (myChar->getPrtExp() >= myChar->getMaxExp())
+				{
+					prtLv++;
+					myChar->setLv(prtLv, HpPw[prtLv][0], HpPw[prtLv][1],maxExp[prtLv]);
+					lvUp = true;
+				}
+			}
+			if (lvUp == true)
+			{
+				existLvUpUser = true;
+				Scoped_Rlock SR(myChar->getLock());
+				auto setuserlv = setuserlvContents.add_data();
+				setuserlv->set_id(myChar->getID());
+				setuserlv->set_lv(myChar->getLv());
+				setuserlv->set_maxhp(myChar->getMaxHp());
+				setuserlv->set_power(myChar->getPower());
+				setuserlv->set_expup(expUp);
+				setuserlv->set_maxexp(myChar->getMaxExp());
 			}
 			else
 			{
-				myChar->setExp(prtExp);
+				existKillUser = true;
+				Scoped_Rlock SR(myChar->getLock());
+				auto setuserexp = setuserexpContents.add_data();
+				setuserexp->set_id(myChar->getID());
+				setuserexp->set_expup(expUp);
 			}
 		}
-		if (lvUp == true)
-		{
-			existKillUser = true;
-			Scoped_Rlock SR(myChar->getLock());
-			auto setuserlv = setuserlvContents.add_data();
-			setuserlv->set_id(myChar->getID());
-			setuserlv->set_lv(myChar->getLv());
-			setuserlv->set_maxhp(myChar->getMaxHp());
-			setuserlv->set_power(myChar->getPower());
-			setuserlv->set_exp(myChar->getExp());
-		}
+		
 
 		// 몬스터 객체가 공격 당하고나서의 현재 체력을 같은방의 유저들에게 알림.
 		auto userattackresult = userattackresultContents.add_data();
@@ -126,10 +143,18 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 	send_message(msg(PUSER_ATTCK_RESULT, len, bytestring.c_str()), charId_in_room, false);
 	bytestring.clear();
 
-	if (existKillUser == true)
+	if (existLvUpUser == true)
 	{
 		setuserlvContents.SerializeToString(&bytestring);
 		len = bytestring.length();
 		send_message(msg(PUSER_SET_LV, len, bytestring.c_str()), charId_in_room, false);
+		bytestring.clear();
+	}
+	if (existKillUser == true)
+	{
+		setuserexpContents.SerializeToString(&bytestring);
+		len = bytestring.length();
+		send_message(msg(PUSER_SET_EXP, len, bytestring.c_str()), charId_in_room, false);
+		bytestring.clear();
 	}
 }

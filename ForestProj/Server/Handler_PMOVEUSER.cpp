@@ -199,7 +199,7 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 
 		// 새로운 방의 유저들에게 내가 등장함을 알림
 		x = pCharacter->getX(), y = pCharacter->getY();
-		int lv = pCharacter->getLv(), maxHp = pCharacter->getMaxHp(), power = pCharacter->getPower(), exp = pCharacter->getExp();
+		int lv = pCharacter->getLv(), maxHp = pCharacter->getMaxHp(), power = pCharacter->getPower(), prtExp = pCharacter->getPrtExp();
 		auto setuser = setuserContents.add_data();
 		setuser->set_id(cur_id);
 		setuser->set_x(x);
@@ -207,7 +207,7 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 		setuser->set_lv(lv);
 		setuser->set_maxhp(maxHp);
 		setuser->set_power(power);
-		setuser->set_exp(exp);
+		setuser->set_prtexp(prtExp);
 
 		setuserContents.SerializeToString(&bytestring);
 		len = bytestring.length();
@@ -227,7 +227,8 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 			setuser->set_lv(tmpChar->getLv());
 			setuser->set_maxhp(tmpChar->getMaxHp());
 			setuser->set_power(tmpChar->getPower());
-			setuser->set_exp(tmpChar->getExp());
+			setuser->set_prtexp(tmpChar->getPrtExp());
+			setuser->set_maxexp(tmpChar->getMaxExp());
 
 			if (setuserContents.data_size() == SET_USER_MAXIMUM) {
 				setuserContents.SerializeToString(&bytestring);

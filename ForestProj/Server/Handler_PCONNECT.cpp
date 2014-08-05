@@ -56,20 +56,20 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 	vector<Monster *> vec_mon;
 
 	connect.ParseFromString(*readContents);
+
 	if (connect.data() != "HELLO SERVER!")
 	{
 		//가짜 클라이언트
 	}
 	int char_id;
-	int x, y, lv, maxHp, power, exp;
+	int x, y, lv, maxHp, power, maxexp, prtExp;
 	static int id = 0;
 
 	// 캐릭터 객체를 생성 후
 	// 캐릭터 생성하고 init 하는 것에 대해선 char lock할 필요가 없다.
 	char_id = InterlockedIncrement((unsigned *)&id);
 	Character* myChar = new Character(char_id);
-	myChar->setLv(1, HpPw[0][0], HpPw[0][1]);
-	myChar->setExp(0);
+	myChar->setLv(1, HpPw[1][0], HpPw[1][1], maxExp[1]);
 	myChar->setSock(handleInfo->hClntSock);
 	me.push_back(myChar);
 
@@ -78,8 +78,8 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 	lv = myChar->getLv();
 	maxHp = myChar->getMaxHp();
 	power = myChar->getPower();
-	exp = myChar->getExp();
-
+	maxexp = myChar->getMaxExp();
+	prtExp = myChar->getPrtExp();
 	ioInfo->id = char_id;
 	ioInfo->myCharacter = myChar;
 
@@ -103,7 +103,7 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 		myData->set_lv(lv);
 		myData->set_maxhp(maxHp);
 		myData->set_power(power);
-		myData->set_exp(exp);
+		myData->set_maxexp(maxexp);
 	}
 
 	initContents.SerializeToString(&bytestring);
@@ -126,7 +126,7 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 		myData->set_lv(lv);
 		myData->set_maxhp(maxHp);
 		myData->set_power(power);
-		myData->set_exp(exp);
+		myData->set_prtexp(maxexp);
 	}
 
 	setuserContents.SerializeToString(&bytestring);
@@ -158,7 +158,7 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 			tempData->set_lv(lv);
 			tempData->set_maxhp(maxHp);
 			tempData->set_power(power);
-			tempData->set_exp(exp);
+			tempData->set_prtexp(prtExp);
 
 			if (setuserContents.data_size() == SET_USER_MAXIMUM) // SET_USER_MAXIMUM이 한계치로 접근하려고 할 때
 			{
