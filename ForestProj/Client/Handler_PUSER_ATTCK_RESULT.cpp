@@ -39,7 +39,7 @@ void Handler_PUSER_ATTCK_RESULT(Character *myChar, std::string* str)
 		{
 			if (targetMon->getPrtHp() == 0)
 			{
-				printf("- ☆기술 %d을 사용하여 몬스터%s[%d] (을)를 %d만큼 공격하여 죽였습니다!!\n",
+				printf("- ☆기술 %d을 사용하여 몬스터%s[%d] (을)를 %d만큼 공격하여 죽였습니다!!\n\n",
 					attckType, targetMon->getName().c_str(), targetMon->getID(), damage);
 				{
 					Scoped_Wlock SW(&mons->srw);
@@ -50,7 +50,7 @@ void Handler_PUSER_ATTCK_RESULT(Character *myChar, std::string* str)
 			}
 			else
 			{
-				printf("- 기술 %d을 이용하여 몬스터 %s[%d] (을)를 %d만큼 공격하였습니다.\n",
+				printf("- 기술 %d을 이용하여 몬스터 %s[%d] (을)를 %d만큼 공격하였습니다.\n\n",
 					attckType, targetMon->getName().c_str(), targetMon->getID(), damage);
 			}
 		}
@@ -58,7 +58,7 @@ void Handler_PUSER_ATTCK_RESULT(Character *myChar, std::string* str)
 		{
 			if (targetMon->getPrtHp() == 0)
 			{
-				printf("※ ☆유저 %s님이 기술 %d을 이용하여 몬스터%s[%d]를 %d만큼 공격하여 죽였습니다!!\n",
+				printf("※ ☆유저 %s님이 기술 %d을 이용하여 몬스터%s[%d]를 %d만큼 공격하여 죽였습니다!!\n\n",
 					myChar->getName().c_str(), attckType, targetMon->getName().c_str(), targetMon->getID(), damage);
 				{
 					Scoped_Wlock SW(&mons->srw);
@@ -70,7 +70,7 @@ void Handler_PUSER_ATTCK_RESULT(Character *myChar, std::string* str)
 			else
 			{
 				//이름도 붙여주고 싶다. protobuf string 넘겨줘도 문제없게 하고싶음.  하였음
-				printf("※ 유저 %s님이 기술 %d을 이용하여 몬스터 %s[%d]를 %d만큼 공격하였습니다.\n",
+				printf("※ 유저 %s님이 기술 %d을 이용하여 몬스터 %s[%d]를 %d만큼 공격하였습니다.\n\n",
 					myChar->getName().c_str(), attckType, targetMon->getName().c_str(), targetMon->getID(), damage);
 			}
 		}
