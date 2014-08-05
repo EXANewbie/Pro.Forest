@@ -31,29 +31,39 @@ void send_message(msg, vector<Character *> &, bool);
 void unpack(msg, char *, int *);
 
 void Handler_PEACEMOVE(LPPER_IO_DATA ioInfo, string* readContents) {
-	auto FVEC_M = F_Vector_Mon::getInstance();
+	PEACEMOVE::CONTENTS peacemove;
+	peacemove.ParseFromString(*readContents);
 
 	if (ioInfo->block != nullptr)
 	{
 		Memory_Pool::getInstance()->pushBlock(ioInfo->block);
+		ioInfo->block = nullptr;
 	}
 	ioInfo_Pool::getInstance()->pushBlock(ioInfo);
-	PEACEMOVE::CONTENTS peacemove;
 
+	auto FVEC_M = F_Vector_Mon::getInstance();
+	
 	peacemove.ParseFromString(*readContents);
 	int ID = peacemove.id();
 
 	auto AMAP_MON = Access_Map_Mon::getInstance();
 	Monster* monster;
 	{
+		if (ID == 0) {
+			printf("왜?\n");
+		}
 		Scoped_Rlock SR(&AMAP_MON->slock);
 		monster = AMAP_MON->find(ID);
 
 		if (monster == nullptr) {
 			//몬스터가 유효하지 않습니다.
+
+			printf("ID : %d, (%d)\n", peacemove.state());
+			Sleep(1000);
 		}
+		printf("ID : %d\n",ID);
 		//지금 현재 상태와 패킷의 상태가 일치하지 않습니다!!
-		if (monster->getState() != peacemove.state())
+		if (monster->getState() != PMODEPEACEMOVE)
 		{
 			return;
 		}

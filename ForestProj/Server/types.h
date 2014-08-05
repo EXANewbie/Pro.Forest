@@ -1,7 +1,7 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-//#define PRINT_LOG
+#define PRINT_LOG
 
 #include "Constant.h"
 
@@ -23,5 +23,9 @@ enum INFOTYPE {
 
 enum STATE_MON {
 	PEACE=1, BATTLE, DEAD
+};
+
+enum ATTACK_TYPE_MON {
+	ATTACKSTART, BASICATTACK, DOUBLEATTACK, MULTIATTACK
 };
 #endif

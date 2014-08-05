@@ -20,12 +20,12 @@ void Knight::getNextOffset(int bef_x_off, int bef_y_off, int *nxt_x_off, int *nx
 {
 	int Points[][2] = { { 1, 0 }, { 0, -1 }, { -1, 0 }, { 0, 1 } };
 	int size = 4;
-//	for (int i = 0; i < 4;i++) 
+	//	for (int i = 0; i < 4;i++) 
 	*nxt_x_off = bef_x_off;
 	*nxt_y_off = bef_y_off;
 
 	if (bef_x_off == 0 && bef_y_off == 0) {
-		
+
 	}
 	else if (Boundary_Check(ID, x, y, *nxt_x_off, *nxt_y_off) == true)
 	{
@@ -99,7 +99,7 @@ void Knight::SET_BATTLE_MODE() {
 	battlemsg.set_id(ID);
 	battlemsg.set_state(BATTLE);
 
-	int time = 1000;
+	int time = 50;
 	string message;
 	battlemsg.SerializePartialToString(&message);
 	auto MemoryPool = Memory_Pool::getInstance();
@@ -121,7 +121,7 @@ void Knight::SET_PEACE_MODE() {
 	peacemsg.set_id(ID);
 	peacemsg.set_state(PEACE);
 
-	int time = 1000;
+	int time = 50;
 	string message;
 	peacemsg.SerializePartialToString(&message);
 	auto MemoryPool = Memory_Pool::getInstance();
@@ -141,7 +141,7 @@ void Knight::CONTINUE_BATTLE_MODE(vector<int> users, int attack_type) {
 	battlemsg.set_attacktype(attack_type);
 	battlemsg.set_finished(0);
 
-	int time = 1000;
+	int time = 50;
 
 	for (int i = 0; i < users.size(); i++) {
 		auto target = battlemsg.add_data();
@@ -172,7 +172,7 @@ void Knight::CONTINUE_BATTLE_MODE(vector<int> users, int attack_type) {
 	unpack(msg(PMODEBATTLEATTACK, message.size(), message.c_str()), blocks->getBuffer(), &len);
 
 	Timer::getInstance()->addSchedule(time, string(blocks->getBuffer(), len));
-	
+
 	MemoryPool->pushBlock(blocks);
 }
 
@@ -183,7 +183,7 @@ void Knight::CONTINUE_PEACE_MODE(int nxt_x_off, int nxt_y_off) {
 	peacemsg.set_xoff(nxt_x_off);
 	peacemsg.set_yoff(nxt_y_off);
 
-	int time = 1000;
+	int time = 50;
 	string message;
 	peacemsg.SerializeToString(&message);
 	auto MemoryPool = Memory_Pool::getInstance();
@@ -198,74 +198,71 @@ void Knight::CONTINUE_PEACE_MODE(int nxt_x_off, int nxt_y_off) {
 
 void Knight::getBASICATTACKINFO(int *nextattacktype, vector<Character *>& nextusers, vector<int>& damage)
 {
+	// 해당 몬스터가 들어있는 elist에 lock을 걸고 들어왔다는 것이 보장됩니다!
 	*nextattacktype = BASICATTACK; // 평타 설정
 	Character* nextTarget = nullptr;
 	int minHP;
 
 	auto FVEC = F_Vector::getInstance();
 	auto elist = FVEC->get(x, y);
-	{
-		Scoped_Rlock(&elist->slock);
-		for (auto itr = elist->begin(); itr != elist->end(); itr++)
-		{
-			auto chars = *itr;
-			Scoped_Rlock(chars->getLock());
 
-			if (nextTarget == nullptr || minHP > chars->getPrtHp())
-			{
-				nextTarget = chars;
-				minHP = chars->getPrtHp();
-			}
+	for (auto itr = elist->begin(); itr != elist->end(); itr++)
+	{
+		auto chars = *itr;
+		Scoped_Rlock SR2(chars->getLock());
+
+		if (nextTarget == nullptr || minHP > chars->getPrtHp())
+		{
+			nextTarget = chars;
+			minHP = chars->getPrtHp();
 		}
-		int realdamage = power; // 데미지 계산은 여기에서!
-		damage.push_back(power);
-		nextusers.push_back(nextTarget);
 	}
+	int realdamage = power; // 데미지 계산은 여기에서!
+	damage.push_back(power);
+	nextusers.push_back(nextTarget);
 }
 
 void Knight::getDOUBLEATTACKINFO(int *nextattacktype, vector<Character *>& nextusers, vector<int>& damage)
 {
+	// 해당 몬스터가 들어있는 elist에 lock을 걸고 들어왔다는 것이 보장됩니다!
 	*nextattacktype = DOUBLEATTACK; // 평타 설정
 	Character *nextTarget = nullptr;
 	int minHP;
 
 	auto FVEC = F_Vector::getInstance();
 	auto elist = FVEC->get(x, y);
-	{
-		Scoped_Rlock(&elist->slock);
-		for (auto itr = elist->begin(); itr != elist->end(); itr++)
-		{
-			auto chars = *itr;
-			Scoped_Rlock(chars->getLock());
 
-			if (nextTarget == nullptr || minHP > chars->getPrtHp())
-			{
-				nextTarget = chars;
-				minHP = chars->getPrtHp();
-			}
+	for (auto itr = elist->begin(); itr != elist->end(); itr++)
+	{
+		auto chars = *itr;
+		Scoped_Rlock SR2(chars->getLock());
+
+		if (nextTarget == nullptr || minHP > chars->getPrtHp())
+		{
+			nextTarget = chars;
+			minHP = chars->getPrtHp();
 		}
-		int realdamage = 2*power; // 데미지 계산은 여기에서!
-		damage.push_back(power);
-		nextusers.push_back(nextTarget);
 	}
+	int realdamage = 2 * power; // 데미지 계산은 여기에서!
+	damage.push_back(realdamage);
+	nextusers.push_back(nextTarget);
 }
 
 void Knight::getMULTIATTACKINFO(int *nextattacktype, vector<Character *>& nextusers, vector<int>& damage)
 {
+	// 해당 몬스터가 들어있는 elist에 lock을 걸고 들어왔다는 것이 보장됩니다!
 	*nextattacktype = MULTIATTACK; // 평타 설정
 
 	auto FVEC = F_Vector::getInstance();
 	auto elist = FVEC->get(x, y);
-	{
-		Scoped_Rlock(&elist->slock);
-		for (auto itr = elist->begin(); itr != elist->end(); itr++)
-		{
-			auto chars = *itr;
-			int realdamage = power / 3; // 데미지 공식은 여기서 변경하세요!
-			Scoped_Rlock(chars->getLock());
 
-			nextusers.push_back(chars);
-			damage.push_back(realdamage);
-		}
+	for (auto itr = elist->begin(); itr != elist->end(); itr++)
+	{
+		auto chars = *itr;
+		int realdamage = power / 3; // 데미지 공식은 여기서 변경하세요!
+		Scoped_Rlock SR2(chars->getLock());
+
+		nextusers.push_back(chars);
+		damage.push_back(realdamage);
 	}
 }

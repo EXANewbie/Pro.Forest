@@ -13,9 +13,6 @@ using std::vector;
 class Monster
 {
 public:	
-	enum {
-		ATTACKSTART
-	};
 	Monster() = default;
 	virtual const int getID() = 0;
 	virtual std::string getName() = 0;
@@ -60,10 +57,6 @@ private:
 	int power;
 	int exp;
 	int state;
-
-	enum {
-		ATTACKSTART, BASICATTACK, DOUBLEATTACK, MULTIATTACK
-	};
 
 	SRWLOCK srw;
 private :
