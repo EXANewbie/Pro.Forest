@@ -176,7 +176,7 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 		elist->push_back(pCharacter);
 	}
 
-	//실제로 나를 움직임을 보냄.
+	//실제로 나의 움직임을 보냄.
 	{
 		auto moveuser = moveuserContents.add_data();
 		moveuser->set_id(cur_id);
@@ -200,10 +200,13 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 		// 새로운 방의 유저들에게 내가 등장함을 알림
 		x = pCharacter->getX(), y = pCharacter->getY();
 		int lv = pCharacter->getLv(), maxHp = pCharacter->getMaxHp(), power = pCharacter->getPower(), prtExp = pCharacter->getPrtExp();
+		std::string name = pCharacter->getName();
+
 		auto setuser = setuserContents.add_data();
 		setuser->set_id(cur_id);
 		setuser->set_x(x);
 		setuser->set_y(y);
+		setuser->set_name(name);
 		setuser->set_lv(lv);
 		setuser->set_maxhp(maxHp);
 		setuser->set_power(power);
@@ -224,6 +227,7 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 			setuser->set_id(tmpChar->getID());
 			setuser->set_x(tmpChar->getX());
 			setuser->set_y(tmpChar->getY());
+			setuser->set_name(tmpChar->getName());
 			setuser->set_lv(tmpChar->getLv());
 			setuser->set_maxhp(tmpChar->getMaxHp());
 			setuser->set_power(tmpChar->getPower());

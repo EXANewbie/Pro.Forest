@@ -1,9 +1,8 @@
 #ifndef CHARACTER_H
 #define CHARACTER_H
 
-#include <string>
+#include<string>
 
-//using std::string;
 //client 캐릭터 클래스
 class Character
 {

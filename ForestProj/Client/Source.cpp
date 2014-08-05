@@ -3,6 +3,7 @@
 #include <thread>
 #include <conio.h>
 #include <string>
+#include <iostream>
 
 #include "character.h"
 #include "cmap.h"
@@ -51,9 +52,19 @@ void main(void)
 	ServerAddr.sin_addr.s_addr = inet_addr(SERVER_IP_ADDRESS);
 
 	// 서버에 연결
-	connect(s, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr));
-	printf("connection success\n");
-
+	if (connect(s, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr)) == -1)
+	{
+		printf("연결실패\n");
+	}
+	
+	printf("                              --MINI EXA GAME--                              \n");
+	printf("본 게임은 몬스터를 사냥해서 레벨업을 하여 성장시키는 MMORPG 게임입니다.\n");
+	printf("재미나게 즐겨주시기 바랍니다^^\n\n");
+	Sleep(1000);
+	//이름 입력받기.
+	printf("-당신의 이름은 무엇입니까?\n");
+	std::string name;
+	std::cin >> name;
 
 	// 데이터 송신 부분
 	int type;
@@ -67,14 +78,25 @@ void main(void)
 	
 	CONNECT::CONTENTS contents;
 	std::string* buff_msg = contents.mutable_data();
+	*(contents.mutable_name()) = name;
 	*buff_msg = "HELLO SERVER!";
+	
 /*	for (int i = 0; i < 5000; i++)		//패킷 사이즈를 약 50kb로 쐇을 때 끊겨오는 현상 발견, 테스트용으로 넣음
 		(*buff_msg).append(" Hi Hello!");*/ // 만약 이 테스트를 하고 싶다면 BLOCK_SIZE = 1 << 17;로 수정 권고
 	std::string bytestring;
 	contents.SerializeToString(&bytestring);
+	
 	len = bytestring.length();
 	
 	copy_to_buffer(buf, &type, &len, &bytestring);
+	
+	Sleep(500);
+	printf("※주의 : 조작은 영어로만 가능합니다. 만일 한글키로 되어있을 경우 한영키를 눌러 영어로 바꾸세요:)\n");
+	Sleep(1000);
+	printf("사냥터접속중.......\n");
+	Sleep(3000);
+	printf("사냥터접속 성공\n");
+	printf("            ★-----소환사의 협곡에 오신 것을 환영합니다-----★\n\n");
 
 	send(s, buf, len + sizeof(int) * 2, 0);
 	

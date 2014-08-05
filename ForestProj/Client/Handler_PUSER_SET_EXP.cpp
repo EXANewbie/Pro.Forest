@@ -23,5 +23,14 @@ void Handler_PUSER_SET_EXP(Character *myChar, std::string* str)
 		Scoped_Wlock Sw(expUpChar->getLock());
 		expUpChar->setExpUp(expUp);
 	}
-	printf("유저 [%d]가 경험치가 상승했습니다!!\n", expUpChar->getID());
+
+	if (myChar->getID() == id)// 나라면
+	{
+		printf("- 경험치가 %d 상승했습니다!!\n", expUp);
+	}
+	else
+	{
+		printf("※ 유저 %s님의 경험치가 %d 상승했습니다!!\n", expUpChar->getName().c_str(), expUp);
+	}
+	
 }

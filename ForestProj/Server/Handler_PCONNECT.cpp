@@ -1,4 +1,4 @@
-#include <string>
+ï»¿#include <string>
 
 #include "../protobuf/connect.pb.h"
 #include "../protobuf/init.pb.h"
@@ -56,21 +56,22 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 	vector<Monster *> vec_mon;
 
 	connect.ParseFromString(*readContents);
-
 	if (connect.data() != "HELLO SERVER!")
 	{
-		//°¡Â¥ Å¬¶óÀÌ¾ðÆ®
+		//ê°€ì§œ í´ë¼ì´ì–¸íŠ¸
 	}
 	int char_id;
 	int x, y, lv, maxHp, power, maxexp, prtExp;
+	std::string name;
 	static int id = 0;
 
-	// Ä³¸¯ÅÍ °´Ã¼¸¦ »ý¼º ÈÄ
-	// Ä³¸¯ÅÍ »ý¼ºÇÏ°í init ÇÏ´Â °Í¿¡ ´ëÇØ¼± char lockÇÒ ÇÊ¿ä°¡ ¾ø´Ù.
+	// ìºë¦­í„° ê°ì²´ë¥¼ ìƒì„± í›„
+	// ìºë¦­í„° ìƒì„±í•˜ê³  init í•˜ëŠ” ê²ƒì— ëŒ€í•´ì„  char lockí•  í•„ìš”ê°€ ì—†ë‹¤.
 	char_id = InterlockedIncrement((unsigned *)&id);
 	Character* myChar = new Character(char_id);
 	myChar->setLv(1, HpPw[1][0], HpPw[1][1], maxExp[1]);
 	myChar->setSock(handleInfo->hClntSock);
+	myChar->setName(connect.name());
 	me.push_back(myChar);
 
 	x = myChar->getX();
@@ -80,6 +81,8 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 	power = myChar->getPower();
 	maxexp = myChar->getMaxExp();
 	prtExp = myChar->getPrtExp();
+	name = myChar->getName();
+
 	ioInfo->id = char_id;
 	ioInfo->myCharacter = myChar;
 
@@ -94,10 +97,11 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 		elist->push_back(myChar);
 	}
 
-	// x¿Í yÀÇ ÃÊ±â°ªÀ» °¡Á®¿Â´Ù.   
+	// xì™€ yì˜ ì´ˆê¸°ê°’ì„ ê°€ì ¸ì˜¨ë‹¤.   
 	{
 		auto myData = initContents.mutable_data()->Add();
 		myData->set_id(char_id);
+		myData->set_name(name);
 		myData->set_x(x);
 		myData->set_y(y);
 		myData->set_lv(lv);
@@ -117,10 +121,11 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 	bytestring.clear();
 	initContents.clear_data();
 
-	// ÇöÀç Á¢¼ÓÇÑ Ä³¸¯ÅÍÀÇ Á¤º¸¸¦ ´Ù¸¥ Á¢¼ÓÇÑ À¯Àúµé¿¡°Ô Àü¼ÛÇÑ´Ù.
+	// í˜„ìž¬ ì ‘ì†í•œ ìºë¦­í„°ì˜ ì •ë³´ë¥¼ ë‹¤ë¥¸ ì ‘ì†í•œ ìœ ì €ë“¤ì—ê²Œ ì „ì†¡í•œë‹¤.
 	{
 		auto myData = setuserContents.mutable_data()->Add();
 		myData->set_id(char_id);
+		myData->set_name(name);
 		myData->set_x(x);
 		myData->set_y(y);
 		myData->set_lv(lv);
@@ -135,24 +140,26 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 	{
 //		Scoped_Rlock SR(&elist->slock);
 
-		// ³»°¡ ÀÖ´Â ¹æ¿¡ ÀÖ´Â Ä£±¸µé¿¡°Ô ³»°¡ µîÀåÇÔÀ» ¾Ë¸°´Ù.
-		// ³ª¿Í °°Àº¹æ¿¡ ÀÖ´Â Ä£±¸µéÀº ´©±¸?
+		// ë‚´ê°€ ìžˆëŠ” ë°©ì— ìžˆëŠ” ì¹œêµ¬ë“¤ì—ê²Œ ë‚´ê°€ ë“±ìž¥í•¨ì„ ì•Œë¦°ë‹¤.
+		// ë‚˜ì™€ ê°™ì€ë°©ì— ìžˆëŠ” ì¹œêµ¬ë“¤ì€ ëˆ„êµ¬?
 		make_vector_id_in_room_except_me(myChar, receiver, false/*autolock*/);
 
 		send_message(msg(PSET_USER, len, bytestring.c_str()), receiver, false);
-		// ÀÌÁ¦ »ý¼ºÇÑ char¿¡ ´ëÇØ¼­ ÀÚ·á±¸Á¶¿¡ ³Ö¾îÁÖ¾ú°í ³»°¡µîÀåÇÔÀ» ´Ù¸¥ À¯Àú¿¡°Ô ¾Ë·È´Ù. ÀÌÁ¦ºÎÅÏ char ¿¡´ëÇØ¼­ lockÀ» ÇØÁà¾ß °Ú´Ù.
-		// ±Ùµ¥ ÇØÁÙ °÷ÀÌ ¾ø³×.. Ä³¸¯ÅÍ¸¦ read write ÇÏ´Â °÷¿¡ ÇØ¾ßÇÏ´Âµ¥ ±×·± °÷ÀÌ ¾øÀ¸´Ï. ³» ÆÇ´Ü ¸Â³ª¿ä?
-		// RE : ±Â±Â!!
+		// ì´ì œ ìƒì„±í•œ charì— ëŒ€í•´ì„œ ìžë£Œêµ¬ì¡°ì— ë„£ì–´ì£¼ì—ˆê³  ë‚´ê°€ë“±ìž¥í•¨ì„ ë‹¤ë¥¸ ìœ ì €ì—ê²Œ ì•Œë ¸ë‹¤. ì´ì œë¶€í„´ char ì—ëŒ€í•´ì„œ lockì„ í•´ì¤˜ì•¼ ê² ë‹¤.
+		// ê·¼ë° í•´ì¤„ ê³³ì´ ì—†ë„¤.. ìºë¦­í„°ë¥¼ read write í•˜ëŠ” ê³³ì— í•´ì•¼í•˜ëŠ”ë° ê·¸ëŸ° ê³³ì´ ì—†ìœ¼ë‹ˆ. ë‚´ íŒë‹¨ ë§žë‚˜ìš”?
+		// RE : êµ¿êµ¿!!
 
 		setuserContents.clear_data();
 		bytestring.clear();
 
-		// PCONNECT·Î Á¢¼ÓÇÑ À¯Àú¿¡°Ô °°Àº ¹æ¿¡ÀÖ´Â À¯ÀúµéÀÇ Á¤º¸¸¦ Àü¼ÛÇÑ´Ù.
+		// PCONNECTë¡œ ì ‘ì†í•œ ìœ ì €ì—ê²Œ ê°™ì€ ë°©ì—ìžˆëŠ” ìœ ì €ë“¤ì˜ ì •ë³´ë¥¼ ì „ì†¡í•œë‹¤.
+		// ******ê³ ë¯¼í•´ì•¼í•  ë¶€ë¶„ ì—¬ê¸°ì„œ ìºë¦­í„°ì— ê´€í•´ì„œ  lockì€ í•„ìš”ì—†ëŠ”ê°€'?
 		for (int i = 0; i < receiver.size(); i++) {
 			auto tmpChar = receiver[i];
 
 			auto tempData = setuserContents.mutable_data()->Add();
 			tempData->set_id(tmpChar->getID());
+			tempData->set_name(tmpChar->getName());
 			tempData->set_x(tmpChar->getX());
 			tempData->set_y(tmpChar->getY());
 			tempData->set_lv(lv);
@@ -160,7 +167,7 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 			tempData->set_power(power);
 			tempData->set_prtexp(prtExp);
 
-			if (setuserContents.data_size() == SET_USER_MAXIMUM) // SET_USER_MAXIMUMÀÌ ÇÑ°èÄ¡·Î Á¢±ÙÇÏ·Á°í ÇÒ ¶§
+			if (setuserContents.data_size() == SET_USER_MAXIMUM) // SET_USER_MAXIMUMì´ í•œê³„ì¹˜ë¡œ ì ‘ê·¼í•˜ë ¤ê³  í•  ë•Œ
 			{
 				setuserContents.SerializeToString(&bytestring);
 				len = bytestring.length();
@@ -181,7 +188,7 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 		bytestring.clear();
 	}
 
-	//°°Àº¹æ¿¡ ÀÖ´Â ¸ó½ºÅÍÀÇ Á¤º¸¸¦ Àü¼ÛÇÑ´Ù.
+	//ê°™ì€ë°©ì— ìžˆëŠ” ëª¬ìŠ¤í„°ì˜ ì •ë³´ë¥¼ ì „ì†¡í•œë‹¤.
 	E_List_Mon* elist_m = FVEC_M->get(x, y);
 	{
 //		Scoped_Rlock SR(&elist_m->slock);

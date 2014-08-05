@@ -15,7 +15,7 @@ class Monster
 public:	
 	Monster() = default;
 	virtual const int getID() = 0;
-	virtual const int getName() = 0;
+	virtual std::string getName() = 0;
 	virtual const int getX() = 0;
 	virtual const int getY() = 0;
 	virtual const int getLv() = 0;
@@ -52,8 +52,8 @@ public:
 class Knight : public Monster
 {
 private:
-	int name ;
 	int ID;
+	std::string name;
 	int x, y;
 	int lv;
 	int prtHp, maxHp;
@@ -67,11 +67,11 @@ private :
 	void getDOUBLEATTACKINFO(int *nextattacktype, vector<Character *>& nextusers, vector<int>& damage);
 	void getMULTIATTACKINFO(int *nextattacktype, vector<Character *>& nextusers, vector<int>& damage);
 public:
-	Knight() : Monster() { InitializeSRWLock(&srw);  name = 1; }
+	Knight() : Monster() { InitializeSRWLock(&srw);  name = "기사"; }
 	Knight(int x, int y) : Monster()
 	{
 		InitializeSRWLock(&srw);
-		name = 1;
+		name = "기사";
 		this->x = x;
 		this->y = y;
 		state = NULL;
@@ -82,7 +82,7 @@ public:
 		state = NULL;
 		InitializeSRWLock(&srw);
 	}
-	const int getName()
+	std::string getName()
 	{
 		return name;
 	}

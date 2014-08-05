@@ -32,11 +32,12 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 	int type;
 	int len;
 	char *buf = new char[1024000];
-
+	
 	while (true)
 	{
 		char c;
 		c = _getch();
+		
 		if (c == 'x'||c =='X')
 		{
 			//PDISCONN 전송
@@ -70,8 +71,8 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 			}
 			{
 				Scoped_Rlock SR(myChar->getLock());
-				printf("ID : %d 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d 경험치[현재/목표] : [%d/%d]\n\n", 
-					myChar->getID(), myChar->getX(), myChar->getY(), myChar->getLv(), myChar->getPrtHp(), myChar->getMaxHp(), myChar->getPower(), myChar->getPrtExp(), myChar->getMaxExp());
+				printf("이름(ID) : %s(%d) 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d 경험치[현재/목표] : [%d/%d]\n\n", 
+					myChar->getName().c_str(), myChar->getID(), myChar->getX(), myChar->getY(), myChar->getLv(), myChar->getPrtHp(), myChar->getMaxHp(), myChar->getPower(), myChar->getPrtExp(), myChar->getMaxExp());
 			}
 		}
 		else if (c == 'j' || c == 'J')
@@ -91,8 +92,8 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 				{
 					Character* other = iter->second;
 					if (other->getID() == *myID) continue;
-					printf("ID : %d 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d 현재 경험치 : %d \n\n",
-						other->getID(), other->getX(), other->getY(), other->getLv(), other->getPrtHp(), other->getMaxHp(), other->getPower(),other->getPrtExp());
+					printf("이름(ID) : %s(%d) 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d 현재 경험치 : %d \n\n",
+						other->getName().c_str(), other->getID(), other->getX(), other->getY(), other->getLv(), other->getPrtHp(), other->getMaxHp(), other->getPower(),other->getPrtExp());
 				}
 			}
 		}
@@ -111,7 +112,7 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 				for (auto iter = mons->begin(); iter != mons->end(); ++iter)
 				{
 					Monster* mon = iter->second;
-					printf("이름(ID) : %s (%d) 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d\n\n",
+					printf("이름(ID) : %s(%d) 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d\n\n",
 						mon->getName().c_str(), mon->getID(), mon->getX(), mon->getY(), mon->getLv(), mon->getPrtHp(), mon->getMaxHp(), mon->getPower());
 				}
 			}
@@ -169,7 +170,7 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 			}
 			else
 			{
-				printf("몬스터 %s[%d]를 공격하였습니다!\n", atkMon->getName().c_str(), atkMon->getID());
+				printf("몬스터 %s(%d)를 공격하였습니다!\n", atkMon->getName().c_str(), atkMon->getID());
 			}
 		}
 	}
