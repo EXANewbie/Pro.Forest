@@ -22,7 +22,7 @@ using namespace std;
 extern int k;
 
 void printLog(const char *msg, ...);
-void set_single_cast(int, vector<int>&);
+void set_single_cast(Character *, vector<Character *>&);
 void make_vector_id_in_room_except_me(Character*, vector<Character*>&, bool);
 void make_monster_vector_in_room(Character* myChar, vector<Monster *>& send_list, bool autolocked);
 void send_message(msg, vector<Character *> &, bool);

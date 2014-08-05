@@ -1,16 +1,16 @@
-ï»¿#include <string>
+//PMODEDEADRESPAWN
 
-#include "../protobuf/connect.pb.h"
-#include "../protobuf/init.pb.h"
+#include <string>
+
+#include "../protobuf/userrespawn.pb.h"
 #include "../protobuf/setuser.pb.h"
 #include "../protobuf/setmonster.pb.h"
+#include "../protobuf/init.pb.h"
 
-#include "Check_Map.h"
 #include "Completion_Port.h"
-#include "character.h"
-#include "Sock_set.h"
 #include "DMap.h"
 #include "Scoped_Lock.h"
+#include "Memory_Pool.h"
 #include "DMap_monster.h"
 #include "msg.h"
 
@@ -28,80 +28,74 @@
 #include "DMap_monster.h"
 #include "msg.h"
 */
-
 using std::string;
 
+void make_vector_id_in_room_except_me(Character *, vector<Character *>&, bool);
+void make_vector_id_in_room(E_List *, vector<Character *>&);
 void send_message(msg, vector<Character *> &, bool);
-void make_vector_id_in_room_except_me(Character*, vector<Character *>&, bool);
+void unpack(msg, char *, int *);
+void set_single_cast(Character *, vector<Character *>&);
 void make_monster_vector_in_room(Character* myChar, vector<Monster *>& send_list, bool autolocked);
 
-void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string* readContents)
-{
-	Sock_set *sock_set = Sock_set::getInstance();
-	auto FVEC = F_Vector::getInstance();
-	auto AMAP = Access_Map::getInstance();
-	auto CMap = Check_Map::getInstance();
-	F_Vector_Mon *FVEC_M = F_Vector_Mon::getInstance();
-	Access_Map_Mon * AMAP_M = Access_Map_Mon::getInstance();
 
-	CONNECT::CONTENTS connect;
-	INIT::CONTENTS initContents;
+void Handler_DEADRESPAWN(LPPER_IO_DATA ioInfo, string* readContents) {
+	USER_RESPAWN::CONTENTS respawnmsg;
 	SET_USER::CONTENTS setuserContents;
 	SET_MONSTER::CONTENTS setmonsterContents;
-
+	INIT::CONTENTS initContents;
+	
 	string bytestring;
 	int len;
-	vector<Character *> receiver;
-	vector<Character *> me;
-	vector<Monster *> vec_mon;
+	vector<Character *> receiver, me;
 
-	connect.ParseFromString(*readContents);
-	if (connect.data() != "HELLO SERVER!")
+	respawnmsg.ParseFromString(*readContents);
+
+	if (ioInfo->block != nullptr)
 	{
-		//ê°€ì§œ í´ë¼ì´ì–¸íŠ¸
+		Memory_Pool::getInstance()->pushBlock(ioInfo->block);
+		ioInfo->block = nullptr;
 	}
-	int char_id;
-	int x, y, lv, maxHp, power, maxexp, prtExp;
-	std::string name;
-	static int id = 0;
+	ioInfo_Pool::getInstance()->pushBlock(ioInfo);
 
-	// ìºë¦­í„° ê°ì²´ë¥¼ ìƒì„± í›„
-	// ìºë¦­í„° ìƒì„±í•˜ê³  init í•˜ëŠ” ê²ƒì— ëŒ€í•´ì„  char lockí•  í•„ìš”ê°€ ì—†ë‹¤.
-	char_id = InterlockedIncrement((unsigned *)&id);
-	Character* myChar = new Character(char_id);
-	myChar->setLv(1, HpPw[1][0], HpPw[1][1], maxExp[1]);
-	myChar->setSock(handleInfo->hClntSock);
-	myChar->setName(connect.name());
+	auto FVEC = F_Vector::getInstance();
+
+	int ID = respawnmsg.id();
+	int x = respawnmsg.x();
+	int y = respawnmsg.y();
+
+	auto AMAP = Access_Map::getInstance();
+
+	Character* myChar = nullptr;
+	{
+		myChar = AMAP->find(ID);
+
+		if (myChar == nullptr) {
+			puts("À¯Àú ³ª°¨ ¤Ñ.¤Ñ");
+			// Á×¾ú´Ù°í ³ª°£ ³ë¸Å³Ê À¯ÀúÀÓ. Èï!!
+			return;
+		}
+	}
+	
 	me.push_back(myChar);
-
-	x = myChar->getX();
-	y = myChar->getY();
-	lv = myChar->getLv();
-	maxHp = myChar->getMaxHp();
-	power = myChar->getPower();
-	maxexp = myChar->getMaxExp();
-	prtExp = myChar->getPrtExp();
-	name = myChar->getName();
-
-	ioInfo->id = char_id;
-	ioInfo->myCharacter = myChar;
-
+	// Èú!! Ã¼·Â ¸¸»§!!
+	myChar->setHPMax();
+	myChar->setX(x);
+	myChar->setY(y);
+	int lv = myChar->getLv();
+	int prtHp = myChar->getPrtHp();
+	int maxHp = myChar->getMaxHp();
+	int power = myChar->getPower();
+	int maxexp = myChar->getMaxExp();
+	int prtExp = myChar->getPrtExp();
+	
 	E_List* elist = FVEC->get(x, y);
 
-	{
-//		Scoped_Wlock SW1(&AMAP->slock);
-//		Scoped_Wlock SW2(&elist->slock);
-		AMAP->insert(char_id, myChar);
-		CMap->insert(handleInfo->hClntSock, char_id);
-		sock_set->erase(handleInfo->hClntSock);
-		elist->push_back(myChar);
-	}
+	//³» Ä³¸¯À» ¹æ¿¡ Ãß°¡ÇØ¿ä!!
 
-	// xì™€ yì˜ ì´ˆê¸°ê°’ì„ ê°€ì ¸ì˜¨ë‹¤.   
+	// x¿Í yÀÇ ÃÊ±â°ªÀ» °¡Á®¿Â´Ù.   
 	{
 		auto myData = initContents.mutable_data()->Add();
-		myData->set_id(char_id);
-		myData->set_name(name);
+		myData->set_id(ID);
 		myData->set_x(x);
 		myData->set_y(y);
 		myData->set_lv(lv);
@@ -114,21 +108,26 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 	len = bytestring.length();
 
 	{
-//		Scoped_Rlock SR(&elist->slock);
+		//		Scoped_Rlock SR(&elist->slock);
 		send_message(msg(PINIT, len, bytestring.c_str()), me, true);
 	}
 	receiver.clear();
 	bytestring.clear();
 	initContents.clear_data();
 
-	// í˜„ì¬ ì ‘ì†í•œ ìºë¦­í„°ì˜ ì •ë³´ë¥¼ ë‹¤ë¥¸ ì ‘ì†í•œ ìœ ì €ë“¤ì—ê²Œ ì „ì†¡í•œë‹¤.
+	{
+		//		Scoped_Wlock SW(&elist->slock);
+		elist->push_back(myChar);
+	}
+
+	// ÇöÀç Á¢¼ÓÇÑ Ä³¸¯ÅÍÀÇ Á¤º¸¸¦ ´Ù¸¥ Á¢¼ÓÇÑ À¯Àúµé¿¡°Ô Àü¼ÛÇÑ´Ù.
 	{
 		auto myData = setuserContents.mutable_data()->Add();
-		myData->set_id(char_id);
-		myData->set_name(name);
+		myData->set_id(ID);
 		myData->set_x(x);
 		myData->set_y(y);
 		myData->set_lv(lv);
+		myData->set_prthp(prtHp);
 		myData->set_maxhp(maxHp);
 		myData->set_power(power);
 		myData->set_prtexp(maxexp);
@@ -138,36 +137,35 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 	len = bytestring.length();
 
 	{
-//		Scoped_Rlock SR(&elist->slock);
+		//		Scoped_Rlock SR(&elist->slock);
 
-		// ë‚´ê°€ ìˆëŠ” ë°©ì— ìˆëŠ” ì¹œêµ¬ë“¤ì—ê²Œ ë‚´ê°€ ë“±ì¥í•¨ì„ ì•Œë¦°ë‹¤.
-		// ë‚˜ì™€ ê°™ì€ë°©ì— ìˆëŠ” ì¹œêµ¬ë“¤ì€ ëˆ„êµ¬?
+		// ³»°¡ ÀÖ´Â ¹æ¿¡ ÀÖ´Â Ä£±¸µé¿¡°Ô ³»°¡ µîÀåÇÔÀ» ¾Ë¸°´Ù.
+		// ³ª¿Í °°Àº¹æ¿¡ ÀÖ´Â Ä£±¸µéÀº ´©±¸?
 		make_vector_id_in_room_except_me(myChar, receiver, false/*autolock*/);
 
 		send_message(msg(PSET_USER, len, bytestring.c_str()), receiver, false);
-		// ì´ì œ ìƒì„±í•œ charì— ëŒ€í•´ì„œ ìë£Œêµ¬ì¡°ì— ë„£ì–´ì£¼ì—ˆê³  ë‚´ê°€ë“±ì¥í•¨ì„ ë‹¤ë¥¸ ìœ ì €ì—ê²Œ ì•Œë ¸ë‹¤. ì´ì œë¶€í„´ char ì—ëŒ€í•´ì„œ lockì„ í•´ì¤˜ì•¼ ê² ë‹¤.
-		// ê·¼ë° í•´ì¤„ ê³³ì´ ì—†ë„¤.. ìºë¦­í„°ë¥¼ read write í•˜ëŠ” ê³³ì— í•´ì•¼í•˜ëŠ”ë° ê·¸ëŸ° ê³³ì´ ì—†ìœ¼ë‹ˆ. ë‚´ íŒë‹¨ ë§ë‚˜ìš”?
-		// RE : êµ¿êµ¿!!
+		// ÀÌÁ¦ »ı¼ºÇÑ char¿¡ ´ëÇØ¼­ ÀÚ·á±¸Á¶¿¡ ³Ö¾îÁÖ¾ú°í ³»°¡µîÀåÇÔÀ» ´Ù¸¥ À¯Àú¿¡°Ô ¾Ë·È´Ù. ÀÌÁ¦ºÎÅÏ char ¿¡´ëÇØ¼­ lockÀ» ÇØÁà¾ß °Ú´Ù.
+		// ±Ùµ¥ ÇØÁÙ °÷ÀÌ ¾ø³×.. Ä³¸¯ÅÍ¸¦ read write ÇÏ´Â °÷¿¡ ÇØ¾ßÇÏ´Âµ¥ ±×·± °÷ÀÌ ¾øÀ¸´Ï. ³» ÆÇ´Ü ¸Â³ª¿ä?
+		// RE : ±Â±Â!!
 
 		setuserContents.clear_data();
 		bytestring.clear();
 
-		// PCONNECTë¡œ ì ‘ì†í•œ ìœ ì €ì—ê²Œ ê°™ì€ ë°©ì—ìˆëŠ” ìœ ì €ë“¤ì˜ ì •ë³´ë¥¼ ì „ì†¡í•œë‹¤.
-		// ******ê³ ë¯¼í•´ì•¼í•  ë¶€ë¶„ ì—¬ê¸°ì„œ ìºë¦­í„°ì— ê´€í•´ì„œ  lockì€ í•„ìš”ì—†ëŠ”ê°€'?
+		// ¸®½ºÆùµÈ À¯Àú¿Í °°Àº ¹æ¿¡ÀÖ´Â À¯ÀúµéÀÇ Á¤º¸¸¦ Àü¼ÛÇÑ´Ù.
 		for (int i = 0; i < receiver.size(); i++) {
 			auto tmpChar = receiver[i];
 
 			auto tempData = setuserContents.mutable_data()->Add();
 			tempData->set_id(tmpChar->getID());
-			tempData->set_name(tmpChar->getName());
 			tempData->set_x(tmpChar->getX());
 			tempData->set_y(tmpChar->getY());
 			tempData->set_lv(lv);
+			tempData->set_prthp(tmpChar->getPrtHp());
 			tempData->set_maxhp(maxHp);
 			tempData->set_power(power);
 			tempData->set_prtexp(prtExp);
 
-			if (setuserContents.data_size() == SET_USER_MAXIMUM) // SET_USER_MAXIMUMì´ í•œê³„ì¹˜ë¡œ ì ‘ê·¼í•˜ë ¤ê³  í•  ë•Œ
+			if (setuserContents.data_size() == SET_USER_MAXIMUM) // SET_USER_MAXIMUMÀÌ ÇÑ°èÄ¡·Î Á¢±ÙÇÏ·Á°í ÇÒ ¶§
 			{
 				setuserContents.SerializeToString(&bytestring);
 				len = bytestring.length();
@@ -188,16 +186,18 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 		bytestring.clear();
 	}
 
-	//ê°™ì€ë°©ì— ìˆëŠ” ëª¬ìŠ¤í„°ì˜ ì •ë³´ë¥¼ ì „ì†¡í•œë‹¤.
+	auto FVEC_M = F_Vector_Mon::getInstance();
+	vector<Monster *> vec_mon;
+	//°°Àº¹æ¿¡ ÀÖ´Â ¸ó½ºÅÍÀÇ Á¤º¸¸¦ Àü¼ÛÇÑ´Ù.
 	E_List_Mon* elist_m = FVEC_M->get(x, y);
 	{
-//		Scoped_Rlock SR(&elist_m->slock);
+		//		Scoped_Rlock SR(&elist_m->slock);
 		make_monster_vector_in_room(myChar, vec_mon, false);
 		for (int i = 0; i < vec_mon.size(); ++i)
 		{
 			Monster* tmpMon = vec_mon[i];
 			{
-//				Scoped_Wlock(tmpMon->getLock());
+				//				Scoped_Wlock(tmpMon->getLock());
 				tmpMon->SET_BATTLE_MODE();
 			}
 			auto setmon = setmonsterContents.add_data();
@@ -206,6 +206,7 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 			setmon->set_y(tmpMon->getY());
 			setmon->set_name(tmpMon->getName());
 			setmon->set_lv(tmpMon->getLv());
+			setmon->set_perhp(tmpMon->getPrtHp());
 			setmon->set_maxhp(tmpMon->getMaxHp());
 			setmon->set_power(tmpMon->getPower());
 

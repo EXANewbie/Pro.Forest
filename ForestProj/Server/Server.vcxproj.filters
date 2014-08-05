@@ -88,6 +88,15 @@
     <ClCompile Include="..\protobuf\setuserexp.pb.cc">
       <Filter>pb_files</Filter>
     </ClCompile>
+    <ClCompile Include="..\protobuf\deadrespawn.pb.cc">
+      <Filter>pb_files</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_DEADRESPAWN.cpp">
+      <Filter>monster_state</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_USERRESPAWN.cpp">
+      <Filter>monster_state</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="character.h">

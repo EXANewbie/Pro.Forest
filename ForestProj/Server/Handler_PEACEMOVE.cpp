@@ -43,7 +43,6 @@ void Handler_PEACEMOVE(LPPER_IO_DATA ioInfo, string* readContents) {
 
 	auto FVEC_M = F_Vector_Mon::getInstance();
 	
-	peacemove.ParseFromString(*readContents);
 	int ID = peacemove.id();
 
 	auto AMAP_MON = Access_Map_Mon::getInstance();
@@ -52,7 +51,7 @@ void Handler_PEACEMOVE(LPPER_IO_DATA ioInfo, string* readContents) {
 		if (ID == 0) {
 			printf("왜?\n");
 		}
-		Scoped_Rlock SR(&AMAP_MON->slock);
+//		Scoped_Rlock SR(&AMAP_MON->slock);
 		monster = AMAP_MON->find(ID);
 
 		if (monster == nullptr) {
@@ -71,7 +70,7 @@ void Handler_PEACEMOVE(LPPER_IO_DATA ioInfo, string* readContents) {
 	}
 
 	{
-		Scoped_Wlock SW(monster->getLock());
+//		Scoped_Wlock SW(monster->getLock());
 		int bef_x_off, bef_y_off;
 
 		if (peacemove.has_xoff() == true && peacemove.has_yoff() == true)
@@ -98,19 +97,19 @@ void Handler_PEACEMOVE(LPPER_IO_DATA ioInfo, string* readContents) {
 		{
 			{
 				auto elist = FVEC_M->get(monster->getX(), monster->getY());
-				Scoped_Wlock SW(&elist->slock);
+//				Scoped_Wlock SW(&elist->slock);
 				elist->erase(monster);
 			}
 			monster->setX(monster->getX() + nxt_x_off);
 			monster->setY(monster->getY() + nxt_y_off);
 			{
 				auto elist = FVEC_M->get(monster->getX(), monster->getY());
-				Scoped_Wlock SW(&elist->slock);
+//				Scoped_Wlock SW(&elist->slock);
 				elist->push_back(monster);
 			}
 
 			auto elist = F_Vector::getInstance()->get(monster->getX(), monster->getY());
-			Scoped_Rlock SR(&elist->slock);
+//			Scoped_Rlock SR(&elist->slock);
 			int size = elist->size();
 
 			// 유저가 존재합니다!! W.A.R.N.I.N.G !! W.A.R.N.I.N.G !!

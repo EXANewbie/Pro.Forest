@@ -31,12 +31,12 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 	//****** 이부분 좀 고민좀 됨. 공격을 하고 바로 그자리에서 빠지면 브로드 캐스트가 어떻게 될까 등등. 일단 뒤로 미루겠음.
 	E_List* elist;
 	{
-		Scoped_Rlock SR(myChar->getLock());
+//		Scoped_Rlock SR(myChar->getLock());
 		elist = FVEC->get(myChar->getX(), myChar->getY());
 	}
 	vector<Character*> charId_in_room;
 	{
-		Scoped_Rlock SR(&elist->slock);
+//		Scoped_Rlock SR(&elist->slock);
 		make_vector_id_in_room(elist, charId_in_room);
 	}
 	// ~고민되는부분
@@ -59,14 +59,14 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 		
 		// 몬스터 객체를 얻어옴.
 		{
-			Scoped_Rlock SR(&elist_m->slock);
+//			Scoped_Rlock SR(&elist_m->slock);
 			mon = elist_m->find(id_mon);
 		}
 
 		// 유저데미지 계산.
 		int damage;
 		{
-			Scoped_Rlock SR(myChar->getLock());
+//			Scoped_Rlock SR(myChar->getLock());
 			damage = myChar->getPower();
 		}
 
@@ -74,19 +74,19 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 		int monprtHp, expUp=0;
 		bool kill = false;
 		{
-			Scoped_Wlock SR(mon->getLock());
+//			Scoped_Wlock SR(mon->getLock());
 			mon->attacked(damage);
 			monprtHp = mon->getPrtHp();
 			if (monprtHp == 0)
 			{
 				//몬스터 시키 죽였따!!
-				//mon->SET_DEAD_MODE();
 				{
-					Scoped_Wlock SW(&elist_m->slock);
+//					Scoped_Wlock SW(&elist_m->slock);
 					expUp = mon->getExp();
-					elist_m->erase(mon->getID());
+					elist_m->erase(mon);
 				}
 				//경험치를 얻도록하자.
+				mon->SET_DEAD_MODE();
 				kill = true;
 			}
 		}
@@ -94,7 +94,7 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 		if (kill == true)
 		{
 			{
-				Scoped_Wlock SW(myChar->getLock());
+//				Scoped_Wlock SW(myChar->getLock());
 				int prtLv = myChar->getLv(); 
 				myChar->setExpUp(expUp);
 

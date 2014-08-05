@@ -83,6 +83,7 @@
   <ItemGroup>
     <ClCompile Include="..\protobuf\battleattack.pb.cc" />
     <ClCompile Include="..\protobuf\connect.pb.cc" />
+    <ClCompile Include="..\protobuf\deadrespawn.pb.cc" />
     <ClCompile Include="..\protobuf\disconn.pb.cc" />
     <ClCompile Include="..\protobuf\erasemonster.pb.cc" />
     <ClCompile Include="..\protobuf\eraseuser.pb.cc" />
@@ -99,12 +100,14 @@
     <ClCompile Include="..\protobuf\userrespawn.pb.cc" />
     <ClCompile Include="Client_Map.cpp" />
     <ClCompile Include="Handler_BATTLEATTACK.cpp" />
+    <ClCompile Include="Handler_DEADRESPAWN.cpp" />
     <ClCompile Include="Handler_HELLOWORLD.cpp" />
     <ClCompile Include="Handler_PCONNECT.cpp" />
     <ClCompile Include="Handler_PDISCONN.cpp" />
     <ClCompile Include="Handler_PEACEMOVE.cpp" />
     <ClCompile Include="Handler_PMOVEUSER.cpp" />
     <ClCompile Include="Handler_PUSER_ATTACK.cpp" />
+    <ClCompile Include="Handler_USERRESPAWN.cpp" />
     <ClCompile Include="Method.cpp" />
     <ClCompile Include="TimerThread.cpp" />
     <ClInclude Include="Check_Map.h" />
