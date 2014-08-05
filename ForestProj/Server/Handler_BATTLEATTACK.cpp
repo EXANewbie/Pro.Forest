@@ -72,7 +72,7 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 			make_vector_id_in_room(elist, receiver);
 
 			MONSTER_ATTACK_RESULT::CONTENTS monsterattackresultContents;
-			monsterattackresultContents.set_id(monster->getID());
+			monsterattackresultContents.set_id_m(monster->getID());
 			monsterattackresultContents.set_attacktype(attackType);
 
 
@@ -89,7 +89,7 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 
 				auto data = monsterattackresultContents.add_data();
 				data->set_id(nxt[i]->getID());
-				data->set_damage(nxt[i]->getPrtHp());
+				data->set_prthp(nxt[i]->getPrtHp());
 
 				if (monsterattackresultContents.data_size() < ATTACKED_USER_MAXIMUM)
 				{

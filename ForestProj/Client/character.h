@@ -7,6 +7,7 @@ class Character
 private:
 	int ID;
 	int x, y;
+	std::string name;
 	int lv;
 	int prtHp, maxHp;
 	int power;
@@ -28,6 +29,10 @@ public:
 	const int getID()
 	{
 		return ID;
+	}
+	std::string getName()
+	{
+		return name;
 	}
 	const int getX()
 	{
@@ -69,6 +74,10 @@ public:
 	void setID(const int ID)
 	{
 		this->ID = ID;
+	}
+	void setName(std::string name)
+	{
+		this->name = name;
 	}
 	void setX(const int x)
 	{

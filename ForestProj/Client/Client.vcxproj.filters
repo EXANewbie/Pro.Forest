@@ -19,6 +19,9 @@
     <Filter Include="pb_files">
       <UniqueIdentifier>{5c0e0229-ce36-48cf-b45a-b8cefe695d99}</UniqueIdentifier>
     </Filter>
+    <Filter Include="State_Function">
+      <UniqueIdentifier>{3c66d02f-85f6-4917-aa89-1bbfb81fdb28}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
@@ -67,6 +70,39 @@
       <Filter>pb_files</Filter>
     </ClCompile>
     <ClCompile Include="..\protobuf\setuserexp.pb.cc">
+      <Filter>pb_files</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_PSET_USER.cpp">
+      <Filter>State_Function</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_PINIT.cpp">
+      <Filter>State_Function</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_PMOVE_USER.cpp">
+      <Filter>State_Function</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_PERASE_USER.cpp">
+      <Filter>State_Function</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_PSET_MON.cpp">
+      <Filter>State_Function</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_PERASE_MON.cpp">
+      <Filter>State_Function</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_PUSER_ATTCK_RESULT.cpp">
+      <Filter>State_Function</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_PUSER_SET_LV.cpp">
+      <Filter>State_Function</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_PUSER_SET_EXP.cpp">
+      <Filter>State_Function</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler_PMONSTER_ATTACK_RESULT.cpp">
+      <Filter>State_Function</Filter>
+    </ClCompile>
+    <ClCompile Include="..\protobuf\monsterattackresult.pb.cc">
       <Filter>pb_files</Filter>
     </ClCompile>
   </ItemGroup>

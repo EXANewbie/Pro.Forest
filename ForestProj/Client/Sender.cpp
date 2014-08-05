@@ -1,4 +1,4 @@
-#include <cstdio>
+ï»¿#include <cstdio>
 #include <conio.h>
 #include <WinSock2.h>
 #include <string>
@@ -37,9 +37,9 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 	{
 		char c;
 		c = _getch();
-		if (c == 'x')
+		if (c == 'x'||c =='X')
 		{
-			//PDISCONN Àü¼Û
+			//PDISCONN ì „ì†¡
 			type = PDISCONN;
 
 			DISCONN::CONTENTS contents;
@@ -55,85 +55,85 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 			send(sock, buf, len + sizeof(int)* 2, 0);
 			break;
 		}
-		else if (c == 'w' || c == 'a' || c == 's' || c == 'd')
+		else if (c == 'w' || c == 'W' || c == 'a' || c == 'A' || c == 's' || c == 'S' || c == 'd' || c == 'D')
 		{
 			send_move(sock, c, *myID);
 		}
-		else if (c == 'i')
+		else if (c == 'i' || c == 'I')
 		{
-			//³»Á¤º¸ º¸¿©ÁÖÀÚ.
-			printf("##³» Á¤º¸:\n");
+			//ë‚´ì •ë³´ ë³´ì—¬ì£¼ìž.
+			printf("##ë‚´ ì •ë³´:\n");
 			if (myChar->getID() == -1)
 			{
-				printf("¾ÆÁ÷ Ä³¸¯ÅÍ°¡ »ý¼ºµÇÁö ¾Ê¾Ò½À´Ï´Ù.\nÀá½Ã¸¸ ±â´Ù·Á ÁÖ½Ê½Ã¿À\n\n");
+				printf("ì•„ì§ ìºë¦­í„°ê°€ ìƒì„±ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.\nìž ì‹œë§Œ ê¸°ë‹¤ë ¤ ì£¼ì‹­ì‹œì˜¤\n\n");
 				continue;
 			}
 			{
 				Scoped_Rlock SR(myChar->getLock());
-				printf("ID : %d À§Ä¡ : %d, %d\n·¹º§ : %d Ã¼·Â(ÇöÀç/ÃÖ°í·®) : %d/%d °ø°Ý·Â : %d °æÇèÄ¡[ÇöÀç/¸ñÇ¥] : [%d/%d]\n\n", 
+				printf("ID : %d ìœ„ì¹˜ : %d, %d\në ˆë²¨ : %d ì²´ë ¥(í˜„ìž¬/ìµœê³ ëŸ‰) : %d/%d ê³µê²©ë ¥ : %d ê²½í—˜ì¹˜[í˜„ìž¬/ëª©í‘œ] : [%d/%d]\n\n", 
 					myChar->getID(), myChar->getX(), myChar->getY(), myChar->getLv(), myChar->getPrtHp(), myChar->getMaxHp(), myChar->getPower(), myChar->getPrtExp(), myChar->getMaxExp());
 			}
 		}
-		else if (c == 'j')
+		else if (c == 'j' || c == 'J')
 		{
-			//°°Àº ¹æ¿¡ ÀÖ´Â À¯ÀúµéÀÇ Á¤º¸¸¦ º¸¿©ÁÖÀÚ.
-			printf("##µ¿·á Á¤º¸:\n");
+			//ê°™ì€ ë°©ì— ìžˆëŠ” ìœ ì €ë“¤ì˜ ì •ë³´ë¥¼ ë³´ì—¬ì£¼ìž.
+			printf("##ë™ë£Œ ì •ë³´:\n");
 			{
 				Scoped_Rlock SR(&chars->srw);
 				int size = chars->size();
 				if (size == 1)
 				{
-					printf("ÇöÀç °°Àº¹æ¿¡ µ¿·á°¡ ¾ø½À´Ï´Ù\n\n");
+					printf("í˜„ìž¬ ê°™ì€ë°©ì— ë™ë£Œê°€ ì—†ìŠµë‹ˆë‹¤\n\n");
 					continue;
 				}
-				printf("--ÇöÀç¿ø %d¸í\n", size - 1);
+				printf("--í˜„ìž¬ì› %dëª…\n", size - 1);
 				for (auto iter = chars->begin(); iter != chars->end(); ++iter)
 				{
 					Character* other = iter->second;
 					if (other->getID() == *myID) continue;
-					printf("ID : %d À§Ä¡ : %d, %d\n·¹º§ : %d Ã¼·Â(ÇöÀç/ÃÖ°í·®) : %d/%d °ø°Ý·Â : %d ÇöÀç °æÇèÄ¡ : %d \n\n",
+					printf("ID : %d ìœ„ì¹˜ : %d, %d\në ˆë²¨ : %d ì²´ë ¥(í˜„ìž¬/ìµœê³ ëŸ‰) : %d/%d ê³µê²©ë ¥ : %d í˜„ìž¬ ê²½í—˜ì¹˜ : %d \n\n",
 						other->getID(), other->getX(), other->getY(), other->getLv(), other->getPrtHp(), other->getMaxHp(), other->getPower(),other->getPrtExp());
 				}
 			}
 		}
-		else if (c == 'o')
+		else if (c == 'o' || c == 'O')
 		{
-			//°°Àº ¹æ¿¡ ÀÖ´Â ¸ó½ºÅÍµéÀÇ Á¤º¸¸¦ º¸¿©ÁÖÀÚ.
+			//ê°™ì€ ë°©ì— ìžˆëŠ” ëª¬ìŠ¤í„°ë“¤ì˜ ì •ë³´ë¥¼ ë³´ì—¬ì£¼ìž.
 			{
 				Scoped_Rlock SR(&mons->srw);
 				int size = mons->size();
 				if (size == 0)
 				{
-					printf("ÇöÀç °°Àº¹æ¿¡ ¸ó½ºÅÍ°¡ ¾ø½À´Ï´Ù\n\n");
+					printf("í˜„ìž¬ ê°™ì€ë°©ì— ëª¬ìŠ¤í„°ê°€ ì—†ìŠµë‹ˆë‹¤\n\n");
 					continue;
 				}
-				printf("--¸ó½ºÅÍ ÃÑ %d¸¶¸®\n", size);
+				printf("--ëª¬ìŠ¤í„° ì´ %dë§ˆë¦¬\n", size);
 				for (auto iter = mons->begin(); iter != mons->end(); ++iter)
 				{
 					Monster* mon = iter->second;
-					printf("ÀÌ¸§(ID) : %s (%d) À§Ä¡ : %d, %d\n·¹º§ : %d Ã¼·Â(ÇöÀç/ÃÖ°í·®) : %d/%d °ø°Ý·Â : %d\n\n",
+					printf("ì´ë¦„(ID) : %s (%d) ìœ„ì¹˜ : %d, %d\në ˆë²¨ : %d ì²´ë ¥(í˜„ìž¬/ìµœê³ ëŸ‰) : %d/%d ê³µê²©ë ¥ : %d\n\n",
 						mon->getName().c_str(), mon->getID(), mon->getX(), mon->getY(), mon->getLv(), mon->getPrtHp(), mon->getMaxHp(), mon->getPower());
 				}
 			}
 		}
-		else if (c == 'q')
+		else if (c == 'q' || c == 'Q')
 		{
 			if (myChar->getID() == -1)
 			{
-				printf("¾ÆÁ÷ Ä³¸¯ÅÍ°¡ »ý¼ºµÇÁö ¾Ê¾Ò½À´Ï´Ù.\nÀá½Ã¸¸ ±â´Ù·Á ÁÖ½Ê½Ã¿À\n\n");
+				printf("ì•„ì§ ìºë¦­í„°ê°€ ìƒì„±ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.\nìž ì‹œë§Œ ê¸°ë‹¤ë ¤ ì£¼ì‹­ì‹œì˜¤\n\n");
 				continue;
 			}
-			// °ø°ÝÀ» ÇÏµµ·Ï ÇÏÀÚ!
+			// ê³µê²©ì„ í•˜ë„ë¡ í•˜ìž!
 			Monster* atkMon;
 			{
 				Scoped_Rlock SR(&mons->srw);
 				int size = mons->size();
 				if (size == 0)
 				{
-					printf("ÇöÀç °°Àº¹æ¿¡ °ø°ÝÇÒ ¸ó½ºÅÍ°¡ ¾ø½À´Ï´Ù\n\n");
+					printf("í˜„ìž¬ ê°™ì€ë°©ì— ê³µê²©í•  ëª¬ìŠ¤í„°ê°€ ì—†ìŠµë‹ˆë‹¤\n\n");
 					continue;
 				}
-				//°¡Àå Ã¼·ÂÀÌ ¾àÇÑ³ðºÎÅÍ ¶§·ÁÀâ´Â´Ù!
+				//ê°€ìž¥ ì²´ë ¥ì´ ì•½í•œë†ˆë¶€í„° ë•Œë ¤ìž¡ëŠ”ë‹¤!
 				Monster* weakMon = NULL;
 				int weakHp = 987654321;
 				
@@ -165,11 +165,11 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 
 			if (send(sock, buf, len + sizeof(int)* 2, 0) == SOCKET_ERROR)
 			{
-				printf("½Ã½ºÅÛ ¿À·ù\n");
+				printf("ì‹œìŠ¤í…œ ì˜¤ë¥˜\n");
 			}
 			else
 			{
-				printf("¸ó½ºÅÍ %s[%d]¸¦ °ø°ÝÇÏ¿´½À´Ï´Ù!\n", atkMon->getName().c_str(), atkMon->getID());
+				printf("ëª¬ìŠ¤í„° %s[%d]ë¥¼ ê³µê²©í•˜ì˜€ìŠµë‹ˆë‹¤!\n", atkMon->getName().c_str(), atkMon->getID());
 			}
 		}
 	}

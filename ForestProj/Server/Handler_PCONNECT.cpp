@@ -56,6 +56,7 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 	vector<Monster *> vec_mon;
 
 	connect.ParseFromString(*readContents);
+
 	if (connect.data() != "HELLO SERVER!")
 	{
 		//가짜 클라이언트

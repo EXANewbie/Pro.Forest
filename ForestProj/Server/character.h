@@ -11,6 +11,7 @@ class Character
 private :
 	SOCKET sock;
 	int ID;
+	std::string name;
 	int x, y;
 	int lv;
 	int prtHp, maxHp;
@@ -39,6 +40,10 @@ public :
 	const int getID()
 	{
 		return ID;
+	}
+	std::string getName()
+	{
+		return name;
 	}
 	const int getX()
 	{
@@ -80,6 +85,10 @@ public :
 	void setID(const int ID)
 	{
 		this->ID = ID;
+	}
+	void setString(string name)
+	{
+		this->name = name;
 	}
 	void setX(const int x)
 	{
