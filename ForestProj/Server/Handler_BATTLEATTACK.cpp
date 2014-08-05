@@ -28,45 +28,50 @@
 */
 using std::string;
 
+void make_monster_vector_in_room(Character* myChar, vector<Monster *>& send_list, bool autolocked);
 void make_vector_id_in_room(E_List *, vector<Character *>&);
 void send_message(msg, vector<Character *> &, bool);
 void unpack(msg, char *, int *);
 
 void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
-	auto FVEC_M = F_Vector_Mon::getInstance();
+	BATTLEATTACK::CONTENTS battleattack;
+
+	battleattack.ParseFromString(*readContents);
 
 	if (ioInfo->block != nullptr)
 	{
 		Memory_Pool::getInstance()->pushBlock(ioInfo->block);
+		ioInfo->block = nullptr;
 	}
 	ioInfo_Pool::getInstance()->pushBlock(ioInfo);
-	BATTLEATTACK::CONTENTS battleattack;
 
-	battleattack.ParseFromString(*readContents);
+	auto FVEC_M = F_Vector_Mon::getInstance();
+	int leaveUserSize, x, y;
+	int attackType;
+	vector<int> clist;
+
 	int ID = battleattack.id();
 
 	auto AMAP_MON = Access_Map_Mon::getInstance();
 	auto AMAP = Access_Map::getInstance();
 	Monster* monster;
 	{
-		Scoped_Rlock SR(&AMAP->slock);
-		Scoped_Rlock SR2(&AMAP_MON->slock);
 		monster = AMAP_MON->find(ID);
 		//지금 현재 상태와 패킷의 상태가 일치하지 않습니다!!
-		if (monster->getState() != battleattack.state())
+		if (monster->getState() != PMODEBATTLEATTACK)
 		{
 			return;
 		}
 
+		x = monster->getX();
+		y = monster->getY();
+
 		vector<int> damage;
 		vector<Character *> nxt, receiver;
-		auto elist = F_Vector::getInstance()->get(monster->getX(), monster->getY());
-		int attackType;
+		auto elist = F_Vector::getInstance()->get(x, y);
 		{
-			Scoped_Wlock SW(&elist->slock);
-
 			// AI를 통해 대상과 데미지를 계산합니다.
-			monster->getAttackInfo(Monster::ATTACKSTART, vector<int>(), &attackType, nxt, damage);
+			monster->getAttackInfo(ATTACKSTART, vector<int>(), &attackType, nxt, damage);
 
 			// 현재 방에 참여하고 있는 유저들의 정보를 가져옵니다.
 			make_vector_id_in_room(elist, receiver);
@@ -77,21 +82,20 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 
 
 			string bytestring;
-			monsterattackresultContents.SerializeToString(&bytestring);
-			
-			monsterattackresultContents.clear_data();
 
 			// 체력이 0이 되는 유저들을 제거하는 부분입니다.
 			for (int i = 0; i < nxt.size(); i++)
 			{
-				Scoped_Wlock SW(nxt[i]->getLock());
+				if (nxt[i] == nullptr) {
+//					printf("???\n");
+				}
 				nxt[i]->attacked(damage[i]);
 
 				auto data = monsterattackresultContents.add_data();
 				data->set_id(nxt[i]->getID());
 				data->set_damage(nxt[i]->getPrtHp());
 
-				if (monsterattackresultContents.data_size() < ATTACKED_USER_MAXIMUM)
+				if (monsterattackresultContents.data_size() == ATTACKED_USER_MAXIMUM)
 				{
 					monsterattackresultContents.SerializeToString(&bytestring);
 					send_message(msg(PMONSTER_ATTACK_RESULT, bytestring.size(), bytestring.c_str()), receiver, false);
@@ -102,12 +106,13 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 
 				if (nxt[i]->getPrtHp() == 0)
 				{
+//					puts("유저 죽었설");
 					elist->erase(nxt[i]);
 
-					int Respawn_Time = receiver[i]->getLv() * 2000; // 리스폰 시간은 여기서 정의
+					int Respawn_Time = nxt[i]->getLv() * 2000; // 리스폰 시간은 여기서 정의
 					string bytestring;
 					USER_RESPAWN::CONTENTS userrespawnContents;
-					userrespawnContents.set_id(receiver[i]->getID());
+					userrespawnContents.set_id(nxt[i]->getID());
 					userrespawnContents.set_x(22); // 리스폰될 x의 위치를 결정
 					userrespawnContents.set_y(22); // 리스폰될 y의 위치를 결정
 					userrespawnContents.SerializeToString(&bytestring);
@@ -127,21 +132,24 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 			send_message(msg(PMONSTER_ATTACK_RESULT, bytestring.size(), bytestring.c_str()), receiver, false);
 
 			monsterattackresultContents.clear_data();
-		}
-
-		if (elist->size() == 0)
-		{
-			monster->SET_PEACE_MODE();
-		}
-		else
-		{
-			vector<int> clist;
+			leaveUserSize = elist->size();
 			for (int i = 0; i < nxt.size(); i++)
 			{
 				clist.push_back(nxt[i]->getID());
 			}
-
-			monster->CONTINUE_BATTLE_MODE(clist,attackType);
 		}
+	}
+
+	if (leaveUserSize == 0)
+	{
+		auto elist_m = FVEC_M->get(x, y);
+		for (auto itr = elist_m->begin(); itr != elist_m->end(); itr++)
+		{
+			(*itr)->SET_PEACE_MODE();
+		}
+	}
+	else
+	{
+		monster->CONTINUE_BATTLE_MODE(clist, attackType);
 	}
 }

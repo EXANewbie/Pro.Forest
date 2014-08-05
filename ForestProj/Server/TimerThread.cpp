@@ -16,20 +16,17 @@ void TimerThreadProc(Timer* T) {
 
 			memcpy(&type, i->c_str(), sizeof(int));
 			memcpy(&len, i->c_str() + sizeof(int), sizeof(int));
-			string contents(i->c_str()+2*sizeof(int), len);
 
 			memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
-			ioInfo->wsaBuf.len = len;	/* 이 부분에서 BUFFER_SIZE를 필히 수정해야됨, (엄밀히 말하면 8바이트만 먼저 받도록)*/
+			ioInfo->wsaBuf.len = len;
 			ioInfo->wsaBuf.buf = ioInfo->block->getBuffer();
 			ioInfo->RWmode = TIMER;
 			ioInfo->id = NOT_JOINED;
-			ioInfo->myCharacter = NULL;
+			ioInfo->myCharacter = nullptr;
 			ioInfo->type = type;
 			ioInfo->len = len;
 			ioInfo->offset = 0;
-			memcpy(ioInfo->block->getBuffer(), contents.c_str(), len);
-
-			ioInfo->myCharacter = nullptr;
+			memcpy(ioInfo->block->getBuffer(), i->c_str()+2*sizeof(int), len);
 
 			PostQueuedCompletionStatus(T->getCompletionPort(), (DWORD)i->size(), NULL, (LPOVERLAPPED)ioInfo);
 			//GetQueuedCompletionStatus(hComPort, &bytesTrans, (LPDWORD)&handleInfo, (LPOVERLAPPED *)&ioInfo, INFINITE);

@@ -60,7 +60,10 @@ public :
 		AcquireSRWLockExclusive(&srw);
 		ptr p = poolStack->top();
 		poolStack->pop();
-		printLog("MemoryBlock Allocated(%d)\n", poolStack->size());
+		if (poolStack->size() > 100000) {
+			printf("10¸¸ µ¹ÆÄ\n");
+		}
+//		printLog("MemoryBlock Allocated(%d)\n", poolStack->size());
 		ReleaseSRWLockExclusive(&srw);
 		p->setStateUSE();
 
@@ -71,7 +74,7 @@ public :
 
 		AcquireSRWLockExclusive(&srw);
 		poolStack->push(p);
-		printLog("MemoryBlock released(%d)\n", poolStack->size());
+//		printLog("MemoryBlock released(%d)\n", poolStack->size());
 		ReleaseSRWLockExclusive(&srw);
 	}
 };
@@ -112,7 +115,7 @@ public:
 		AcquireSRWLockExclusive(&srw);
 		ptr p = poolStack->top();
 		poolStack->pop();
-		printLog("HandlerBlock Allocated(%d)\n", poolStack->size());
+//		printLog("HandlerBlock Allocated(%d)\n", poolStack->size());
 		ReleaseSRWLockExclusive(&srw);
 
 		return p;
@@ -120,7 +123,7 @@ public:
 	void pushBlock(ptr p) {
 		AcquireSRWLockExclusive(&srw);
 		poolStack->push(p);
-		printLog("HandlerBlock released(%d)\n", poolStack->size());
+//		printLog("HandlerBlock released(%d)\n", poolStack->size());
 		ReleaseSRWLockExclusive(&srw);
 	}
 };
@@ -160,7 +163,7 @@ public:
 		AcquireSRWLockExclusive(&srw);
 		ptr p = poolStack->top();
 		poolStack->pop();
-		printLog("ioInfoBlock Allocated(%d)\n", poolStack->size());
+//		printLog("ioInfoBlock Allocated(%d)\n", poolStack->size());
 		ReleaseSRWLockExclusive(&srw);
 
 		return p;
@@ -168,7 +171,7 @@ public:
 	void pushBlock(ptr p) {
 		AcquireSRWLockExclusive(&srw);
 		poolStack->push(p);
-		printLog("ioInfoBlock released(%d)\n", poolStack->size());
+//		printLog("ioInfoBlock released(%d)\n", poolStack->size());
 		ReleaseSRWLockExclusive(&srw);
 	}
 };
