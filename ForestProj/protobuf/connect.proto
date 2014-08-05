@@ -3,4 +3,5 @@ package CONNECT;
 message CONTENTS
 {
 	optional string data = 1;
+	optional bytes name = 2;
 }

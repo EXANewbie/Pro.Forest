@@ -17,9 +17,9 @@ void Handler_PSET_MON(Character *myChar, std::string* str)
 	for (int i = 0; i < setmonsterContents.data_size(); ++i)
 	{
 		auto tmpMon = setmonsterContents.data(i);
-		int monName = tmpMon.name();
+		std::string monName = tmpMon.name();
 		Monster* mon;
-		if (monName == 1)
+		if (monName == "기사")
 		{
 			mon = new Knight(tmpMon.id());
 		}
@@ -36,7 +36,7 @@ void Handler_PSET_MON(Character *myChar, std::string* str)
 			mons->insert(tmpMon.id(), mon);
 		}
 
-		printf("야생의 %s가 [id : %d (%d, %d) ]나타났습니다!\n", mon->getName().c_str(), mon->getID(), mon->getX(), mon->getY());
+		printf("※ 야생의 %s [ID:%d]가 나타났습니다!\n", mon->getName().c_str(), mon->getID());
 	}
 	setmonsterContents.clear_data();
 }

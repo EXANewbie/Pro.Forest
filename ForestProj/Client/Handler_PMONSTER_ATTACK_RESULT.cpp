@@ -17,6 +17,12 @@ void Handler_PMONSTER_ATTACK_RESULT(Character *myChar, std::string* str)
 	int id_m = monsterattackresultContents.id_m();
 	int attackType = monsterattackresultContents.attacktype();
 
+	Monster* atkMon = NULL;
+	{
+		Scoped_Rlock SR(&mons->srw);
+		atkMon = mons->find(id_m);
+	}
+
 	for (int i = 0; i < monsterattackresultContents.data_size(); ++i)
 	{
 		auto monsterattackresult = monsterattackresultContents.data(i);
@@ -28,25 +34,56 @@ void Handler_PMONSTER_ATTACK_RESULT(Character *myChar, std::string* str)
 			Scoped_Rlock SR(&chars->srw);
 			targetChar = chars->find(id);
 		}
+		
 		if (targetChar == NULL){ printf("@@내가뜨면 안됨. 혹시뜸?\n"); }
+		else if (atkMon == NULL) { printf("내가 뜨면 안됨ㅇㅇ\n"); }
 		else
 		{
-			int prePrtHp;
+			if (targetChar->getID() == myChar->getID())// 나일때
 			{
-				Scoped_Wlock SW(targetChar->getLock());
-				prePrtHp = targetChar->getPrtHp();
-				targetChar->setPrtHp(prtHp);
-			}
-			if (prtHp == 0)
-			{
-				printf("유저 [ %d ] 가 죽었습니다.. 10초 뒤 리스폰 됩니다..\n", id);
+				int prePrtHp;
+				{
+					Scoped_Wlock SW(targetChar->getLock());
+					prePrtHp = targetChar->getPrtHp();
+					targetChar->setPrtHp(prtHp);
+				}
+				if (prtHp == 0)
+				{
+					int damage = prePrtHp - prtHp;
+					printf("- 몬스터 [ %s ]가 %d 공격타입으로 %d 만큼 피해를 입혔습니다.\n",
+						atkMon->getName(), attackType, damage);
+					printf("- 체력이 모두 소진되었습니다..\n내가...죽다니.. 10초 뒤 리스폰 됩니다..\n");
+				}
+				else
+				{
+					int damage = prePrtHp - prtHp;
+					printf("- 몬스터 [ %d ]가 %d 공격타입으로 %d 만큼 피해를 입혔습니다.\n",
+						atkMon->getName(), attackType, damage);
+				}
 			}
 			else
 			{
-				int damage = prePrtHp - prtHp;
-				printf("!!몬스터 [ %d ]가 %d 공격타입으로 유저 [ %d ] 에게 %d 만큼 피해를 입혔습니다.\n",
-					id_m, attackType, targetChar->getID(), damage);
+				int prePrtHp;
+				{
+					Scoped_Wlock SW(targetChar->getLock());
+					prePrtHp = targetChar->getPrtHp();
+					targetChar->setPrtHp(prtHp);
+				}
+				if (prtHp == 0)
+				{
+					int damage = prePrtHp - prtHp;
+					printf("※ 유저 %s님이 몬스터 [ %s ]의 %d 공격타입으로 %d 만큼 피해를 입었습니다.\n",
+						atkMon->getName(), attackType, damage);
+					printf("※ 유저 %s님께서 사망하셨습니다.");
+				}
+				else
+				{
+					int damage = prePrtHp - prtHp;
+					printf("※ 유저 %s님이 몬스터 [ %s ]의 %d 공격타입으로 %d 만큼 피해를 입었습니다.\n",
+						atkMon->getName(), attackType, damage);
+				}
 			}
+			
 		}
 	}
 

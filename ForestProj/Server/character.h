@@ -86,7 +86,7 @@ public :
 	{
 		this->ID = ID;
 	}
-	void setString(string name)
+	void setName(std::string name)
 	{
 		this->name = name;
 	}

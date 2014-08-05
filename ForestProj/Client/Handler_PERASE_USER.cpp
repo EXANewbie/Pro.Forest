@@ -17,12 +17,14 @@ void Handler_PERASE_USER(Character *myChar, std::string* str)
 	for (int i = 0; i<contents.data_size(); ++i)
 	{
 		auto user = contents.data(i);
+		Character* other;
 		int id = user.id();
 		{
 			Scoped_Wlock SW(&chars->srw);
+			other = chars->find(id);
 			chars->erase(id);
 		}
-		printf("His char id erase! : %d \n", id);
+		printf("※ 유저 %s님과 멀어져간다!\n", other->getName());
 	}
 	contents.clear_data();
 

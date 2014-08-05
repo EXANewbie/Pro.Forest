@@ -32,8 +32,7 @@ void Handler_PMOVE_USER(Character *myChar, std::string* str)
 		myChar->setX(myChar->getX() + x_off);
 		myChar->setY(myChar->getY() + y_off);
 
-		printf("I am moved! My char id : %d, (%d,%d) \n", myChar->getID(), myChar->getX(), myChar->getY());
-		//printf("my lv : %d, hp : %d, power : %d, exp : %d\n", myChar->getLv(), myChar->getPrtHp(), myChar->getPower(), myChar->getExp());
+		printf("(%d,%d)로 이동했다! \n", myChar->getX(), myChar->getY());
 	}
 	contents.clear_data();
 }

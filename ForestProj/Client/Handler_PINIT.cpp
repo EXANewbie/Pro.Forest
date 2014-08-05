@@ -17,10 +17,12 @@ void Handler_PINIT(int* myID, Character *myChar, std::string* str)
 
 	auto user = contents.data(0);
 	int id = user.id(), x = user.x(), y = user.y();
+	std::string name = user.name();
 	int lv = user.lv(), maxHp = user.maxhp(), power = user.power(), maxexp = user.maxexp();
 	*myID = id;
 	Character* myCharacter = new Character();
 	myCharacter->setID(id);
+	myCharacter->setName(name);
 	myCharacter->setX(x);
 	myCharacter->setY(y);
 	myCharacter->setLv(lv, maxHp, power, maxexp);
@@ -29,8 +31,8 @@ void Handler_PINIT(int* myID, Character *myChar, std::string* str)
 		Scoped_Wlock SW(&chars->srw);
 		chars->insert(id, myChar);
 	}
-	printf("My char id : %d, (%d,%d)\n", id, myChar->getX(), myChar->getY());
-	//printf("my lv : %d, hp : %d, power : %d, exp : %d\n",myCharacter->getLv(),myCharacter->getPrtHp(),myCharacter->getPower(),myCharacter->getExp());
+	printf("- %s님께서 위치 (%d,%d) 에 생성되었습니다!\n", myChar->getName().c_str(), myChar->getX(), myChar->getY());
+	
 	contents.clear_data();
 
 }
