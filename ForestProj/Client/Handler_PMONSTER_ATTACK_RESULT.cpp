@@ -51,14 +51,14 @@ void Handler_PMONSTER_ATTACK_RESULT(Character *myChar, std::string* str)
 				{
 					int damage = prePrtHp - prtHp;
 					printf("- 몬스터 [ %s ]가 %d 공격타입으로 %d 만큼 피해를 입혔습니다.\n",
-						atkMon->getName(), attackType, damage);
+						atkMon->getName().c_str(), attackType, damage);
 					printf("- 체력이 모두 소진되었습니다..\n내가...죽다니.. 10초 뒤 리스폰 됩니다..\n");
 				}
 				else
 				{
 					int damage = prePrtHp - prtHp;
-					printf("- 몬스터 [ %d ]가 %d 공격타입으로 %d 만큼 피해를 입혔습니다.\n",
-						atkMon->getName(), attackType, damage);
+					printf("- 몬스터 [ %s ]가 %d 공격타입으로 %d 만큼 피해를 입혔습니다.\n",
+						atkMon->getName().c_str(), attackType, damage);
 				}
 			}
 			else
@@ -73,14 +73,14 @@ void Handler_PMONSTER_ATTACK_RESULT(Character *myChar, std::string* str)
 				{
 					int damage = prePrtHp - prtHp;
 					printf("※ 유저 %s님이 몬스터 [ %s ]의 %d 공격타입으로 %d 만큼 피해를 입었습니다.\n",
-						atkMon->getName(), attackType, damage);
+						atkMon->getName().c_str(), attackType, damage);
 					printf("※ 유저 %s님께서 사망하셨습니다.");
 				}
 				else
 				{
 					int damage = prePrtHp - prtHp;
 					printf("※ 유저 %s님이 몬스터 [ %s ]의 %d 공격타입으로 %d 만큼 피해를 입었습니다.\n",
-						atkMon->getName(), attackType, damage);
+						atkMon->getName().c_str(), attackType, damage);
 				}
 			}
 			

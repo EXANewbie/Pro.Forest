@@ -31,6 +31,7 @@ void Handler_HELLOWORLD(LPPER_IO_DATA, string*);
 void Handler_PEACEMOVE(LPPER_IO_DATA, string*);
 void Handler_BATTLEATTACK(LPPER_IO_DATA, string*);
 void Handler_DEADRESPAWN(LPPER_IO_DATA, string*);
+void Handler_USERRESPAWN(LPPER_IO_DATA, string*);
 
 int k;
 
@@ -215,17 +216,21 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 			{
 				Handler_HELLOWORLD(ioInfo, &readContents);
 			}
-			if (ioInfo->type == PMODEPEACEMOVE)
+			else if (ioInfo->type == PMODEPEACEMOVE)
 			{
 				Handler_PEACEMOVE(ioInfo, &readContents);
 			}
-			if (ioInfo->type == PMODEBATTLEATTACK)
+			else if (ioInfo->type == PMODEBATTLEATTACK)
 			{
 				Handler_BATTLEATTACK(ioInfo, &readContents);
 			}
-			if ( ioInfo->type == PMODEDEADRESPAWN)
+			else if ( ioInfo->type == PMODEDEADRESPAWN)
 			{
 				Handler_DEADRESPAWN(ioInfo, &readContents);
+			}
+			else if (ioInfo->type == USERRESPAWN)
+			{
+				Handler_USERRESPAWN(ioInfo, &readContents);
 			}
 		}
 	}

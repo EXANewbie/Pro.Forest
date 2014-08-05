@@ -7,6 +7,7 @@
 #include "../protobuf/setmonster.pb.h"
 #include "../protobuf/init.pb.h"
 
+
 #include "Completion_Port.h"
 #include "DMap.h"
 #include "Scoped_Lock.h"
@@ -38,7 +39,7 @@ void set_single_cast(Character *, vector<Character *>&);
 void make_monster_vector_in_room(Character* myChar, vector<Monster *>& send_list, bool autolocked);
 
 
-void Handler_DEADRESPAWN(LPPER_IO_DATA ioInfo, string* readContents) {
+void Handler_USERRESPAWN(LPPER_IO_DATA ioInfo, string* readContents) {
 	USER_RESPAWN::CONTENTS respawnmsg;
 	SET_USER::CONTENTS setuserContents;
 	SET_MONSTER::CONTENTS setmonsterContents;
@@ -206,7 +207,7 @@ void Handler_DEADRESPAWN(LPPER_IO_DATA ioInfo, string* readContents) {
 			setmon->set_y(tmpMon->getY());
 			setmon->set_name(tmpMon->getName());
 			setmon->set_lv(tmpMon->getLv());
-			setmon->set_perhp(tmpMon->getPrtHp());
+			setmon->set_prthp(tmpMon->getPrtHp());
 			setmon->set_maxhp(tmpMon->getMaxHp());
 			setmon->set_power(tmpMon->getPower());
 

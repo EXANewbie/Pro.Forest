@@ -37,11 +37,13 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 	{
 		char c;
 		c = _getch();
-
-		if (myChar->getPrtHp() == 0);
 		{
-			printf("아직 캐릭터가 생성되지 않았습니다..\n");
-			continue;
+			Scoped_Rlock(myChar->getLock());
+			if (myChar->getPrtHp() == 0)
+			{
+				printf("아직 캐릭터가 생성되지 않았습니다..\n");
+				continue;
+			}
 		}
 		
 		if (c == 'x'||c =='X')

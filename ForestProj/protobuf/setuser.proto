@@ -9,10 +9,11 @@ message CONTENTS
 		optional int32 x = 3;
 		optional int32 y = 4;
 		optional int32 lv = 5;
-		optional int32 maxHp = 6;
-		optional int32 power = 7;
-		optional int32 prtexp = 8;
-		optional int32 maxexp = 9;
+		optional int32 prthp = 6;
+		optional int32 maxHp = 7;
+		optional int32 power = 8;
+		optional int32 prtexp = 9;
+		optional int32 maxexp = 10;
 	}
 	repeated CHAR_ID_X_Y data = 1;
 }
