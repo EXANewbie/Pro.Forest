@@ -1,0 +1,7 @@
+package DEADRESPAWN;
+
+message CONTENTS
+{
+	optional int32 id = 1;
+	optional int32 state = 2;
+}

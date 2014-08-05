@@ -21,7 +21,7 @@ void TimerThreadProc(Timer* T) {
 			ioInfo->wsaBuf.len = len;
 			ioInfo->wsaBuf.buf = ioInfo->block->getBuffer();
 			ioInfo->RWmode = TIMER;
-			ioInfo->id = NOT_JOINED;
+			ioInfo->id = 999;
 			ioInfo->myCharacter = nullptr;
 			ioInfo->type = type;
 			ioInfo->len = len;

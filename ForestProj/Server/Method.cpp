@@ -2,6 +2,7 @@
 
 #include "../protobuf/peacemove.pb.h"
 #include "../protobuf/battleattack.pb.h"
+#include "../protobuf/deadrespawn.pb.h"
 
 #include "Memory_Pool.h"
 #include "TimerThread.h"
@@ -99,7 +100,7 @@ void Knight::SET_BATTLE_MODE() {
 	battlemsg.set_id(ID);
 	battlemsg.set_state(BATTLE);
 
-	int time = 50;
+	int time = 1000;
 	string message;
 	battlemsg.SerializePartialToString(&message);
 	auto MemoryPool = Memory_Pool::getInstance();
@@ -121,13 +122,35 @@ void Knight::SET_PEACE_MODE() {
 	peacemsg.set_id(ID);
 	peacemsg.set_state(PEACE);
 
-	int time = 50;
+	int time = 1000;
 	string message;
-	peacemsg.SerializePartialToString(&message);
+	peacemsg.SerializeToString(&message);
 	auto MemoryPool = Memory_Pool::getInstance();
 	auto blocks = MemoryPool->popBlock();
 	int len = 0;
 	unpack(msg(PMODEPEACEMOVE, message.size(), message.c_str()), blocks->getBuffer(), &len);
+
+	Timer::getInstance()->addSchedule(time, string(blocks->getBuffer(), len));
+
+	MemoryPool->pushBlock(blocks);
+}
+
+void Knight::SET_DEAD_MODE() {
+	if (state == DEAD)
+		return;
+
+	state = DEAD;
+	DEADRESPAWN::CONTENTS deadmsg;
+	deadmsg.set_id(ID);
+	deadmsg.set_state(DEAD);
+
+	int time = lv * 10000;
+	string message;
+	deadmsg.SerializeToString(&message);
+	auto MemoryPool = Memory_Pool::getInstance();
+	auto blocks = MemoryPool->popBlock();
+	int len = 0;
+	unpack(msg(PMODEDEADRESPAWN, message.size(), message.c_str()), blocks->getBuffer(), &len);
 
 	Timer::getInstance()->addSchedule(time, string(blocks->getBuffer(), len));
 
@@ -141,7 +164,7 @@ void Knight::CONTINUE_BATTLE_MODE(vector<int> users, int attack_type) {
 	battlemsg.set_attacktype(attack_type);
 	battlemsg.set_finished(0);
 
-	int time = 50;
+	int time = 1000;
 
 	for (int i = 0; i < users.size(); i++) {
 		auto target = battlemsg.add_data();
@@ -183,7 +206,7 @@ void Knight::CONTINUE_PEACE_MODE(int nxt_x_off, int nxt_y_off) {
 	peacemsg.set_xoff(nxt_x_off);
 	peacemsg.set_yoff(nxt_y_off);
 
-	int time = 50;
+	int time = 1000;
 	string message;
 	peacemsg.SerializeToString(&message);
 	auto MemoryPool = Memory_Pool::getInstance();

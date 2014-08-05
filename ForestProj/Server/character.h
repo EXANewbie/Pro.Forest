@@ -4,6 +4,8 @@
 #include <WinSock2.h>
 #include "Constant.h"
 
+using std::string;
+
 int bigRand();
 
 class Character 
@@ -98,6 +100,10 @@ public :
 	{
 		this->y = y;
 	}
+	void setPrtHp(const int prtHp)
+	{
+		this->prtHp = prtHp;
+	}
 	void setLv(const int lv, const int maxHp, const int power, const int maxExp)
 	{
 		this->lv = lv;
@@ -109,6 +115,10 @@ public :
 	void setExpUp(const int exp)
 	{
 		prtExp += exp;
+	}
+
+	void setHPMax() {
+		prtHp = maxHp;
 	}
 
 	void attacked(int damage)

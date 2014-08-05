@@ -74,7 +74,7 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 	// 지금 내가 있는 방에 몬스터가 있는지 확인을 하도록 하자. 몬스터와 함께있으면 못움직이게 할 것이기 때문.
 	{
 		E_List_Mon* elist_m = FVEC_M->get(x, y);
-		Scoped_Rlock SR(&elist_m->slock);
+//		Scoped_Rlock SR(&elist_m->slock);
 		if (!elist_m->empty())
 		{
 			auto moveuser = moveuserContents.add_data();
@@ -97,8 +97,8 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 
 	// 나와 같은방에 있는 친구들은 누구?
 	{
-		Scoped_Rlock SR(&elist->slock);
-		Scoped_Rlock SRU(pCharacter->getLock());
+//		Scoped_Rlock SR(&elist->slock);
+//		Scoped_Rlock SRU(pCharacter->getLock());
 		make_vector_id_in_room_except_me(pCharacter, charId_in_room_except_me, false/*autolock*/);
 
 		for (int i = 0; i < charId_in_room_except_me.size(); ++i)
@@ -138,7 +138,7 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 		// 기존 방의 몬스터들의 정보를 지운다.
 		E_List_Mon* elist_m = FVEC_M->get(x, y);
 
-		Scoped_Rlock SRM(&elist_m->slock);
+//		Scoped_Rlock SRM(&elist_m->slock);
 
 		make_monster_vector_in_room(pCharacter, vec_mon, false);
 
@@ -161,18 +161,18 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 
 	// 캐릭터를 해당 좌표만큼 이동시킴
 	{
-		Scoped_Wlock SW(&elist->slock);
+//		Scoped_Wlock SW(&elist->slock);
 		elist->erase(cur_id);
 	}
 	int newX = x + x_off, newY = y + y_off;
 	{
-		Scoped_Wlock SWU(pCharacter->getLock());
+//		Scoped_Wlock SWU(pCharacter->getLock());
 		pCharacter->setX(newX);
 		pCharacter->setY(newY);
 	}
 	elist = FVEC->get(newX, newY);
 	{
-		Scoped_Wlock SW(&elist->slock);
+//		Scoped_Wlock SW(&elist->slock);
 		elist->push_back(pCharacter);
 	}
 
@@ -193,8 +193,8 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 
 	// 나와 같은방에 있는 친구들은 누구?
 	{
-		Scoped_Rlock SR(&elist->slock);
-		Scoped_Rlock SRU(pCharacter->getLock());
+//		Scoped_Rlock SR(&elist->slock);
+//		Scoped_Rlock SRU(pCharacter->getLock());
 		make_vector_id_in_room_except_me(pCharacter, charId_in_room_except_me, false/*autolock*/);
 
 		// 새로운 방의 유저들에게 내가 등장함을 알림
@@ -251,7 +251,7 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 
 		// 새로운 방의 몬스터들의 정보를 가져온다.
 		E_List_Mon* elist_m = FVEC_M->get(x, y);
-		Scoped_Rlock SR_M(&elist_m->slock);
+//		Scoped_Rlock SR_M(&elist_m->slock);
 		make_monster_vector_in_room(pCharacter, vec_mon, false);
 
 		for (int i = 0; i < vec_mon.size(); ++i)

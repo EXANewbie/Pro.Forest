@@ -28,9 +28,11 @@ public:
 	virtual void setID(const int ID) = 0;
 	virtual void setX(const int x) = 0;
 	virtual void setY(const int y) = 0;
+	virtual void setPrtHp(const int prtHp) = 0;
 	virtual void setLv(const int lv, const int maxHp, const int power) = 0;
 	virtual void setExp(const int exp) = 0;
 	virtual void setState(const int state) = 0;
+	virtual void setHPMax() = 0;
 	virtual void attacked(int damage) = 0;
 
 	virtual void getNextOffset(int bef_x_off, int bef_y_off, int *nxt_x_off, int *nxt_y_off) = 0;
@@ -39,6 +41,7 @@ public:
 
 	virtual void SET_BATTLE_MODE() = 0;
 	virtual void SET_PEACE_MODE() = 0;
+	virtual void SET_DEAD_MODE() = 0;
 
 	virtual	void CONTINUE_BATTLE_MODE(vector<int> users, int attack_type) = 0;
 	virtual void CONTINUE_PEACE_MODE(int bef_x_off,int bef_y_off) = 0;
@@ -132,6 +135,10 @@ public:
 	{
 		this->y = y;
 	}
+	void setPrtHp(const int prtHp)
+	{
+		this->prtHp = prtHp;
+	}
 	void setLv(const int lv, const int maxHp, const int power)
 	{
 		this->lv = lv;
@@ -146,6 +153,11 @@ public:
 	void setState(const int state)
 	{
 		this->state = state;
+	}
+
+	void setHPMax()
+	{
+		this->prtHp = this->maxHp;
 	}
 
 	void attacked(int damage)
@@ -165,6 +177,7 @@ public:
 
 	void SET_BATTLE_MODE();
 	void SET_PEACE_MODE();
+	void SET_DEAD_MODE();
 
 	void CONTINUE_BATTLE_MODE(vector<int> users, int attack_type);
 	void CONTINUE_PEACE_MODE(int bef_x_off, int bef_y_off);

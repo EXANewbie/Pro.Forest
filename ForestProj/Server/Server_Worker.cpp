@@ -15,7 +15,7 @@ using std::vector;
 using std::string;
 
 void printLog(const char *msg, ...);
-void set_single_cast(int, vector<int>&);
+void set_single_cast(Character *, vector<Character *>&);
 void set_multicast_in_room_except_me(Character*, vector<int>&, bool);
 void send_message(msg, vector<int> &,bool);
 void unpack(msg, char *, int *);
@@ -30,6 +30,7 @@ void Handler_PUSER_ATTCK(Character *, std::string*);
 void Handler_HELLOWORLD(LPPER_IO_DATA, string*);
 void Handler_PEACEMOVE(LPPER_IO_DATA, string*);
 void Handler_BATTLEATTACK(LPPER_IO_DATA, string*);
+void Handler_DEADRESPAWN(LPPER_IO_DATA, string*);
 
 int k;
 
@@ -221,6 +222,10 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 			if (ioInfo->type == PMODEBATTLEATTACK)
 			{
 				Handler_BATTLEATTACK(ioInfo, &readContents);
+			}
+			if ( ioInfo->type == PMODEDEADRESPAWN)
+			{
+				Handler_DEADRESPAWN(ioInfo, &readContents);
 			}
 		}
 	}
