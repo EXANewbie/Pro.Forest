@@ -38,7 +38,12 @@ void receiver(const SOCKET s, int* myID, Character* myChar)
 		int chk2=recv(s, (char*)&len, sizeof(int), 0);
 
 		std::shared_ptr <char> ptr(new char[len], deleter());
-		int end = recv(s, ptr.get(), len, 0);
+		int inc = 0;
+		do
+		{
+			int end = recv(s, ptr.get()+inc, len-inc, 0);
+			inc += end;
+		} while (inc < len);
 		std::string tmp(ptr.get(), len);
 
 		if (type == PSET_USER)
