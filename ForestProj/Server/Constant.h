@@ -36,7 +36,7 @@ const int ATTACKED_USER_MAXIMUM = (2 * BLOCK_SIZE) / (3 * MINIMUM_ATTACKED_USER_
 const int HpPw[6][2] = { { 0, 0 },{ 300, 10 }, { 500, 20 }, { 800, 30 }, { 1100, 40 }, { 1500, 50 } };
 const int maxExp[6] = { 0, 100, 200, 500, 700, 9000000 };
 
-const int NumOfKight = 500;
+const int NumOfKight = 10000;
 const int knightExp = 30;
 
 #endif

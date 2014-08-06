@@ -50,7 +50,7 @@ void Handler_DEADRESPAWN(LPPER_IO_DATA ioInfo, string* readContents) {
 	{
 		monster = AMAP_MON->find(ID);
 
-		printf("ID : %d\n", ID);
+		printLog("ID : %d\n", ID);
 		//지금 현재 상태와 패킷의 상태가 일치하지 않습니다!!
 		if (monster->getState() != DEAD)
 		{

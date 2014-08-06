@@ -50,13 +50,13 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 	int attackType;
 	vector<int> clist;
 
-	int ID = battleattack.id();
+	int ID_m = battleattack.id();
 
 	auto AMAP_MON = Access_Map_Mon::getInstance();
 	auto AMAP = Access_Map::getInstance();
 	Monster* monster;
 	{
-		monster = AMAP_MON->find(ID);
+		monster = AMAP_MON->find(ID_m);
 		//지금 현재 상태와 패킷의 상태가 일치하지 않습니다!!
 		if (monster->getState() != PMODEBATTLEATTACK)
 		{
@@ -83,7 +83,7 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 
 			string bytestring;
 
-			// 체력이 0이 되는 유저들을 제거하는 부분입니다.
+
 			for (int i = 0; i < nxt.size(); i++)
 			{
 				if (nxt[i] == nullptr) {
@@ -104,6 +104,7 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 					bytestring.clear();
 				}
 
+				// 체력이 0이 되는 유저들을 제거하는 부분입니다.
 				if (nxt[i]->getPrtHp() == 0)
 				{
 //					puts("유저 죽었설");

@@ -42,6 +42,7 @@ void Handler_PUSER_ATTCK_RESULT(Character *myChar, std::string* str)
 		if (atkChar == NULL)
 		{
 			printf("³ª¶ß¸é ¾ÈµÅ´Âµ¥ ¶ä?\n");
+			exit(0);
 		}
 	
 

@@ -269,7 +269,7 @@ void Knight::getBASICATTACKINFO(int *nextattacktype, vector<Character *>& nextus
 	// 해당 몬스터가 들어있는 elist에 lock을 걸고 들어왔다는 것이 보장됩니다!
 	*nextattacktype = BASICATTACK; // 평타 설정
 	Character* nextTarget = nullptr;
-	int minHP;
+	int minHP = 987654321;
 
 	auto FVEC = F_Vector::getInstance();
 	auto elist = FVEC->get(x, y);
@@ -277,7 +277,7 @@ void Knight::getBASICATTACKINFO(int *nextattacktype, vector<Character *>& nextus
 	for (auto itr = elist->begin(); itr != elist->end(); itr++)
 	{
 		auto chars = *itr;
-		Scoped_Rlock SR2(chars->getLock());
+		//Scoped_Rlock SR2(chars->getLock());
 
 		if (nextTarget == nullptr || minHP > chars->getPrtHp())
 		{
@@ -295,7 +295,7 @@ void Knight::getDOUBLEATTACKINFO(int *nextattacktype, vector<Character *>& nextu
 	// 해당 몬스터가 들어있는 elist에 lock을 걸고 들어왔다는 것이 보장됩니다!
 	*nextattacktype = DOUBLEATTACK; // 평타 설정
 	Character *nextTarget = nullptr;
-	int minHP;
+	int minHP = 987654321;
 
 	auto FVEC = F_Vector::getInstance();
 	auto elist = FVEC->get(x, y);
@@ -303,7 +303,7 @@ void Knight::getDOUBLEATTACKINFO(int *nextattacktype, vector<Character *>& nextu
 	for (auto itr = elist->begin(); itr != elist->end(); itr++)
 	{
 		auto chars = *itr;
-		Scoped_Rlock SR2(chars->getLock());
+		//Scoped_Rlock SR2(chars->getLock());
 
 		if (nextTarget == nullptr || minHP > chars->getPrtHp())
 		{
@@ -327,8 +327,8 @@ void Knight::getMULTIATTACKINFO(int *nextattacktype, vector<Character *>& nextus
 	for (auto itr = elist->begin(); itr != elist->end(); itr++)
 	{
 		auto chars = *itr;
-		int realdamage = power / 3; // 데미지 공식은 여기서 변경하세요!
-		Scoped_Rlock SR2(chars->getLock());
+		int realdamage = power / 3; // 데 변경하세요!
+		//Scoped_Rlock SR2(chars->getLock());미지 공식은 여기서
 
 		nextusers.push_back(chars);
 		damage.push_back(realdamage);
