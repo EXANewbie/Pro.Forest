@@ -19,6 +19,50 @@ void unpack(msg, char *, int *);
 
 void Knight::getNextOffset(int bef_x_off, int bef_y_off, int *nxt_x_off, int *nxt_y_off)
 {
+	int per[4][2];
+
+	per[0][0] = bef_x_off;
+	per[0][1] = bef_y_off;
+	per[1][0] = bef_x_off;
+	per[1][1] = bef_y_off;
+	if (bef_x_off == 0) {
+		per[2][0] = -1;
+		per[2][1] = 0;
+		per[3][0] = 1;
+		per[3][1] = 0;
+	}
+	else {
+		per[2][0] = 0;
+		per[2][1] = -1;
+		per[3][0] = 0;
+		per[3][1] = 1;
+	}
+
+	int rand[] = { 0, 1, 2, 3 };
+	for (int i = 0; i < 16; i++)
+	{
+		int a = bigRand() & 3;
+		int b = bigRand() & 3;
+
+		if (a == b) {
+			i--;
+		}
+		else {
+			int c = rand[a];
+			rand[a] = rand[b];
+			rand[b] = c;
+		}
+	}
+
+	for (int i = 0; i < 4; i++) {
+		*nxt_x_off = per[rand[i]][0];
+		*nxt_y_off = per[rand[i]][1];
+		if (Boundary_Check(ID, x, y, *nxt_x_off, *nxt_y_off) == true)
+		{
+			return; // 
+		}
+	}
+	/*
 	int Points[][2] = { { 1, 0 }, { 0, -1 }, { -1, 0 }, { 0, 1 } };
 	int size = 4;
 	//	for (int i = 0; i < 4;i++) 
@@ -56,6 +100,7 @@ void Knight::getNextOffset(int bef_x_off, int bef_y_off, int *nxt_x_off, int *nx
 	*cur[0] = 0, *cur[1] = 0;
 
 	return;
+	*/
 }
 
 void Knight::getAttackInfo(int attacktype, const vector<int>& befusers, int *nextattacktype, vector<Character *>& nextusers, vector<int>& damage)
