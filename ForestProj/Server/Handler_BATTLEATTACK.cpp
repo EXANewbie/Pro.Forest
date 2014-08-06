@@ -133,7 +133,7 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 
 			monsterattackresultContents.clear_data();
 			leaveUserSize = elist->size();
-			for (int i = 0; i < nxt.size(); i++)
+			for (int i = 0; i < ( nxt.size() > 50 ? 50 : nxt.size() ); i++)
 			{
 				clist.push_back(nxt[i]->getID());
 			}

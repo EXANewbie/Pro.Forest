@@ -76,7 +76,7 @@ public:
 		this->y = y;
 		state = NULL;
 	}
-	Knight(int ID) : Knight(bigRand() % (WIDTH + 1), bigRand() % (HEIGHT + 1))
+	Knight(int ID) : Knight(/*bigRand() % (WIDTH + 1)*/0, /*bigRand() % (HEIGHT + 1)*/50)
 	{
 		this->ID = ID;
 		state = NULL;
