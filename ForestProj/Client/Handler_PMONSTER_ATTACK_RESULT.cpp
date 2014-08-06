@@ -73,14 +73,14 @@ void Handler_PMONSTER_ATTACK_RESULT(Character *myChar, std::string* str)
 				{
 					int damage = prePrtHp - prtHp;
 					printf("※ 유저 %s님이 몬스터 [ %s ]의 %d 공격타입으로 %d 만큼 피해를 입었습니다.\n",
-						atkMon->getName().c_str(), attackType, damage);
+						targetChar->getName(), atkMon->getName().c_str(), attackType, damage);
 					printf("※ 유저 %s님께서 사망하셨습니다.");
 				}
 				else
 				{
 					int damage = prePrtHp - prtHp;
 					printf("※ 유저 %s님이 몬스터 [ %s ]의 %d 공격타입으로 %d 만큼 피해를 입었습니다.\n",
-						atkMon->getName().c_str(), attackType, damage);
+						targetChar->getName(), atkMon->getName().c_str(), attackType, damage);
 				}
 			}
 			

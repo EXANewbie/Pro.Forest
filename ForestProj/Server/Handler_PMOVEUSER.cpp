@@ -199,7 +199,12 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 
 		// 새로운 방의 유저들에게 내가 등장함을 알림
 		x = pCharacter->getX(), y = pCharacter->getY();
-		int lv = pCharacter->getLv(), maxHp = pCharacter->getMaxHp(), power = pCharacter->getPower(), prtExp = pCharacter->getPrtExp();
+		int lv = pCharacter->getLv();
+		int prtHp = pCharacter->getPrtHp();
+		int maxHp = pCharacter->getMaxHp();
+		int power = pCharacter->getPower();
+		int prtExp = pCharacter->getPrtExp();
+		int maxExp = pCharacter->getMaxExp();
 		std::string name = pCharacter->getName();
 
 		auto setuser = setuserContents.add_data();
@@ -208,9 +213,11 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 		setuser->set_y(y);
 		setuser->set_name(name);
 		setuser->set_lv(lv);
+		setuser->set_prthp(prtHp);
 		setuser->set_maxhp(maxHp);
 		setuser->set_power(power);
 		setuser->set_prtexp(prtExp);
+		setuser->set_maxexp(maxExp);
 
 		setuserContents.SerializeToString(&bytestring);
 		len = bytestring.length();
@@ -229,6 +236,7 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 			setuser->set_y(tmpChar->getY());
 			setuser->set_name(tmpChar->getName());
 			setuser->set_lv(tmpChar->getLv());
+			setuser->set_prthp(tmpChar->getPrtHp());
 			setuser->set_maxhp(tmpChar->getMaxHp());
 			setuser->set_power(tmpChar->getPower());
 			setuser->set_prtexp(tmpChar->getPrtExp());
@@ -262,7 +270,7 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 		{
 			Monster* tmpMon = vec_mon[i];
 			{
-				Scoped_Wlock SW(tmpMon->getLock());
+				//Scoped_Wlock SW(tmpMon->getLock());
 				tmpMon->SET_BATTLE_MODE();
 			}
 
@@ -272,6 +280,7 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 			setmon->set_y(tmpMon->getY());
 			setmon->set_name(tmpMon->getName());
 			setmon->set_lv(tmpMon->getLv());
+			setmon->set_prthp(tmpMon->getPrtHp());
 			setmon->set_maxhp(tmpMon->getMaxHp());
 			setmon->set_power(tmpMon->getPower());
 

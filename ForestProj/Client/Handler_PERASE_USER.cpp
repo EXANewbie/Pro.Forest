@@ -24,7 +24,7 @@ void Handler_PERASE_USER(Character *myChar, std::string* str)
 			other = chars->find(id);
 			chars->erase(id);
 		}
-		printf("※ 유저 %s님과 멀어져간다!\n", other->getName());
+		printf("※ 유저 %s님과 멀어져간다!\n", other->getName().c_str());
 	}
 	contents.clear_data();
 
