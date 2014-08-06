@@ -30,12 +30,18 @@ void Handler_PUSER_SET_LV(Character *myChar, std::string* str)
 			if (lvUpChar->getID() == myChar->getID())
 				printf("- 레벨 업을 하였습니다!!\n");
 
-			if (lvUpChar == NULL) printf("나 나오면 안돼는데 나옴?");
+			if (lvUpChar == NULL) 
+			{
+				printf("나 나오면 안돼는데 나옴?");
+				exit(0);
+			}
 			else
 			{
-				Scoped_Wlock SW(lvUpChar->getLock());
-				lvUpChar->setExpUp(expUp);
-				lvUpChar->setLv(lv, maxHp, power, maxexp);
+				{
+					Scoped_Wlock SW(lvUpChar->getLock());
+					lvUpChar->setExpUp(expUp);
+					lvUpChar->setLv(lv, maxHp, power, maxexp);
+				}
 				printf("★ 유저 %s 님께서 레벨이 %d로 올랐습니다!!\n", lvUpChar->getName().c_str(), id, lv);
 			}
 		}

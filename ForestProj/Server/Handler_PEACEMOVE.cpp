@@ -57,10 +57,10 @@ void Handler_PEACEMOVE(LPPER_IO_DATA ioInfo, string* readContents) {
 		if (monster == nullptr) {
 			//몬스터가 유효하지 않습니다.
 
-			printf("ID : %d, (%d)\n", peacemove.state());
-			Sleep(1000);
+			printf("$$$$$ID : %d, (%d)\n", peacemove.state());
+			return;
 		}
-		printf("ID : %d\n",ID);
+		printLog("ID : %d\n", ID);
 		//지금 현재 상태와 패킷의 상태가 일치하지 않습니다!!
 		if (monster->getState() != PMODEPEACEMOVE)
 		{

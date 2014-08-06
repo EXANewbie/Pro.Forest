@@ -35,8 +35,8 @@ void Handler_PMONSTER_ATTACK_RESULT(Character *myChar, std::string* str)
 			targetChar = chars->find(id);
 		}
 		
-		if (targetChar == NULL){ printf("@@내가뜨면 안됨. 혹시뜸?\n"); }
-		else if (atkMon == NULL) { printf("내가 뜨면 안됨ㅇㅇ\n"); }
+		if (targetChar == NULL){ printf("@@내가뜨면 안됨. 혹시뜸?\n"); exit(0); }
+		else if (atkMon == NULL) { printf("내가 뜨면 안됨ㅇㅇ\n"); exit(0); }
 		else
 		{
 			if (targetChar->getID() == myChar->getID())// 나일때
@@ -53,14 +53,7 @@ void Handler_PMONSTER_ATTACK_RESULT(Character *myChar, std::string* str)
 					printf("- 몬스터 [ %s(%d) ]가 %d 공격타입으로 %d 만큼 피해를 입혔습니다.\n",
 						atkMon->getName().c_str(), atkMon->getID(), attackType, damage);
 					printf("- 체력이 모두 소진되었습니다..\n내가...죽다니.. 10초 뒤 리스폰 됩니다..\n");
-					{
-						Scoped_Wlock SW(&mons->srw);
-						mons->clear();
-					}
-					{
-						Scoped_Wlock SW(&chars->srw);
-						chars->clear();
-					}
+					
 				}
 				else
 				{
@@ -93,4 +86,15 @@ void Handler_PMONSTER_ATTACK_RESULT(Character *myChar, std::string* str)
 		}
 	}
 
+	if (myChar->getPrtHp() == 0)
+	{
+		{
+			Scoped_Wlock SW(&mons->srw);
+			mons->clear();
+		}
+		{
+			Scoped_Wlock SW(&chars->srw);
+			chars->clear();
+		}
+	}
 }
