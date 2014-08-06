@@ -12,11 +12,7 @@ void Handler_PINIT(int* myID, Character *myChar, std::string* str)
 	SYNCHED_CHARACTER_MAP* chars = SYNCHED_CHARACTER_MAP::getInstance();
 	SYNCHED_MONSTER_MAP* mons = SYNCHED_MONSTER_MAP::getInstance();
 
-	if (myChar != nullptr)
-	{
-		delete myChar;
-	}
-
+	
 	INIT::CONTENTS contents;
 	contents.ParseFromString(*str);
 
@@ -26,14 +22,14 @@ void Handler_PINIT(int* myID, Character *myChar, std::string* str)
 	int lv = user.lv(), maxHp = user.maxhp(), power = user.power(), maxExp = user.maxexp();
 	int prtExp = user.prtexp();
 	*myID = id;
-	Character* myCharacter = new Character();
+	Character* myCharacter = myChar;
 	myCharacter->setID(id);
 	myCharacter->setName(name);
 	myCharacter->setX(x);
 	myCharacter->setY(y);
 	myCharacter->setLv(lv, maxHp, power, maxExp);
 	myCharacter->setPrtExp(prtExp);
-	*myChar = *myCharacter;
+	
 	{
 		Scoped_Wlock SW(&chars->srw);
 		chars->insert(id, myChar);
