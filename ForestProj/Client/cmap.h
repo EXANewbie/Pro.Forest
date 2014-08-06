@@ -49,6 +49,10 @@ public:
 		if (ret == id_char.end()) return NULL;
 		else return ret->second;
 	}
+	void clear()
+	{
+		id_char.clear();
+	}
 };
 
 

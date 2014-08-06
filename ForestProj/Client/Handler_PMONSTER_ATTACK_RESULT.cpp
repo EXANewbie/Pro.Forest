@@ -57,6 +57,10 @@ void Handler_PMONSTER_ATTACK_RESULT(Character *myChar, std::string* str)
 						Scoped_Wlock SW(&mons->srw);
 						mons->clear();
 					}
+					{
+						Scoped_Wlock SW(&chars->srw);
+						chars->clear();
+					}
 				}
 				else
 				{
@@ -73,18 +77,16 @@ void Handler_PMONSTER_ATTACK_RESULT(Character *myChar, std::string* str)
 					prePrtHp = targetChar->getPrtHp();
 					targetChar->setPrtHp(prtHp);
 				}
+				int damage = prePrtHp - prtHp;
+				printf("※ 유저 %s님이 몬스터 [ %s(%d) ]의 %d 공격타입으로 %d 만큼 피해를 입었습니다.\n",
+					targetChar->getName().c_str(), atkMon->getName().c_str(), atkMon->getID(), attackType, damage);
+
+
 				if (prtHp == 0)
 				{
-					int damage = prePrtHp - prtHp;
-					printf("※ 유저 %s님이 몬스터 [ %s(%d) ]의 %d 공격타입으로 %d 만큼 피해를 입었습니다.\n",
-						targetChar->getName().c_str(), atkMon->getID(), atkMon->getName().c_str(), attackType, damage);
 					printf("※ 유저 %s님께서 사망하셨습니다.\n", targetChar->getName().c_str());
-				}
-				else
-				{
-					int damage = prePrtHp - prtHp;
-					printf("※ 유저 %s님이 몬스터 [ %s(%d) ]의 %d 공격타입으로 %d 만큼 피해를 입었습니다.\n",
-						targetChar->getName().c_str(), atkMon->getName().c_str(), atkMon->getID(), attackType, damage);
+					Scoped_Wlock SW(&chars->srw);
+					chars->erase(targetChar->getID());
 				}
 			}
 			

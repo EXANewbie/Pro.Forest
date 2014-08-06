@@ -90,7 +90,7 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 			{
 				Scoped_Rlock SR(&chars->srw);
 				int size = chars->size();
-				if (size == 1)
+				if (size <= 1)
 				{
 					printf("현재 같은방에 동료가 없습니다\n\n");
 					continue;
