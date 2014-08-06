@@ -22,8 +22,11 @@ public:
 		ID = -1;
 		prtExp = 0;
 	}
-	Character(int x, int y) : Character()
+	Character(int x, int y) 
 	{
+		InitializeSRWLock(&srw);
+		ID = -1;
+		prtExp = 0;
 		this->x = x;
 		this->y = y;
 	}

@@ -8,7 +8,7 @@ int bigRand();
 class Monster
 {
 public:
-	Monster() = default;
+	Monster(){}
 	virtual const int getID() = 0;
 	virtual std::string getName() = 0;
 	virtual const int getX() = 0;

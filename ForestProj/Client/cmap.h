@@ -2,6 +2,7 @@
 #define CMAP_H
 
 #include <map>
+#include <WinSock2.h>
 
 #include "character.h"
 
