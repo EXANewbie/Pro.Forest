@@ -20,6 +20,12 @@ void make_vector_id_in_room(E_List *, vector<Character*>&);
 
 void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 {
+	// 죽은 캐릭터가 공격하는 것에 대해서 무효처리.
+	if (myChar->getPrtHp() == 0)
+	{
+		return;
+	}
+
 	F_Vector* FVEC = F_Vector::getInstance();
 	F_Vector_Mon* FVEC_M = F_Vector_Mon::getInstance();
 	USER_ATTACK_RESULT::CONTENTS userattackresultContents;
@@ -28,6 +34,8 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 	vector<Character*> me;
 	me.push_back(myChar);
 	
+	
+
 	//****** 이부분 좀 고민좀 됨. 공격을 하고 바로 그자리에서 빠지면 브로드 캐스트가 어떻게 될까 등등. 일단 뒤로 미루겠음.
 	E_List* elist;
 	{
@@ -40,6 +48,9 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 		make_vector_id_in_room(elist, charId_in_room);
 	}
 	// ~고민되는부분
+
+
+
 
 	USER_ATTACK::CONTENTS userattackContents;
 	userattackContents.ParseFromString(*str);
