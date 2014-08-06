@@ -20,7 +20,15 @@ public:
 	{
 		InitializeSRWLock(&srw);
 		ID = -1;
+		name = "";
+		x = 0;
+		y = 0;
+		lv = 0;
 		prtExp = 0;
+		maxExp = 0;
+		prtHp = 0;
+		maxHp = 0;
+
 	}
 	Character(int x, int y) : Character()
 	{

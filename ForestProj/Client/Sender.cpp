@@ -32,7 +32,7 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 	int type;
 	int len;
 	char *buf = new char[1024000];
-	
+	fflush(stdin);
 	while (true)
 	{
 		char c;
