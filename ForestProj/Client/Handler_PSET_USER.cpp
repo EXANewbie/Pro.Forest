@@ -32,7 +32,7 @@ void Handler_PSET_USER(Character *myChar, std::string* str)
 			Scoped_Wlock SW(&chars->srw);
 			chars->insert(id, other);
 		}
-		printf("※ 동료 [ %s ] 이(가) 왔습니다!! ", other->getName().c_str());
+		printf("※ 동료 [ %s ] 이(가) 왔습니다!!\n", other->getName().c_str());
 	}
 	contents.clear_data();
 
