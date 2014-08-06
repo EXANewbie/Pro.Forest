@@ -53,6 +53,10 @@ void Handler_PMONSTER_ATTACK_RESULT(Character *myChar, std::string* str)
 					printf("- 몬스터 [ %s ]가 %d 공격타입으로 %d 만큼 피해를 입혔습니다.\n",
 						atkMon->getName().c_str(), attackType, damage);
 					printf("- 체력이 모두 소진되었습니다..\n내가...죽다니.. 10초 뒤 리스폰 됩니다..\n");
+					{
+						Scoped_Wlock SW(&mons->srw);
+						mons->clear();
+					}
 				}
 				else
 				{
