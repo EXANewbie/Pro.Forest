@@ -11,7 +11,8 @@ message CONTENTS
 		optional int32 lv = 5;
 		optional int32 maxHp = 6;
 		optional int32 power = 7;
-		optional int32 maxexp = 8;
+		optional int32 prtexp = 8;
+		optional int32 maxexp = 9;
 	}
 	repeated char_info data = 1; 
 }
