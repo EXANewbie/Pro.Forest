@@ -11,7 +11,10 @@ private:
 	typedef std::map<int, Monster*> MAP;
 	MAP id_char;
 	static SYNCHED_MONSTER_MAP* instance;
-	SYNCHED_MONSTER_MAP(){}
+	SYNCHED_MONSTER_MAP()
+	{
+		InitializeSRWLock(&srw);
+	}
 public:
 	SRWLOCK srw;
 	static SYNCHED_MONSTER_MAP* getInstance()

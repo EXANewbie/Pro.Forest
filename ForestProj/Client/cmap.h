@@ -12,7 +12,10 @@ private:
 	typedef std::map<int, Character*> MAP;
 	MAP id_char;
 	static SYNCHED_CHARACTER_MAP* instance;
-	SYNCHED_CHARACTER_MAP(){}
+	SYNCHED_CHARACTER_MAP()
+	{
+		InitializeSRWLock(&srw);
+	}
 public:
 	SRWLOCK srw;
 	static SYNCHED_CHARACTER_MAP* getInstance()

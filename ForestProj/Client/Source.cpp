@@ -102,7 +102,7 @@ void main(void)
 	
 	//자신의 캐릭터 생성
 	int myID;
-	Character myChar ;
+	Character myChar(-1,-1);
 
 	// 데이터 수신 쓰레드 동작.
 	std::thread t(receiver, s, &myID, &myChar);
