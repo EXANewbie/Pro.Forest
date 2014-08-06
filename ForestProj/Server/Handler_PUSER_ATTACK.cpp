@@ -62,7 +62,11 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 //			Scoped_Rlock SR(&elist_m->slock);
 			mon = elist_m->find(id_mon);
 		}
-
+		
+		// 이미 죽은 몬스터에 대해서 공격신호를 받았을때의 예외처리.
+		if (mon == NULL)
+			continue;
+		
 		// 유저데미지 계산.
 		int damage;
 		{
