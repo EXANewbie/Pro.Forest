@@ -87,7 +87,8 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 			for (int i = 0; i < nxt.size(); i++)
 			{
 				if (nxt[i] == nullptr) {
-//					printf("???\n");
+					printf("???\n");
+					exit(0);
 				}
 				nxt[i]->attacked(damage[i]);
 
@@ -107,7 +108,6 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 				// 체력이 0이 되는 유저들을 제거하는 부분입니다.
 				if (nxt[i]->getPrtHp() == 0)
 				{
-//					puts("유저 죽었설");
 					elist->erase(nxt[i]);
 
 					int Respawn_Time = nxt[i]->getLv() * 2000; // 리스폰 시간은 여기서 정의

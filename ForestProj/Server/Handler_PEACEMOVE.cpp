@@ -50,6 +50,7 @@ void Handler_PEACEMOVE(LPPER_IO_DATA ioInfo, string* readContents) {
 	{
 		if (ID == 0) {
 			printf("왜?\n");
+			exit(0);
 		}
 //		Scoped_Rlock SR(&AMAP_MON->slock);
 		monster = AMAP_MON->find(ID);
@@ -58,6 +59,7 @@ void Handler_PEACEMOVE(LPPER_IO_DATA ioInfo, string* readContents) {
 			//몬스터가 유효하지 않습니다.
 
 			printf("$$$$$ID : %d, (%d)\n", peacemove.state());
+			exit(0);
 			return;
 		}
 		printLog("ID : %d\n", ID);
