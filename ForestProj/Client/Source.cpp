@@ -55,6 +55,7 @@ void main(void)
 	if (connect(s, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr)) == -1)
 	{
 		printf("연결실패\n");
+		return;
 	}
 	
 	printf("                              --MINI EXA GAME--                              \n");

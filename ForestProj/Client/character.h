@@ -14,11 +14,9 @@ private:
 	int prtHp, maxHp;
 	int power;
 	int prtExp, maxExp;
-	SRWLOCK srw;
 public:
 	Character()
 	{
-		InitializeSRWLock(&srw);
 		ID = -1;
 		name = "";
 		x = 0;
@@ -75,10 +73,6 @@ public:
 	const int getMaxExp()
 	{
 		return maxExp;
-	}
-	PSRWLOCK getLock()
-	{
-		return &srw;
 	}
 
 	void setID(const int ID)

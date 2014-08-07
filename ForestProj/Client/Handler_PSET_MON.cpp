@@ -6,13 +6,15 @@
 
 #include "../protobuf/setmonster.pb.h"
 
-void Handler_PSET_MON(Character *myChar, std::string* str)
+void Handler_PSET_MON(int *myID, std::string* str)
 {
 	SYNCHED_CHARACTER_MAP* chars = SYNCHED_CHARACTER_MAP::getInstance();
 	SYNCHED_MONSTER_MAP* mons = SYNCHED_MONSTER_MAP::getInstance();
 
 	SET_MONSTER::CONTENTS setmonsterContents;
 	setmonsterContents.ParseFromString(*str);
+
+	Scoped_Wlock SW(&mons->srw);
 
 	for (int i = 0; i < setmonsterContents.data_size(); ++i)
 	{
@@ -31,12 +33,10 @@ void Handler_PSET_MON(Character *myChar, std::string* str)
 		mon->setX(tmpMon.x());
 		mon->setY(tmpMon.y());
 		mon->setLv(tmpMon.lv(), tmpMon.maxhp(), tmpMon.power());
-		{
-			Scoped_Wlock SW(&mons->srw);
-			mons->insert(tmpMon.id(), mon);
-		}
-
-		printf("※ 야생의 %s [ID:%d]가 나타났습니다!\n", mon->getName().c_str(), mon->getID());
+		
+		mons->insert(tmpMon.id(), mon);
+		
+		printf("※ 앗!야생의 %s [ID:%d]가 나타났습니다!\n", mon->getName().c_str(), mon->getID());
 	}
 	setmonsterContents.clear_data();
 }
