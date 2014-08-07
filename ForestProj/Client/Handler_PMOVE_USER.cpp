@@ -6,7 +6,7 @@
 
 #include "../protobuf/moveuser.pb.h"
 
-void Handler_PMOVE_USER(Character *myChar, std::string* str)
+void Handler_PMOVE_USER(int *myID, std::string* str)
 {
 	SYNCHED_CHARACTER_MAP* chars = SYNCHED_CHARACTER_MAP::getInstance();
 	SYNCHED_MONSTER_MAP* mons = SYNCHED_MONSTER_MAP::getInstance();
@@ -14,6 +14,8 @@ void Handler_PMOVE_USER(Character *myChar, std::string* str)
 	MOVE_USER::CONTENTS contents;
 	contents.ParseFromString(*str);
 
+	Scoped_Wlock SW(&chars->srw);
+	
 	for (int i = 0; i < contents.data_size(); ++i)
 	{
 		auto user = contents.data(i);
@@ -24,15 +26,12 @@ void Handler_PMOVE_USER(Character *myChar, std::string* str)
 			break;
 		}
 
-		Character* myChar;
-		{
-			Scoped_Rlock SR(&chars->srw);
-			myChar = (chars->find(id));
-		}
-		myChar->setX(myChar->getX() + x_off);
-		myChar->setY(myChar->getY() + y_off);
+		Character* moveChar = chars->find(id); //현재단계에선 백오십퍼 myChar
 
-		printf("(%d,%d)로 이동했다! \n", myChar->getX(), myChar->getY());
+		moveChar->setX(moveChar->getX() + x_off);
+		moveChar->setY(moveChar->getY() + y_off);
+		
+		printf("(%d,%d)로 이동했다! \n", moveChar->getX(), moveChar->getY());
 	}
 	contents.clear_data();
 }

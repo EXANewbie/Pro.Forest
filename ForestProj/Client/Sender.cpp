@@ -37,16 +37,17 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 	{
 		char c;
 		c = _getch();
+
+		Scoped_Wlock SW1(&chars->srw);
+		Scoped_Wlock SW2(&mons->srw);
+
+		if (myChar->getPrtHp() == 0)
 		{
-			Scoped_Rlock(myChar->getLock());
-			if (myChar->getPrtHp() == 0)
-			{
-				printf("아직 캐릭터가 생성되지 않았습니다..\n");
-				continue;
-			}
+			printf("아직 캐릭터가 생성되지 않았습니다..\n");
+			continue;
 		}
-		
-		if (c == 'x'||c =='X')
+
+		if (c == 'x' || c == 'X')
 		{
 			//PDISCONN 전송
 			type = PDISCONN;
@@ -78,8 +79,7 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 				continue;
 			}
 			{
-				Scoped_Rlock SR(myChar->getLock());
-				printf("이름(ID) : %s(%d) 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d 경험치[현재/목표] : [%d/%d]\n\n", 
+				printf("이름(ID) : %s(%d) 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d 경험치[현재/목표] : [%d/%d]\n\n",
 					myChar->getName().c_str(), myChar->getID(), myChar->getX(), myChar->getY(), myChar->getLv(), myChar->getPrtHp(), myChar->getMaxHp(), myChar->getPower(), myChar->getPrtExp(), myChar->getMaxExp());
 			}
 		}
@@ -87,85 +87,70 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 		{
 			//같은 방에 있는 유저들의 정보를 보여주자.
 			printf("##동료 정보:\n");
+
+			int size = chars->size();
+			if (size <= 1)
 			{
-				Scoped_Rlock SR(&chars->srw);
-				int size = chars->size();
-				if (size <= 1)
-				{
-					printf("현재 같은방에 동료가 없습니다\n\n");
-					continue;
-				}
-				printf("--현재원 %d명\n", size - 1);
-				for (auto iter = chars->begin(); iter != chars->end(); ++iter)
-				{
-					Character* other = iter->second;
-					if (other->getID() == *myID) continue;
-					printf("이름(ID) : %s(%d) 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d 현재 경험치 : %d \n\n",
-						other->getName().c_str(), other->getID(), other->getX(), other->getY(), other->getLv(), other->getPrtHp(), other->getMaxHp(), other->getPower(),other->getPrtExp());
-				}
+				printf("현재 같은방에 동료가 없습니다\n\n");
+				continue;
+			}
+			printf("--현재원 %d명\n", size - 1);
+			for (auto iter = chars->begin(); iter != chars->end(); ++iter)
+			{
+				Character* other = iter->second;
+				if (other->getID() == *myID) continue;
+				printf("이름(ID) : %s(%d) 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d 현재 경험치 : %d \n\n",
+					other->getName().c_str(), other->getID(), other->getX(), other->getY(), other->getLv(), other->getPrtHp(), other->getMaxHp(), other->getPower(), other->getPrtExp());
 			}
 		}
 		else if (c == 'o' || c == 'O')
 		{
 			//같은 방에 있는 몬스터들의 정보를 보여주자.
+
+			int size = mons->size();
+			if (size == 0)
 			{
-				Scoped_Rlock SR(&mons->srw);
-				int size = mons->size();
-				if (size == 0)
-				{
-					printf("현재 같은방에 몬스터가 없습니다\n\n");
-					continue;
-				}
-				printf("--몬스터 총 %d마리\n", size);
-				for (auto iter = mons->begin(); iter != mons->end(); ++iter)
-				{
-					Monster* mon = iter->second;
-					printf("이름(ID) : %s(%d) 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d\n\n",
-						mon->getName().c_str(), mon->getID(), mon->getX(), mon->getY(), mon->getLv(), mon->getPrtHp(), mon->getMaxHp(), mon->getPower());
-				}
+				printf("현재 같은방에 몬스터가 없습니다\n\n");
+				continue;
 			}
+			printf("--몬스터 총 %d마리\n", size);
+			for (auto iter = mons->begin(); iter != mons->end(); ++iter)
+			{
+				Monster* mon = iter->second;
+				printf("이름(ID) : %s(%d) 위치 : %d, %d\n레벨 : %d 체력(현재/최고량) : %d/%d 공격력 : %d\n\n",
+					mon->getName().c_str(), mon->getID(), mon->getX(), mon->getY(), mon->getLv(), mon->getPrtHp(), mon->getMaxHp(), mon->getPower());
+			}
+
 		}
 		else if (c == 'q' || c == 'Q')
 		{
-			if (myChar->getID() == -1)
+			// 공격을 하도록 하자!
+			int size = mons->size();
+			if (size == 0)
 			{
-				printf("아직 캐릭터가 생성되지 않았습니다.\n잠시만 기다려 주십시오\n\n");
+				printf("현재 같은방에 공격할 몬스터가 없습니다\n\n");
 				continue;
 			}
-			// 공격을 하도록 하자!
-			Monster* atkMon;
+			//가장 체력이 약한놈부터 때려잡는다!
+			Monster* weakMon = NULL;
+			int weakHp = 987654321;
+
+			for (auto iter = mons->begin(); iter != mons->end(); ++iter)
 			{
-				Scoped_Rlock SR(&mons->srw);
-				int size = mons->size();
-				if (size == 0)
+				if (weakHp > iter->second->getPrtHp())
 				{
-					printf("현재 같은방에 공격할 몬스터가 없습니다\n\n");
-					continue;
+					weakMon = iter->second;
+					weakHp = weakMon->getPrtHp();
 				}
-				//가장 체력이 약한놈부터 때려잡는다!
-				Monster* weakMon = NULL;
-				int weakHp = 987654321;
-				
-				for (auto iter = mons->begin(); iter != mons->end(); ++iter)
-				{
-					if (weakHp > iter->second->getPrtHp())
-					{
-						weakMon = iter->second;
-						weakHp = weakMon->getPrtHp();
-					}					
-				}
-				atkMon = weakMon;
 			}
-			
+
 			USER_ATTACK::CONTENTS userattackContents;
 			auto userattack = userattackContents.add_data();
 			userattack->set_attcktype(1);
-			{
-				Scoped_Rlock SR(atkMon->getLock());
-				userattack->set_id_m(atkMon->getID());
-				userattack->set_x_m(atkMon->getX());
-				userattack->set_y_m(atkMon->getY());
-			}
+			userattack->set_id_m(weakMon->getID());
+			userattack->set_x_m(weakMon->getX());
+			userattack->set_y_m(weakMon->getY());
+
 			std::string bytestring;
 			userattackContents.SerializeToString(&bytestring);
 			type = PUSER_ATTCK;
@@ -174,12 +159,13 @@ void Sender(const SOCKET sock, int* myID, Character* myChar)
 
 			if (send(sock, buf, len + sizeof(int)* 2, 0) == SOCKET_ERROR)
 			{
-				printf("시스템 오류\n");
+				printf("시스템 오류!공격실패\n");
 			}
 			else
 			{
-				printf("몬스터 %s(%d)를 공격하였습니다!\n", atkMon->getName().c_str(), atkMon->getID());
+				printf("몬스터 %s(%d)를 공격하였습니다!\n", weakMon->getName().c_str(), weakMon->getID());
 			}
+
 		}
 	}
 }
