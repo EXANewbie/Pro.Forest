@@ -189,7 +189,7 @@ void closeClient(SOCKET sock, int id, Character* myChar)
 			make_vector_id_in_room_except_me(myChar, send_list, false/*not autolock*/);
 
 			//나의 캐릭터를 지우라고 같은 방 식구들에게 통보.
-			send_message(msg(PERASE_USER, sizeof(int), bytestring.c_str()), send_list, false);
+			send_message(msg(PERASE_USER, bytestring.size(), bytestring.c_str()), send_list, false);
 
 			//캐릭터관리 맵에서 캐릭터를 빼고 있음.
 			Amap->erase(id);
