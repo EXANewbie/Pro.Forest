@@ -186,7 +186,7 @@ unsigned WINAPI Server_Worker(LPVOID pComPort)
 				continue;
 			}
 
-			printLog("MESSAGE SEND!");
+			printLog("MESSAGE SEND!\n");
 
 			if (ioInfo->block != nullptr) {
 				MemoryPool->pushBlock(ioInfo->block);

@@ -74,12 +74,17 @@ void Handler_PCONNECT(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo, string
 	myChar->setSock(handleInfo->hClntSock);
 	myChar->setName(connect.name());
 
-	//		Scoped_Wlock SW1(&AMAP->slock);
-	AMAP->insert(char_id, myChar);
-	CMap->insert(handleInfo->hClntSock, char_id);
-	sock_set->erase(handleInfo->hClntSock);
 	ioInfo->id = char_id;
 	ioInfo->myCharacter = myChar;
-	
+
+	{
+		//AMAP에 Wlock 걸기
+		Scoped_Wlock ACCESS_MAP_WRITE_LOCK(&AMAP->slock);
+		AMAP->insert(char_id, myChar);
+	}
+	//CMAP과 sock_set은atomic을 보장.
+	CMap->insert(handleInfo->hClntSock, char_id);
+	sock_set->erase(handleInfo->hClntSock);
+
 	init_proc(myChar);
 }
