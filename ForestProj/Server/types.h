@@ -1,7 +1,7 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-#define PRINT_LOG
+//#define PRINT_LOG
 
 #include "Constant.h"
 

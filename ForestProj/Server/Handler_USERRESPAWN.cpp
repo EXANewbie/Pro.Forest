@@ -68,6 +68,7 @@ void Handler_USERRESPAWN(LPPER_IO_DATA ioInfo, string* readContents) {
 
 	Character* myChar = nullptr;
 	{
+		Scoped_Rlock ACCESS_MAP_READ_LOCK(&AMAP->slock);
 		myChar = AMAP->find(ID);
 
 		if (myChar == nullptr) {
@@ -78,9 +79,12 @@ void Handler_USERRESPAWN(LPPER_IO_DATA ioInfo, string* readContents) {
 	}
 	
 	// Èú!! Ã¼·Â ¸¸»§!!
-	myChar->setHPMax();
-	myChar->setX(x);
-	myChar->setY(y);
+	{
+		Scoped_Wlock CHARACTER_WRITE_LOCK(myChar->getLock());
+		myChar->setHPMax();
+		myChar->setX(x);
+		myChar->setY(y);
+	}
 
 	init_proc(myChar);
 }

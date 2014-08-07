@@ -47,21 +47,31 @@ void Handler_DEADRESPAWN(LPPER_IO_DATA ioInfo, string* readContents) {
 
 	auto AMAP_MON = Access_Map_Mon::getInstance();
 	Monster* monster;
+
+	monster = AMAP_MON->find(ID);
+
+	printLog("ID : %d\n", ID);
+	//지금 현재 상태와 패킷의 상태가 일치하지 않습니다!!
+	if (monster->getState() != DEAD)
 	{
-		monster = AMAP_MON->find(ID);
+		return;
+	}
 
-		printLog("ID : %d\n", ID);
-		//지금 현재 상태와 패킷의 상태가 일치하지 않습니다!!
-		if (monster->getState() != DEAD)
-		{
-			return;
-		}
+	E_List* elist;
+	E_List_Mon* elist_mon;
 
+	{
+		Scoped_Wlock MONSTER_WRITE_LOCK(monster->getLock());
 		monster->setHPMax();
 		int x = monster->getX();
 		int y = monster->getY();
-		auto elist_mon = FVEC_M->get(x, y);
-		auto elist = F_Vector::getInstance()->get(x, y);
+		elist_mon = FVEC_M->get(x, y);
+		elist = F_Vector::getInstance()->get(x, y);
+	}
+	
+	{
+		Scoped_Wlock E_LIST_WRITE_LOCK(&elist->slock);
+		Scoped_Wlock E_LIST_MON_WRITE_LOCK(&elist_mon->slock);
 
 		// step 1. 몬스터를 해당 방에 배치합니다.
 		elist_mon->push_back(monster);
@@ -73,13 +83,16 @@ void Handler_DEADRESPAWN(LPPER_IO_DATA ioInfo, string* readContents) {
 		string bytestring;
 		SET_MONSTER::CONTENTS setmonsterContents;
 		auto data = setmonsterContents.add_data();
-		data->set_id(monster->getID());
-		data->set_name(monster->getName());
-		data->set_lv(monster->getLv());
-		data->set_maxhp(monster->getMaxHp());
-		data->set_power(monster->getPower());
-		data->set_x(monster->getX());
-		data->set_y(monster->getY());
+		{
+			Scoped_Rlock MONSTER_READ_LOCK(monster->getLock());
+			data->set_id(monster->getID());
+			data->set_name(monster->getName());
+			data->set_lv(monster->getLv());
+			data->set_maxhp(monster->getMaxHp());
+			data->set_power(monster->getPower());
+			data->set_x(monster->getX());
+			data->set_y(monster->getY());
+		}
 
 		setmonsterContents.SerializeToString(&bytestring);
 		auto message = msg(PSET_MON, bytestring.size(), bytestring.c_str());

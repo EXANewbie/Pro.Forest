@@ -57,11 +57,24 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 	moveuserContents.ParseFromString(*readContents);
 
 	int cur_id, x_off, y_off;
+	int next_x = 0;
+	int next_y = 0;
+	bool ordered = false;
 
 	auto user = moveuserContents.data(0);
 	cur_id = user.id();
 	x_off = user.xoff();
 	y_off = user.yoff();
+
+	if (x_off + y_off < 0)
+	{
+		ordered = false;
+	}
+	else
+	{
+		ordered = true;
+	}
+
 	moveuserContents.clear_data();
 
 	E_List *now_elist, *next_elist;
@@ -82,8 +95,8 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 			return;
 		}
 
-		int next_x = x + x_off;
-		int next_y = y + y_off;
+		next_x = x + x_off;
+		next_y = y + y_off;
 
 		now_elist = FVEC->get(x, y);
 		now_elist_mon = FVEC_M->get(x, y);
@@ -96,11 +109,31 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 
 	// 지금 내가 있는 방에 몬스터가 있는지 확인을 하도록 하자. 몬스터와 함께있으면 못움직이게 할 것이기 때문.
 	{
-		Scoped_Wlock NOW_E_LIST_WRITE_LOCK(&now_elist->slock);
-		Scoped_Wlock NOW_E_LIST_MON_WRITE_LOCK(&now_elist_mon->slock);
+		E_List *first, *second;
+		E_List_Mon *first_m, *second_m;
 
-		Scoped_Wlock NEXT_E_LIST_WRITE_LOCK(&next_elist->slock);
-		Scoped_Wlock NEXT_E_LIST_MON_WRITE_LOCK(&next_elist_mon->slock);
+		if (ordered == true)
+		{
+			first = now_elist;
+			first_m = now_elist_mon;
+
+			second = next_elist;
+			second_m = next_elist_mon;
+		}
+		else
+		{
+			first = next_elist;
+			first_m = next_elist_mon;
+
+			second = now_elist;
+			second_m = now_elist_mon;
+		}
+
+		Scoped_Wlock NOW_E_LIST_WRITE_LOCK(&first->slock);
+		Scoped_Wlock NOW_E_LIST_MON_WRITE_LOCK(&first_m->slock);
+
+		Scoped_Wlock NEXT_E_LIST_WRITE_LOCK(&second->slock);
+		Scoped_Wlock NEXT_E_LIST_MON_WRITE_LOCK(&second_m->slock);
 
 		if (pCharacter->getPrtHp() == 0)
 		{
@@ -164,39 +197,7 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 
 		eraseuserContents.clear_data();
 
-		make_monster_vector_in_room(pCharacter, vec_mon, false);
-
-		for (int i = 0; i < vec_mon.size(); ++i)
-		{
-			auto erasemon = erasemonsterContents.add_data();
-			erasemon->set_id(vec_mon[i]->getID());
-		}
-		erasemonsterContents.SerializeToString(&bytestring);
-		len = bytestring.length();
-
-		send_message(msg(PERASE_MON, len, bytestring.c_str()), me, true);
-
-		erasemonsterContents.clear_data();
-		bytestring.clear();
-	}
-
-	// 기존의 방의 유저들의 정보를 삭제함
-
-	// 나와 같은방에 있는 친구들은 누구?
-	{
-		// 기존 방의 유저들에게 내가 사라짐을 알림
-		auto eraseuser = eraseuserContents.add_data();
-		eraseuser->set_id(cur_id);
-		eraseuserContents.SerializeToString(&bytestring);
-		len = bytestring.length();
-
-		send_message(msg(PERASE_USER, len, bytestring.c_str()), charId_in_room_except_me, true);
-
 		// 기존 방의 몬스터들의 정보를 지운다.
-		E_List_Mon* elist_m = FVEC_M->get(x, y);
-
-//		Scoped_Rlock SRM(&elist_m->slock);
-
 		make_monster_vector_in_room(pCharacter, vec_mon, false);
 
 		for (int i = 0; i < vec_mon.size(); ++i)
@@ -209,59 +210,59 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 
 		send_message(msg(PERASE_MON, len, bytestring.c_str()), me, true);
 
-		bytestring.clear();
 		erasemonsterContents.clear_data();
-	}
+		bytestring.clear();
 
-	charId_in_room_except_me.clear();
-	vec_mon.clear();
+		charId_in_room_except_me.clear();
+		vec_mon.clear();
 
-	// 캐릭터를 해당 좌표만큼 이동시킴
-	{
-//		Scoped_Wlock SW(&elist->slock);
-		elist->erase(cur_id);
-	}
-	int newX = x + x_off, newY = y + y_off;
-	{
-//		Scoped_Wlock SWU(pCharacter->getLock());
-		pCharacter->setX(newX);
-		pCharacter->setY(newY);
-	}
-	elist = FVEC->get(newX, newY);
-	{
-//		Scoped_Wlock SW(&elist->slock);
-		elist->push_back(pCharacter);
-	}
+		now_elist->erase(cur_id);
 
-	//실제로 나의 움직임을 보냄.
-	{
-		auto moveuser = moveuserContents.add_data();
-		moveuser->set_id(cur_id);
-		moveuser->set_xoff(x_off);
-		moveuser->set_yoff(y_off);
-	}
-	moveuserContents.SerializeToString(&bytestring);
-	len = bytestring.length();
+		{
+			// 캐릭터를 해당 좌표만큼 이동시킴
+			Scoped_Wlock CHARACTER_WRITE_LOCK(pCharacter->getLock());
+			pCharacter->setX(next_x);
+			pCharacter->setY(next_y);
+		}
 
-	send_message(msg(PMOVE_USER, len, bytestring.c_str()), me, false);
+		next_elist->push_back(pCharacter);
 
-	bytestring.clear();
-	moveuserContents.clear_data();
+		{
+			auto moveuser = moveuserContents.add_data();
+			moveuser->set_id(cur_id);
+			moveuser->set_xoff(x_off);
+			moveuser->set_yoff(y_off);
+		}
+		moveuserContents.SerializeToString(&bytestring);
+		len = bytestring.length();
 
-	// 나와 같은방에 있는 친구들은 누구?
-	{
-//		Scoped_Rlock SR(&elist->slock);
-//		Scoped_Rlock SRU(pCharacter->getLock());
+		send_message(msg(PMOVE_USER, len, bytestring.c_str()), me, false);
+
+		bytestring.clear();
+		moveuserContents.clear_data();
+
 		make_vector_id_in_room_except_me(pCharacter, charId_in_room_except_me, false/*autolock*/);
 
 		// 새로운 방의 유저들에게 내가 등장함을 알림
-		x = pCharacter->getX(), y = pCharacter->getY();
-		int lv = pCharacter->getLv();
-		int prtHp = pCharacter->getPrtHp();
-		int maxHp = pCharacter->getMaxHp();
-		int power = pCharacter->getPower();
-		int prtExp = pCharacter->getPrtExp();
-		int maxExp = pCharacter->getMaxExp();
+
+		int x;
+		int y;
+		int lv;
+		int prtHp;
+		int maxHp;
+		int power;
+		int prtExp;
+		int maxExp;
+		{
+			Scoped_Rlock CHARACTER_READ_LOCK(pCharacter->getLock());
+			x = pCharacter->getX(), y = pCharacter->getY();
+			lv = pCharacter->getLv();
+			prtHp = pCharacter->getPrtHp();
+			maxHp = pCharacter->getMaxHp();
+			power = pCharacter->getPower();
+			prtExp = pCharacter->getPrtExp();
+			maxExp = pCharacter->getMaxExp();
+		}
 		std::string name = pCharacter->getName();
 
 		auto setuser = setuserContents.add_data();
@@ -288,18 +289,23 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 		{
 			auto setuser = setuserContents.add_data();
 			auto tmpChar = charId_in_room_except_me[i];
-			setuser->set_id(tmpChar->getID());
-			setuser->set_x(tmpChar->getX());
-			setuser->set_y(tmpChar->getY());
-			setuser->set_name(tmpChar->getName());
-			setuser->set_lv(tmpChar->getLv());
-			setuser->set_prthp(tmpChar->getPrtHp());
-			setuser->set_maxhp(tmpChar->getMaxHp());
-			setuser->set_power(tmpChar->getPower());
-			setuser->set_prtexp(tmpChar->getPrtExp());
-			setuser->set_maxexp(tmpChar->getMaxExp());
 
-			if (setuserContents.data_size() == SET_USER_MAXIMUM) {
+			{
+				Scoped_Rlock OTHER_CHARACTER_READ_LOCK(tmpChar->getLock());
+				setuser->set_id(tmpChar->getID());
+				setuser->set_x(tmpChar->getX());
+				setuser->set_y(tmpChar->getY());
+				setuser->set_name(tmpChar->getName());
+				setuser->set_lv(tmpChar->getLv());
+				setuser->set_prthp(tmpChar->getPrtHp());
+				setuser->set_maxhp(tmpChar->getMaxHp());
+				setuser->set_power(tmpChar->getPower());
+				setuser->set_prtexp(tmpChar->getPrtExp());
+				setuser->set_maxexp(tmpChar->getMaxExp());
+			}
+
+			if (setuserContents.data_size() == SET_USER_MAXIMUM)
+			{
 				setuserContents.SerializeToString(&bytestring);
 				len = bytestring.length();
 
@@ -318,28 +324,28 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 		bytestring.clear();
 		setuserContents.clear_data();
 
-		// 새로운 방의 몬스터들의 정보를 가져온다.
-		E_List_Mon* elist_m = FVEC_M->get(x, y);
-//		Scoped_Rlock SR_M(&elist_m->slock);
 		make_monster_vector_in_room(pCharacter, vec_mon, false);
 
 		for (int i = 0; i < vec_mon.size(); ++i)
 		{
 			Monster* tmpMon = vec_mon[i];
 			{
-				//Scoped_Wlock SW(tmpMon->getLock());
+				Scoped_Wlock MONSTER_WRITE_LOCK(tmpMon->getLock());
 				tmpMon->SET_BATTLE_MODE();
 			}
 
 			auto setmon = setmonsterContents.add_data();
-			setmon->set_id(tmpMon->getID());
-			setmon->set_x(tmpMon->getX());
-			setmon->set_y(tmpMon->getY());
-			setmon->set_name(tmpMon->getName());
-			setmon->set_lv(tmpMon->getLv());
-			setmon->set_prthp(tmpMon->getPrtHp());
-			setmon->set_maxhp(tmpMon->getMaxHp());
-			setmon->set_power(tmpMon->getPower());
+			{
+				Scoped_Wlock MONSTER_READ_LOCK(tmpMon->getLock());
+				setmon->set_id(tmpMon->getID());
+				setmon->set_x(tmpMon->getX());
+				setmon->set_y(tmpMon->getY());
+				setmon->set_name(tmpMon->getName());
+				setmon->set_lv(tmpMon->getLv());
+				setmon->set_prthp(tmpMon->getPrtHp());
+				setmon->set_maxhp(tmpMon->getMaxHp());
+				setmon->set_power(tmpMon->getPower());
+			}
 
 			if (setmonsterContents.data_size() == SET_MONSTER_MAXIMUM)
 			{
@@ -359,8 +365,6 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 		bytestring.clear();
 		setmonsterContents.clear_data();
 	}
-
-
 	charId_in_room_except_me.clear();
 	vec_mon.clear();
 

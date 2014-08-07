@@ -21,10 +21,20 @@ void Knight::getNextOffset(int bef_x_off, int bef_y_off, int *nxt_x_off, int *nx
 {
 	int per[4][2];
 
-	per[0][0] = bef_x_off;
-	per[0][1] = bef_y_off;
-	per[1][0] = bef_x_off;
-	per[1][1] = bef_y_off;
+	if (bef_x_off == 0 && bef_y_off == 0)
+	{
+		per[0][0] = 0;
+		per[0][1] = -1;
+		per[1][0] = 0;
+		per[1][1] = 1;
+	}
+	else
+	{
+		per[0][0] = bef_x_off;
+		per[0][1] = bef_y_off;
+		per[1][0] = bef_x_off;
+		per[1][1] = bef_y_off;
+	}
 	if (bef_x_off == 0) {
 		per[2][0] = -1;
 		per[2][1] = 0;
@@ -277,8 +287,7 @@ void Knight::getBASICATTACKINFO(int *nextattacktype, vector<Character *>& nextus
 	for (auto itr = elist->begin(); itr != elist->end(); itr++)
 	{
 		auto chars = *itr;
-		//Scoped_Rlock SR2(chars->getLock());
-
+		Scoped_Rlock CHARACTER_READ_LOCK(chars->getLock());
 		if (nextTarget == nullptr || minHP > chars->getPrtHp())
 		{
 			nextTarget = chars;
@@ -286,6 +295,10 @@ void Knight::getBASICATTACKINFO(int *nextattacktype, vector<Character *>& nextus
 		}
 	}
 	int realdamage = power; // 데미지 계산은 여기에서!
+	if (nextTarget == nullptr)
+	{
+		return;
+	}
 	damage.push_back(power);
 	nextusers.push_back(nextTarget);
 }
@@ -303,8 +316,7 @@ void Knight::getDOUBLEATTACKINFO(int *nextattacktype, vector<Character *>& nextu
 	for (auto itr = elist->begin(); itr != elist->end(); itr++)
 	{
 		auto chars = *itr;
-		//Scoped_Rlock SR2(chars->getLock());
-
+		Scoped_Rlock CHARACTER_READ_LOCK(chars->getLock());
 		if (nextTarget == nullptr || minHP > chars->getPrtHp())
 		{
 			nextTarget = chars;
@@ -312,6 +324,10 @@ void Knight::getDOUBLEATTACKINFO(int *nextattacktype, vector<Character *>& nextu
 		}
 	}
 	int realdamage = 2 * power; // 데미지 계산은 여기에서!
+	if (nextTarget == nullptr)
+	{
+		return;
+	}
 	damage.push_back(realdamage);
 	nextusers.push_back(nextTarget);
 }
@@ -327,8 +343,8 @@ void Knight::getMULTIATTACKINFO(int *nextattacktype, vector<Character *>& nextus
 	for (auto itr = elist->begin(); itr != elist->end(); itr++)
 	{
 		auto chars = *itr;
-		int realdamage = power / 3; // 데 변경하세요!
-		//Scoped_Rlock SR2(chars->getLock());미지 공식은 여기서
+		Scoped_Rlock CHARACTER_READ_LOCK(chars->getLock());
+		int realdamage = power / 3; // 데미지 공식은 여기서 변경하세요!
 
 		nextusers.push_back(chars);
 		damage.push_back(realdamage);

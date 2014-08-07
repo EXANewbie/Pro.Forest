@@ -182,8 +182,8 @@ void closeClient(SOCKET sock, int id, Character* myChar)
 		std::string bytestring;
 		contents.SerializeToString(&bytestring);
 		{
-//			Scoped_Wlock SW1(&Amap->slock);
-//			Scoped_Wlock SW2(&elist->slock);
+			Scoped_Wlock ACCESS_MAP_WRITE_LOCK(&Amap->slock);
+			Scoped_Wlock E_LIST_WRITE_LOCK(&elist->slock);
 
 			// 처음으로 소켓을 닫을 때.
 			make_vector_id_in_room_except_me(myChar, send_list, false/*not autolock*/);
