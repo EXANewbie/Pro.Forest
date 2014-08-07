@@ -114,9 +114,12 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 			bool lvUp = false;
 			if (kill == true)
 			{
-				Scoped_Wlock CHARACTER_WRITE_LOCK(myChar->getLock());
-				int prtLv = myChar->getLv();
-				myChar->setExpUp(expUp);
+				int prtLv;
+				{
+					Scoped_Wlock CHARACTER_WRITE_LOCK(myChar->getLock());
+					prtLv = myChar->getLv();
+					myChar->setExpUp(expUp);
+				}
 
 				if (myChar->getPrtExp() >= myChar->getMaxExp())
 				{
@@ -124,28 +127,28 @@ void Handler_PUSER_ATTCK(Character *myChar, std::string* str)
 					myChar->setLv(prtLv, HpPw[prtLv][0], HpPw[prtLv][1], maxExp[prtLv]);
 					lvUp = true;
 				}
-			}
-			if (lvUp == true)
-			{
-				existLvUpUser = true;
-				Scoped_Rlock CHARACTER_READ_LOCK(myChar->getLock());
-				auto setuserlv = setuserlvContents.add_data();
-				setuserlv->set_id(myChar->getID());
-				setuserlv->set_lv(myChar->getLv());
-				setuserlv->set_maxhp(myChar->getMaxHp());
-				setuserlv->set_power(myChar->getPower());
-				setuserlv->set_expup(expUp);
-				setuserlv->set_maxexp(myChar->getMaxExp());
-			}
-			else
-			{
-				existKillUser = true;
-				Scoped_Rlock CHARACTER_READ_LOCK(myChar->getLock());
-				auto setuserexp = setuserexpContents.add_data();
-				setuserexp->set_id(myChar->getID());
-				setuserexp->set_expup(expUp);
-			}
 
+				if (lvUp == true)
+				{
+					existLvUpUser = true;
+					Scoped_Rlock CHARACTER_READ_LOCK(myChar->getLock());
+					auto setuserlv = setuserlvContents.add_data();
+					setuserlv->set_id(myChar->getID());
+					setuserlv->set_lv(myChar->getLv());
+					setuserlv->set_maxhp(myChar->getMaxHp());
+					setuserlv->set_power(myChar->getPower());
+					setuserlv->set_expup(expUp);
+					setuserlv->set_maxexp(myChar->getMaxExp());
+				}
+				else
+				{
+					existKillUser = true;
+					Scoped_Rlock CHARACTER_READ_LOCK(myChar->getLock());
+					auto setuserexp = setuserexpContents.add_data();
+					setuserexp->set_id(myChar->getID());
+					setuserexp->set_expup(expUp);
+				}
+			}
 			// 몬스터 객체가 공격 당하고나서의 현재 체력을 같은방의 유저들에게 알림.
 			auto userattackresult = userattackresultContents.add_data();
 			userattackresult->set_id(myChar->getID()); // ID는 변하지 않아서 리드락 걸 필요가 읍다!?
