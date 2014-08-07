@@ -133,6 +133,7 @@ void send_message(msg message, vector<Character *> &send_list, bool autolocked) 
 			else
 			{
 				// 너에겐 수많은 이유가 있겠지... 하지만 아마도 그 수많은 이유들의 공통점은 소켓에 전송할 수 없는 것이 아닐까?
+//				remove_valid_client(handleInfo, ioInfo);
 				if (ioInfo->block != nullptr) {
 					MemoryPool->pushBlock(ioInfo->block);
 					ioInfo->block = nullptr;
@@ -181,8 +182,8 @@ void closeClient(SOCKET sock, int id, Character* myChar)
 		std::string bytestring;
 		contents.SerializeToString(&bytestring);
 		{
-			Scoped_Wlock SW1(&Amap->slock);
-			Scoped_Wlock SW2(&elist->slock);
+//			Scoped_Wlock SW1(&Amap->slock);
+//			Scoped_Wlock SW2(&elist->slock);
 
 			// 처음으로 소켓을 닫을 때.
 			make_vector_id_in_room_except_me(myChar, send_list, false/*not autolock*/);
@@ -227,7 +228,7 @@ void remove_valid_client(LPPER_HANDLE_DATA handleInfo, LPPER_IO_DATA ioInfo)
 
 	if (CMap->check(handleInfo->hClntSock,ioInfo->id) == false)
 	{
-		// 이미 삭제 처리 된 경우를 여기에 명시한다.
+		printLog("***내가 이미 삭제되긴 했음?\n");
 	}
 	else
 	{
@@ -323,6 +324,8 @@ void make_vector_id_in_room(E_List *elist, vector<Character *>& send_list) {
 void init_proc(Character* myChar)
 {
 	auto FVEC = F_Vector::getInstance();
+	auto FVEC_M = F_Vector_Mon::getInstance();
+
 	SET_USER::CONTENTS setuserContents;
 	SET_MONSTER::CONTENTS setmonsterContents;
 	INIT::CONTENTS initContents;
@@ -330,6 +333,8 @@ void init_proc(Character* myChar)
 	std::string bytestring;
 	int len = 0;
 	vector<Character *> me, receiver;
+
+	//me에 나의 캐릭을 넣는다.
 	me.push_back(myChar);
 
 	int ID = myChar->getID();
@@ -342,13 +347,6 @@ void init_proc(Character* myChar)
 	int power = myChar->getPower();
 	int maxexp = myChar->getMaxExp();
 	int prtExp = myChar->getPrtExp();
-
-	E_List* elist = FVEC->get(x, y);
-
-	{
-		//		Scoped_Wlock SW(&elist->slock);
-		elist->push_back(myChar);
-	}
 
 	//내 캐릭을 방에 추가해요!!
 
@@ -369,16 +367,19 @@ void init_proc(Character* myChar)
 	initContents.SerializeToString(&bytestring);
 	len = bytestring.length();
 
+	E_List* elist = FVEC->get(x, y);
+	E_List_Mon* elist_m = FVEC_M->get(x, y);
 	{
-		//		Scoped_Rlock SR(&elist->slock);
-		send_message(msg(PINIT, len, bytestring.c_str()), me, true);
-	}
-	
-	bytestring.clear();
-	initContents.clear_data();
+		Scoped_Wlock E_LIST_WRITE_LOCK(&elist->slock);
+		Scoped_Wlock E_LIST_MON_WRITE_LOCK(&elist_m->slock);
 
-	// 현재 접속한 캐릭터의 정보를 다른 접속한 유저들에게 전송한다.
-	{
+		elist->push_back(myChar);
+
+		send_message(msg(PINIT, len, bytestring.c_str()), me, true);
+
+		bytestring.clear();
+		initContents.clear_data();
+
 		auto myData = setuserContents.mutable_data()->Add();
 		myData->set_id(ID);
 		myData->set_name(name);
@@ -390,27 +391,17 @@ void init_proc(Character* myChar)
 		myData->set_power(power);
 		myData->set_prtexp(prtExp);
 		myData->set_maxexp(maxexp);
-	}
 
-	setuserContents.SerializeToString(&bytestring);
-	len = bytestring.length();
+		setuserContents.SerializeToString(&bytestring);
+		len = bytestring.length();
 
-	{
-		//		Scoped_Rlock SR(&elist->slock);
-
-		// 내가 있는 방에 있는 친구들에게 내가 등장함을 알린다.
-		// 나와 같은방에 있는 친구들은 누구?
 		make_vector_id_in_room_except_me(myChar, receiver, false/*autolock*/);
 
 		send_message(msg(PSET_USER, len, bytestring.c_str()), receiver, false);
-		// 이제 생성한 char에 대해서 자료구조에 넣어주었고 내가등장함을 다른 유저에게 알렸다. 이제부턴 char 에대해서 lock을 해줘야 겠다.
-		// 근데 해줄 곳이 없네.. 캐릭터를 read write 하는 곳에 해야하는데 그런 곳이 없으니. 내 판단 맞나요?
-		// RE : 굿굿!!
 
 		setuserContents.clear_data();
 		bytestring.clear();
 
-		// 리스폰된 유저와 같은 방에있는 유저들의 정보를 전송한다.
 		for (int i = 0; i < receiver.size(); i++) {
 			auto tmpChar = receiver[i];
 
@@ -445,31 +436,27 @@ void init_proc(Character* myChar)
 		receiver.clear();
 		setuserContents.clear_data();
 		bytestring.clear();
-	}
 
-	auto FVEC_M = F_Vector_Mon::getInstance();
-	vector<Monster *> vec_mon;
-	//같은방에 있는 몬스터의 정보를 전송한다.
-	E_List_Mon* elist_m = FVEC_M->get(x, y);
-	{
-		//		Scoped_Rlock SR(&elist_m->slock);
+		vector<Monster *> vec_mon;
 		make_monster_vector_in_room(myChar, vec_mon, false);
+
 		for (int i = 0; i < vec_mon.size(); ++i)
 		{
 			Monster* tmpMon = vec_mon[i];
 			{
-				//				Scoped_Wlock(tmpMon->getLock());
+				Scoped_Wlock MONSTER_WRITE_LOCK(tmpMon->getLock());
 				tmpMon->SET_BATTLE_MODE();
+
+				auto setmon = setmonsterContents.add_data();
+				setmon->set_id(tmpMon->getID());
+				setmon->set_x(tmpMon->getX());
+				setmon->set_y(tmpMon->getY());
+				setmon->set_name(tmpMon->getName());
+				setmon->set_lv(tmpMon->getLv());
+				setmon->set_prthp(tmpMon->getPrtHp());
+				setmon->set_maxhp(tmpMon->getMaxHp());
+				setmon->set_power(tmpMon->getPower());
 			}
-			auto setmon = setmonsterContents.add_data();
-			setmon->set_id(tmpMon->getID());
-			setmon->set_x(tmpMon->getX());
-			setmon->set_y(tmpMon->getY());
-			setmon->set_name(tmpMon->getName());
-			setmon->set_lv(tmpMon->getLv());
-			setmon->set_prthp(tmpMon->getPrtHp());
-			setmon->set_maxhp(tmpMon->getMaxHp());
-			setmon->set_power(tmpMon->getPower());
 
 			if (setmonsterContents.data_size() == SET_MONSTER_MAXIMUM)
 			{

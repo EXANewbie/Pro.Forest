@@ -41,14 +41,13 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 	SET_USER::CONTENTS setuserContents;
 	ERASE_MONSTER::CONTENTS erasemonsterContents;
 	SET_MONSTER::CONTENTS setmonsterContents;
+
 	std::string bytestring;
+	int len;
 
 	auto Amap = Access_Map::getInstance();
 	auto FVEC = F_Vector::getInstance();
 	auto FVEC_M = F_Vector_Mon::getInstance();
-
-	int x = pCharacter->getX(), y = pCharacter->getY();
-	E_List* elist = FVEC->get(x, y);
 
 	vector<Character*> charId_in_room_except_me;
 	vector<Character *> me;
@@ -58,7 +57,6 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 	moveuserContents.ParseFromString(*readContents);
 
 	int cur_id, x_off, y_off;
-	int len;
 
 	auto user = moveuserContents.data(0);
 	cur_id = user.id();
@@ -66,17 +64,53 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 	y_off = user.yoff();
 	moveuserContents.clear_data();
 
-	/* 경계값 체크 로직 */
-	if (Boundary_Check(cur_id, x, y, x_off, y_off) == false) {
-		return;
+	E_List *now_elist, *next_elist;
+	E_List_Mon *now_elist_mon, *next_elist_mon;
+
+	{
+		Scoped_Rlock CHARACTER_READ_LOCK(pCharacter->getLock());
+		int x = pCharacter->getX(), y = pCharacter->getY();
+
+		if (pCharacter->getPrtHp() == 0)
+		{
+			//죽은 상태에서 move 명령은 유효하지 않다. 따라서 return;
+			return;
+		}
+		
+		if (Boundary_Check(cur_id, x, y, x_off, y_off) == false)
+		{
+			return;
+		}
+
+		int next_x = x + x_off;
+		int next_y = y + y_off;
+
+		now_elist = FVEC->get(x, y);
+		now_elist_mon = FVEC_M->get(x, y);
+
+		next_elist = FVEC->get(next_x, next_y);
+		next_elist_mon = FVEC_M->get(next_x, next_y);
 	}
+
+	/* 경계값 체크 로직 */
 
 	// 지금 내가 있는 방에 몬스터가 있는지 확인을 하도록 하자. 몬스터와 함께있으면 못움직이게 할 것이기 때문.
 	{
-		E_List_Mon* elist_m = FVEC_M->get(x, y);
-//		Scoped_Rlock SR(&elist_m->slock);
-		if (!elist_m->empty())
+		Scoped_Wlock NOW_E_LIST_WRITE_LOCK(&now_elist->slock);
+		Scoped_Wlock NOW_E_LIST_MON_WRITE_LOCK(&now_elist_mon->slock);
+
+		Scoped_Wlock NEXT_E_LIST_WRITE_LOCK(&next_elist->slock);
+		Scoped_Wlock NEXT_E_LIST_MON_WRITE_LOCK(&next_elist_mon->slock);
+
+		if (pCharacter->getPrtHp() == 0)
 		{
+			//죽은 상태에서 move 명령은 유효하지 않다. 따라서 return;
+			return;
+		}
+
+		if (!now_elist_mon->empty())
+		{
+			//몬스터가 있는데!! 왜 움직이려고!! 응!!?
 			auto moveuser = moveuserContents.add_data();
 			moveuser->set_id(cur_id);
 			moveuser->set_xoff(0);
@@ -91,14 +125,7 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 			bytestring.clear();
 			return;
 		}
-	}
 
-	// 기존의 방의 유저들의 정보를 삭제함
-
-	// 나와 같은방에 있는 친구들은 누구?
-	{
-//		Scoped_Rlock SR(&elist->slock);
-//		Scoped_Rlock SRU(pCharacter->getLock());
 		make_vector_id_in_room_except_me(pCharacter, charId_in_room_except_me, false/*autolock*/);
 
 		for (int i = 0; i < charId_in_room_except_me.size(); ++i)
@@ -127,6 +154,36 @@ void Handler_PMOVE_USER(Character *pCharacter, string* readContents)
 		bytestring.clear();
 		eraseuserContents.clear_data();
 
+		// 기존 방의 유저들에게 내가 사라짐을 알림
+		auto eraseuser = eraseuserContents.add_data();
+		eraseuser->set_id(cur_id);
+		eraseuserContents.SerializeToString(&bytestring);
+		len = bytestring.length();
+
+		send_message(msg(PERASE_USER, len, bytestring.c_str()), charId_in_room_except_me, true);
+
+		eraseuserContents.clear_data();
+
+		make_monster_vector_in_room(pCharacter, vec_mon, false);
+
+		for (int i = 0; i < vec_mon.size(); ++i)
+		{
+			auto erasemon = erasemonsterContents.add_data();
+			erasemon->set_id(vec_mon[i]->getID());
+		}
+		erasemonsterContents.SerializeToString(&bytestring);
+		len = bytestring.length();
+
+		send_message(msg(PERASE_MON, len, bytestring.c_str()), me, true);
+
+		erasemonsterContents.clear_data();
+		bytestring.clear();
+	}
+
+	// 기존의 방의 유저들의 정보를 삭제함
+
+	// 나와 같은방에 있는 친구들은 누구?
+	{
 		// 기존 방의 유저들에게 내가 사라짐을 알림
 		auto eraseuser = eraseuserContents.add_data();
 		eraseuser->set_id(cur_id);

@@ -116,7 +116,7 @@ public:
 		AcquireSRWLockExclusive(&srw);
 		ptr p = poolStack->top();
 		poolStack->pop();
-//		printLog("HandlerBlock Allocated(%d)\n", poolStack->size());
+		printLog("HandlerBlock Allocated(%d)\n", poolStack->size());
 		ReleaseSRWLockExclusive(&srw);
 
 		return p;
@@ -125,7 +125,7 @@ public:
 		memset(p, 0, sizeof(*p));
 		AcquireSRWLockExclusive(&srw);
 		poolStack->push(p);
-//		printLog("HandlerBlock released(%d)\n", poolStack->size());
+		printLog("HandlerBlock released(%d)\n", poolStack->size());
 		ReleaseSRWLockExclusive(&srw);
 	}
 };
@@ -165,16 +165,15 @@ public:
 		AcquireSRWLockExclusive(&srw);
 		ptr p = poolStack->top();
 		poolStack->pop();
-//		printLog("ioInfoBlock Allocated(%d)\n", poolStack->size());
+		printLog("ioInfoBlock Allocated(%d)\n", poolStack->size());
 		ReleaseSRWLockExclusive(&srw);
 
 		return p;
 	}
 	void pushBlock(ptr p) {
-		memset(p, 0, sizeof(*p));
 		AcquireSRWLockExclusive(&srw);
 		poolStack->push(p);
-//		printLog("ioInfoBlock released(%d)\n", poolStack->size());
+		printLog("ioInfoBlock released(%d)\n", poolStack->size());
 		ReleaseSRWLockExclusive(&srw);
 	}
 };
