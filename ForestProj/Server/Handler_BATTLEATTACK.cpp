@@ -50,68 +50,55 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 	int attackType;
 	vector<int> clist;
 
+	string bytestring;
+	int len = 0;
+
 	int ID_m = battleattack.id();
 
 	auto AMAP_MON = Access_Map_Mon::getInstance();
-	auto AMAP = Access_Map::getInstance();
+//	auto AMAP = Access_Map::getInstance();
 	Monster* monster;
+
+	monster = AMAP_MON->find(ID_m);
+	//지금 현재 상태와 패킷의 상태가 일치하지 않습니다!!
 	{
-		monster = AMAP_MON->find(ID_m);
-		//지금 현재 상태와 패킷의 상태가 일치하지 않습니다!!
+		Scoped_Rlock MONSTER_READ_LOCK(monster->getLock());
 		if (monster->getState() != PMODEBATTLEATTACK)
 		{
 			return;
 		}
-
 		x = monster->getX();
 		y = monster->getY();
+	}
 
-		vector<int> damage;
-		vector<Character *> nxt, receiver;
-		auto elist = F_Vector::getInstance()->get(x, y);
+	vector<int> damage;
+	vector<Character *> nxt, receiver;
+	auto elist = F_Vector::getInstance()->get(x, y);
+	auto elist_m = F_Vector_Mon::getInstance()->get(x, y);
+	{
+		Scoped_Wlock E_LIST_WRITE_LOCK(&elist->slock);
+		Scoped_Wlock E_LIST_MON_WRITE_LOCK(&elist_m->slock);
+		// AI를 통해 대상과 데미지를 계산합니다.
+		monster->getAttackInfo(ATTACKSTART, vector<int>(), &attackType, nxt, damage);
+
+		// 현재 방에 참여하고 있는 유저들의 정보를 가져옵니다.
+		make_vector_id_in_room(elist, receiver);
+
+		MONSTER_ATTACK_RESULT::CONTENTS monsterattackresultContents;
+		monsterattackresultContents.set_id_m(monster->getID());
+		monsterattackresultContents.set_attacktype(attackType);
+
+		for (int i = 0; i < nxt.size(); i++)
 		{
-			// AI를 통해 대상과 데미지를 계산합니다.
-			monster->getAttackInfo(ATTACKSTART, vector<int>(), &attackType, nxt, damage);
-
-			// 현재 방에 참여하고 있는 유저들의 정보를 가져옵니다.
-			make_vector_id_in_room(elist, receiver);
-
-			MONSTER_ATTACK_RESULT::CONTENTS monsterattackresultContents;
-			monsterattackresultContents.set_id_m(monster->getID());
-			monsterattackresultContents.set_attacktype(attackType);
-
-
-			string bytestring;
-
-
-			for (int i = 0; i < nxt.size(); i++)
 			{
-				if (nxt[i] == nullptr) {
-//					printf("???\n");
-				}
+				Scoped_Wlock CHARACTER_WRITE_LOCK(nxt[i]->getLock());
 				nxt[i]->attacked(damage[i]);
 
-				auto data = monsterattackresultContents.add_data();
-				data->set_id(nxt[i]->getID());
-				data->set_prthp(nxt[i]->getPrtHp());
-
-				if (monsterattackresultContents.data_size() == ATTACKED_USER_MAXIMUM)
-				{
-					monsterattackresultContents.SerializeToString(&bytestring);
-					send_message(msg(PMONSTER_ATTACK_RESULT, bytestring.size(), bytestring.c_str()), receiver, false);
-
-					monsterattackresultContents.clear_data();
-					bytestring.clear();
-				}
-
-				// 체력이 0이 되는 유저들을 제거하는 부분입니다.
 				if (nxt[i]->getPrtHp() == 0)
 				{
-//					puts("유저 죽었설");
 					elist->erase(nxt[i]);
 
 					int Respawn_Time = nxt[i]->getLv() * 2000; // 리스폰 시간은 여기서 정의
-					string bytestring;
 					USER_RESPAWN::CONTENTS userrespawnContents;
 					userrespawnContents.set_id(nxt[i]->getID());
 					userrespawnContents.set_x(22); // 리스폰될 x의 위치를 결정
@@ -121,36 +108,46 @@ void Handler_BATTLEATTACK(LPPER_IO_DATA ioInfo, string* readContents) {
 					auto MemoryPool = Memory_Pool::getInstance();
 					auto blocks = MemoryPool->popBlock();
 
-					int len = 0;
 					unpack(msg(USERRESPAWN, bytestring.size(), bytestring.c_str()), blocks->getBuffer(), &len);
 
 					Timer::getInstance()->addSchedule(Respawn_Time, string(blocks->getBuffer(), len));
 
 					MemoryPool->pushBlock(blocks);
 				}
-			}
-			monsterattackresultContents.SerializeToString(&bytestring);
-			send_message(msg(PMONSTER_ATTACK_RESULT, bytestring.size(), bytestring.c_str()), receiver, false);
 
-			monsterattackresultContents.clear_data();
-			leaveUserSize = elist->size();
-			for (int i = 0; i < ( nxt.size() > 50 ? 50 : nxt.size() ); i++)
+				auto data = monsterattackresultContents.add_data();
+				data->set_id(nxt[i]->getID());
+				data->set_prthp(nxt[i]->getPrtHp());
+			}
+
+			if (monsterattackresultContents.data_size() == ATTACKED_USER_MAXIMUM)
 			{
-				clist.push_back(nxt[i]->getID());
+				monsterattackresultContents.SerializeToString(&bytestring);
+				send_message(msg(PMONSTER_ATTACK_RESULT, bytestring.size(), bytestring.c_str()), receiver, false);
+
+				monsterattackresultContents.clear_data();
+				bytestring.clear();
+			}
+
+			// 체력이 0이 되는 유저들을 제거하는 부분입니다.
+		}
+		monsterattackresultContents.SerializeToString(&bytestring);
+		send_message(msg(PMONSTER_ATTACK_RESULT, bytestring.size(), bytestring.c_str()), receiver, false);
+
+		monsterattackresultContents.clear_data();
+		leaveUserSize = elist->size();
+
+		if (leaveUserSize == 0)
+		{
+			auto elist_m = FVEC_M->get(x, y);
+			for (auto itr = elist_m->begin(); itr != elist_m->end(); itr++)
+			{
+				(*itr)->SET_PEACE_MODE();
 			}
 		}
-	}
-
-	if (leaveUserSize == 0)
-	{
-		auto elist_m = FVEC_M->get(x, y);
-		for (auto itr = elist_m->begin(); itr != elist_m->end(); itr++)
+		else
 		{
-			(*itr)->SET_PEACE_MODE();
+			monster->CONTINUE_BATTLE_MODE(clist, attackType);
 		}
-	}
-	else
-	{
-		monster->CONTINUE_BATTLE_MODE(clist, attackType);
 	}
 }

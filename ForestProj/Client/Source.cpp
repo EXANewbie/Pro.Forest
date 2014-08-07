@@ -22,7 +22,7 @@
 
 #define PORT 78911
 
-#define SERVER_IP_ADDRESS /*"localhost"*/"10.1.7.10"
+#define SERVER_IP_ADDRESS /*"localhost"*/"10.1.7.206"
 
 SYNCHED_CHARACTER_MAP* SYNCHED_CHARACTER_MAP::instance;
 SYNCHED_MONSTER_MAP* SYNCHED_MONSTER_MAP::instance;
@@ -55,6 +55,7 @@ void main(void)
 	if (connect(s, (SOCKADDR *)&ServerAddr, sizeof(ServerAddr)) == -1)
 	{
 		printf("연결실패\n");
+		return;
 	}
 	
 	printf("                              --MINI EXA GAME--                              \n");

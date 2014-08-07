@@ -5,16 +5,16 @@
 #include "mmap.h"
 #include "types.h"
 
-void Handler_PSET_USER(Character *myChar, std::string* str);
+void Handler_PSET_USER(int *myID, std::string* str);
 void Handler_PINIT(int* myID, Character *myChar, std::string* str);
-void Handler_PMOVE_USER(Character *myChar, std::string* str);
-void Handler_PERASE_USER(Character *myChar, std::string* str);
-void Handler_PSET_MON(Character *myChar, std::string* str);
-void Handler_PERASE_MON(Character *myChar, std::string* str);
-void Handler_PUSER_ATTCK_RESULT(Character *myChar, std::string* str);
-void Handler_PUSER_SET_LV(Character *myChar, std::string* str);
-void Handler_PUSER_SET_EXP(Character *myChar, std::string* str);
-void Handler_PMONSTER_ATTACK_RESULT(Character *myChar, std::string* str);
+void Handler_PMOVE_USER(int *myID, std::string* str);
+void Handler_PERASE_USER(int *myID, std::string* str);
+void Handler_PSET_MON(int *myID, std::string* str);
+void Handler_PERASE_MON(int *myID, std::string* str);
+void Handler_PUSER_ATTCK_RESULT(int *myID, std::string* str);
+void Handler_PUSER_SET_LV(int *myID, std::string* str);
+void Handler_PUSER_SET_EXP(int *myID, std::string* str);
+void Handler_PMONSTER_ATTACK_RESULT(int *myID, std::string* str);
 
 struct deleter {
 	void operator()(char *c){ delete[]c; }
@@ -48,7 +48,7 @@ void receiver(const SOCKET s, int* myID, Character* myChar)
 
 		if (type == PSET_USER)
 		{
-			Handler_PSET_USER(myChar, &tmp);
+			Handler_PSET_USER(myID, &tmp);
 		}
 		else if (type == PINIT)
 		{
@@ -56,36 +56,36 @@ void receiver(const SOCKET s, int* myID, Character* myChar)
 		}
 		else if (type == PMOVE_USER)
 		{
-			Handler_PMOVE_USER(myChar, &tmp);
+			Handler_PMOVE_USER(myID, &tmp);
 		}
 		else if (type == PERASE_USER)
 		{
-			Handler_PERASE_USER(myChar, &tmp);
+			Handler_PERASE_USER(myID, &tmp);
 		}
 		else if (type == PSET_MON)
 		{
-			Handler_PSET_MON(myChar, &tmp);
+			Handler_PSET_MON(myID, &tmp);
 		}
 		else if (type == PERASE_MON)
 		{
-			Handler_PERASE_MON(myChar, &tmp);
+			Handler_PERASE_MON(myID, &tmp);
 		}
 		else if (type == PUSER_ATTCK_RESULT)
 		{
-			Handler_PUSER_ATTCK_RESULT(myChar, &tmp);
+			Handler_PUSER_ATTCK_RESULT(myID, &tmp);
 		}
 		else if (type == PUSER_SET_LV)
 		{
-			Handler_PUSER_SET_LV(myChar, &tmp);
+			Handler_PUSER_SET_LV(myID, &tmp);
 		}
 		else if (type == PUSER_SET_EXP)
 		{
-			Handler_PUSER_SET_EXP(myChar, &tmp);
+			Handler_PUSER_SET_EXP(myID, &tmp);
 		}
 		else if (type == PMONSTER_ATTACK_RESULT)
 		{
 			//내일할 곳.
-			Handler_PMONSTER_ATTACK_RESULT(myChar, &tmp);
+			Handler_PMONSTER_ATTACK_RESULT(myID, &tmp);
 		}
 
 		tmp.clear();
