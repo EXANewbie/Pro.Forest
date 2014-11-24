@@ -30,7 +30,6 @@ public:
 	}
 	Character(int x, int y) 
 	{
-		InitializeSRWLock(&srw);
 		ID = -1;
 		prtExp = 0;
 		this->x = x;
